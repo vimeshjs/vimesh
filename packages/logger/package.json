@@ -1,0 +1,15 @@
+{
+  "name": "@vimesh/logger",
+  "version": "0.9.0",
+  "description": "Vimesh logger",
+  "main": "index.js",
+  "repository": "https://github.com/vimeshjs/vimesh.git",
+  "author": "Jacky <jacky@vimesh.org>",
+  "license": "MIT",
+  "dependencies": {
+    "mkdirp": "^1.0.3",
+    "winston": "^3.2.1",
+    "winston-daily-rotate-file": "^4.4.2",
+    "winston-mongodb": "^5.0.1"
+  }
+}
