@@ -1,0 +1,9 @@
+properties:
+  _id: string         # 数据迁移id
+  _at: date           # 执行时间
+  _fat: date          # 结束时间
+  logs: 
+    - log: string     # 执行的log
+      at: date        # log时间
+$mapping:
+  collection: _migrations

@@ -1,0 +1,14 @@
+properties:
+  _id: ObjectId       # ID
+  message: string     # 内容
+  level: string       # 等级
+  timestamp: date     # 记录时间
+  label: string       # 标签
+  hostname: string    # 机器名
+$mapping:
+  collection: _logs
+  indexes:
+    - keys:
+        timestamp: -1
+        label: 1
+        level: 1

@@ -1,0 +1,6 @@
+properties:
+  _id: string       # 角色名称
+  permissions:      # 权限列表
+    - string        # 权限ID
+$mapping:
+  collection: roles

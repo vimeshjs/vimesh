@@ -1,0 +1,12 @@
+properties:
+  _id: ObjectId         # ID
+  name: string          # 部门名称
+  sub_deps:             # 下级部门列表
+    - ObjectId          # 下级部门ID
+  positions:
+    - name: string      # 职务名称
+      role: string      # 权限角色
+      dashboard: string # 工作台样式
+      
+$mapping:
+  collection: departments

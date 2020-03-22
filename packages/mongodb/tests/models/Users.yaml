@@ -1,0 +1,39 @@
+properties:
+  _id: string           # 用户ID，即用户名
+  name: string          # 姓名
+  no: string            # 员工编号
+  email: string         # Email
+  password: string      # 密码
+  phone: string         # 电话号码
+  mobile: string        # 手机号
+  qq: string            # QQ号
+  wechat: string        # 微信号
+  avatar: File          # 头像
+  birthday: date        # 生日
+  dashboard: string     # 工作台样式
+  sex: string           # m : 男, f: 女, null : unknown
+  departments:          # 所属部门及职位，可多选
+    - id: ObjectId      # 部门ID
+      position: string  # 职位
+  roles:                # 角色列表
+    - string
+  blocked:              # 是否被禁用
+  blocked_reason: string # 禁用原因
+  failure_number: number # 失败次数
+  forbid_at:  date      # 禁用时间    
+  company_id: ObjectId  # 公司ID
+  extra_perms:          # 附加权限
+    include:            # 包含附加权限
+      - string
+    exclude:            # 剔除附加权限
+      - string
+  resetPasswordToken: string # 忘记密码时产生 重置密码使用
+  resetPasswordExpires: integer # 重置链接过期时间
+  token: string         # 登录状态使用的token 确保用户不能多端同时登录    
+$mapping:
+  collection: users
+  indexes:
+    - keys:
+        email: 1
+      options:
+        unique: true

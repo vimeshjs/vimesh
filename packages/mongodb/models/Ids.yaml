@@ -1,0 +1,5 @@
+properties:
+  _id: string   # id name
+  next: number # next id
+$mapping:
+  collection: _ids

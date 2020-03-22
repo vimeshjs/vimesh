@@ -1,0 +1,42 @@
+properties:
+  _id: ObjectId         # ID
+  type: string          # 公司类型, @ = 自己公司, customer, supplier
+  sub_type: string      # 公司子类型
+  short_name: string    # 简称
+  name: string          # 公司名称
+  name_ml: string       # 公司多语言名称
+  address: string       # 地址
+  website: string       # 网址
+  license:
+    id: string          # 工商注册号
+    file: File          # 营业执照扫描件
+  legal_rep: string     # 法人
+  invoice_infos:        # 收款/发票信息
+    - type: string      # 发票类型（企业增值税普通发票,企业增值税专用发票,个人增值税普通发票,组织增值税普通发票)
+      no: string        # 税号
+      name: string      # 公司名
+      bank_no: string   # 银行账号
+      bank: string      # 银行
+  sub_deps:
+    - ObjectId          # 一级子部门的id
+  extra:
+    # customer
+    comments:
+      - content: string     # 备注内容
+        by: ObjectId        # 备注人
+        at: date            # 备注时间
+    invitation_code: string # 邀请码
+    owner_cid: ObjectId     # 所属公司
+    members:                # 缺省客服成员
+      - user: ObjectId      # 用户ID
+        role: string        # 角色 （客户经理、操作、财务）
+    
+    # supplier & customer
+    contacts:               # 联系人
+      - name: string        # 名字
+        email: string       # 邮箱
+        mobile: string      # 手机
+        qq: string          # QQ
+        wechat: string      # 微信
+$mapping:
+  collection: companies

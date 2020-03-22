@@ -1,0 +1,13 @@
+properties:
+  _id: ObjectId       # ID
+  model: string       # 模型名
+  data: object        # 回收的数据
+  at: date            # 回收时间
+$mapping:
+  collection: _recycle.bin
+  indexes:
+    - keys:
+        model: 1
+        data._id: 1
+      options:
+        unique: true
