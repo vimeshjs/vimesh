@@ -6,29 +6,6 @@ function trim(s) {
     return s.replace(/(^\s*)|(\s*$)/g, "");
 }
 
-function getPropertyPaths(rows, path, obj) {
-    _.each(obj, (v, k) => {
-        if (_.isString(v)) {
-            rows.push([path ? path + '.' + k : k, v])
-        } else {
-            getPropertyPaths(rows, path ? path + '.' + k : k, v)
-        }
-    })
-}
-function copyProperties(dst, src) {
-    let rows = []
-    getPropertyPaths(rows, '', src)
-    _.each(rows, item => {
-        let parts = item[0].split('.')
-        let path = parts[0]
-        for (let i = 0; i < parts.length - 1; i++) {
-            if (!_.get(dst, path)) _.set(dst, path, {})
-            path += '.' + parts[i + 1]
-        }
-        _.set(dst, item[0], item[1])
-    })
-}
-
 function retryPromise(fn, ms = 1000) {
     return new Promise(resolve => {
         fn()
@@ -66,7 +43,6 @@ function pretty(strOrJson) {
 
 module.exports = {
     trim,
-    copyProperties,
     retryPromise,
     timeout,
     next,
