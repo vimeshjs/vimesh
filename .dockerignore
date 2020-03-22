@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+Dockerfile
+.dockerignore
+.git
+README.md
+.gitignore
+.env
+tmp
+uploads
+logs
+build
+yarn*.log
+*.dockerfile
+.vscode
+mnt
