@@ -1,0 +1,27 @@
+{
+  "name": "@vimesh/graphql",
+  "version": "0.9.0",
+  "description": "Vimesh GraphQL",
+  "main": "index.js",
+  "repository": "https://github.com/vimeshjs/vimesh.git",
+  "author": "Jacky <jacky@vimesh.org>",
+  "license": "MIT",
+  "dependencies": {
+    "@apollo/federation": "^0.13.2",
+    "@apollo/gateway": "^0.13.2",
+    "apollo-boost": "^0.4.7",
+    "apollo-cache-inmemory": "^1.6.5",
+    "apollo-link-http": "^1.5.16",
+    "apollo-server": "^2.11.0",
+    "apollo-server-express": "^2.11.0",
+    "bufferutil": "^4.0.1",
+    "cross-fetch": "^3.0.4",
+    "glob": "^7.1.6",
+    "graphql": "^14.6.0",
+    "graphql-iso-date": "^3.6.1",
+    "graphql-type-json": "^0.3.1",
+    "lodash": "^4.17.15",
+    "utf-8-validate": "^5.0.2"
+  },
+  "gitHead": "52c72338a2879c209a501cfb3fe497ad428f77d3"
+}
