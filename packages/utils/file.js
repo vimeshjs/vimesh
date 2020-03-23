@@ -5,52 +5,52 @@ const crypto = require('crypto')
 const glob = require("glob")
 const yaml = require('js-yaml')
 
-function getFileChecksum(filename, type, callback){
-	if (callback === undefined){
-		callback = type;
-		type = 'md5';
-	}
+function getFileChecksum(filename, type, callback) {
+    if (callback === undefined) {
+        callback = type;
+        type = 'md5';
+    }
 
-	if (!fs.existsSync(filename)){
-		callback('File does not exist!');
-	} else {			
-		var sum = crypto.createHash(type);
-		var s = fs.ReadStream(filename);
-		s.on('data', function(d) {
-			sum.update(d);
-		});
+    if (!fs.existsSync(filename)) {
+        callback('File does not exist!');
+    } else {
+        let sum = crypto.createHash(type);
+        let s = fs.ReadStream(filename);
+        s.on('data', function (d) {
+            sum.update(d);
+        });
 
-		s.on('end', function() {
-			var d = sum.digest('hex');
-			callback(null, d);
-		});
-	}
-}
-
-function loadYaml(f){
-	try{
-		var yamlContent = fs.readFileSync(f).toString()
-		return yaml.load(yamlContent)
-	}catch(ex){
-		return null;
-	}
-}
-
-function loadJson(file){
-    try{
-        let data = fs.readFileSync(file)
-        return JSON.parse(data.toString())
-    } catch(ex){
-		return null;
+        s.on('end', function () {
+            let d = sum.digest('hex');
+            callback(null, d);
+        });
     }
 }
 
-function loadText(file){
-    try{
+function loadYaml(f) {
+    try {
+        let yamlContent = fs.readFileSync(f).toString()
+        return yaml.load(yamlContent)
+    } catch (ex) {
+        return null;
+    }
+}
+
+function loadJson(file) {
+    try {
+        let data = fs.readFileSync(file)
+        return JSON.parse(data.toString())
+    } catch (ex) {
+        return null;
+    }
+}
+
+function loadText(file) {
+    try {
         let data = fs.readFileSync(file)
         return data.toString()
-    } catch(ex){
-		return null;
+    } catch (ex) {
+        return null;
     }
 }
 
@@ -81,10 +81,29 @@ function loadDataTree(root) {
     return data
 }
 
+function loadConfigs(context, ...files) {
+    const Handlebars = require("handlebars");
+    const configsDir = context.configsDir || path.join(process.cwd(), 'configs')
+    let configs = {}
+    _.each(files, f => {
+        try {
+            let filePath = path.join(configsDir, f) + '.yaml'
+            let yamlContent = fs.readFileSync(filePath).toString()
+            const template = Handlebars.compile(yamlContent);
+            let cf = yaml.load(template(context))
+            configs = _.merge(configs, cf)
+        } catch (ex) {
+            $logger.error(`Fails to load ${f}`, ex)
+        }
+    })
+    return configs
+}
+
 module.exports = {
     getFileChecksum,
-	loadYaml,
-	loadJson,
-	loadText,
-	loadDataTree
+    loadYaml,
+    loadJson,
+    loadText,
+    loadDataTree,
+    loadConfigs
 }

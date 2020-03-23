@@ -1,0 +1,8 @@
+timezone: Asia/Shanghai
+logger:
+  console:
+    colorized: true
+  file:
+    dir: '{{root}}/logs'
+portlet:
+  layout: main

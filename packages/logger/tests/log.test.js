@@ -1,6 +1,9 @@
 const { setupLogger } = require('..')
 
-setupLogger()
+setupLogger({
+    name: 'test',
+    docker: {}
+})
 
 test('logger', () => {
     $logger.info('Hello World')

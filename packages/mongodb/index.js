@@ -76,7 +76,6 @@ function setupMongoDB(config, modelRoot, baseDb = 'base') {
             options.authSource = v.AUTHSOURCE;
         // uri += (uri.indexOf('?') > 0 ? '&' : '?') + "authSource=" + v.AUTHSOURCE
         //options.useUnifiedTopology = true 
-        //return connectTo(uri,dbName,options, k, $config.DB_DEBUG || v.DEBUG || false, v.ADMIN || false)
         return retryPromise(
             _.bind(connectTo, null, uri, dbName, options, k, config.DB_DEBUG || v.DEBUG || false, v.ADMIN || false, remains),
             10000

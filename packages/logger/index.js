@@ -1,65 +1,68 @@
+const _ = require('lodash')
 const fs = require('fs')
 const mkdirp = require('mkdirp')
 const winston = require('winston')
 
 function setupLogger(config) {
 
-	config = config || { LOG_CONSOLE_ONLY: true }
-
-	if (config.LOG_DIR && !fs.existsSync(config.LOG_DIR))
-		mkdirp.sync(config.LOG_DIR);
+	config = config || { console: {} }
 
 	let transports = []
-	if (!config.LOG_CONSOLE_ONLY) {
-		const DailyRotateFile = require('winston-daily-rotate-file')
-		transports = [
-			new DailyRotateFile(
-				{
-					dirname: config.LOG_DIR,
-					filename: config.LOG_NAME || 'daily',
+	_.each(config, (typeConf, type) => {
+		switch (type) {
+			case 'console':
+				transports.push(new winston.transports.Console({
 					handleExceptions: true,
 					format: winston.format.combine(
-						winston.format.timestamp(),
+						winston.format.colorize(),
 						winston.format.simple()
 					)
-				})
-		]
-	}
-	if (config.LOG_CONSOLE_ONLY || config.LOG_CONSOLE || process.env.NODE_ENV == 'development') {
-		let transportConfig = {
-			colorize: config.LOG_CONSOLE_COLORIZED === undefined ? true : config.LOG_CONSOLE_COLORIZED,
-			handleExceptions: true,
-			format: winston.format.combine(
-				winston.format.colorize(),
-				winston.format.simple()
-			)
+				}))
+				break;
+			case 'file':
+				if (typeConf.dir && !fs.existsSync(typeConf.dir))
+					mkdirp.sync(typeConf.dir)
+				const DailyRotateFile = require('winston-daily-rotate-file')
+				transports.push(
+					new DailyRotateFile({
+						dirname: typeConf.dir,
+						filename: config.name || 'log',
+						handleExceptions: true,
+						format: winston.format.combine(
+							winston.format.timestamp(),
+							winston.format.simple()
+						)
+					})
+				)
+				break;
+			case 'docker':
+				transports.push(new winston.transports.Console({
+					handleExceptions: true,
+					format: winston.format.combine(
+						winston.format.label({ label: config.name || 'log' }),
+						winston.format.timestamp(),
+						winston.format.ms(),
+						winston.format.logstash()
+					)
+				}))
+				break;
+			case 'mongodb':
+				require('winston-mongodb')
+				let options = {
+					db: typeConf.uri,
+					collection: typeConf.collection || 'logs',
+					storeHost: true,
+					label: config.name || 'log',
+					decolorize: true,
+					tryReconnect: true,
+					expireAfterSeconds: (typeConf.days || 7) * 24 * 60 * 60
+				}
+				transports.push(new winston.transports.MongoDB(options))
+				break;
 		}
-		if (process.env.DEPLOY == 'docker') {
-			transportConfig.format = winston.format.combine(
-				winston.format.label({ label: config.LOG_NAME || 'log' }),
-				winston.format.timestamp(),
-				winston.format.ms(),
-				winston.format.logstash()
-			)
-		}
-		transports.push(new winston.transports.Console(transportConfig));
-	}
-
-	if (config.LOG_MONGODB_URI) {
-		require('winston-mongodb')
-		let options = {
-			db: config.LOG_MONGODB_URI,
-			collection: 'logs',
-			storeHost: true,
-			label: config.LOG_NAME,
-			decolorize: true,
-			tryReconnect: true,
-			expireAfterSeconds: (config.LOG_MONGODB_DAYS || 7) * 24 * 60 * 60
-		}
-		transports.push(new winston.transports.MongoDB(options))
-	}
+	})
 	let logger = winston.createLogger({
-		level: config.LOG_LEVEL || 'info',
+		level: config.level || 'info',
 		transports: transports,
 		exitOnError: false
 	})

@@ -5,7 +5,7 @@ const formatDate = require('@vimesh/utils')
 const MAX_DAYS = 10
 
 $aggregator.createReportInTimeslot = function(options){
-    const TIMEZONE = options.timezone || $config.TIMEZONE || 'UTC'
+    const TIMEZONE = options.timezone || 'UTC'
     let dt = moment(options.date).tz(TIMEZONE)
     let ts = options.timeslot
     let tmfield = options.timestamp
@@ -53,7 +53,7 @@ function createOneDayReportTask(dao, dt, tmfield, stages){
     })
 }
 $aggregator.buildDailyReports = function (options) {
-    const TIMEZONE = $config.TIMEZONE || 'UTC'
+    const TIMEZONE = options.timezone || 'UTC'
     let source = _.isString(options.source) ? $dao[options.source] : options.source
     let target = _.isString(options.target) ? $dao[options.target] : options.target
     let stages = options.stages

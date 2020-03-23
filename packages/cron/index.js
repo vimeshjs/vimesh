@@ -59,8 +59,7 @@ exports.execute = function (config) {
                 isRunning: false,
                 handler: handler,
                 jobMemo: config.memo || {}
-            },
-            timeZone: global.$config && $config.TIMEZONE || 'UTC'
+            }
         })
         if (config.start !== false)
             job.start()
