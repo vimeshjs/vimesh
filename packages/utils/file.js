@@ -1,5 +1,6 @@
 const _ = require('lodash')
 const fs = require('fs')
+const path = require('path')
 const crypto = require('crypto')
 const glob = require("glob")
 const yaml = require('js-yaml')
@@ -53,9 +54,37 @@ function loadText(file){
     }
 }
 
+function loadFileAs(data, category, name, file) {
+    if (!data[category]) data[category] = {}
+    let ext = path.extname(file)
+    data[category][name] = ext === '.yaml' || ext === '.yml' ? loadYaml(file) : loadJson(file)
+    if (!data[category][name])
+        $logger.error(`Fails to load ${category}/${name} from ${file}`)
+}
+
+function loadDataTree(root) {
+    let data = {}
+    _.each(glob.sync(root + "/*"), function (dir) {
+        if (fs.statSync(dir).isDirectory()) {
+            let category = path.basename(dir)
+            _.each(glob.sync(dir + "/*"), function (file) {
+                let ext = path.extname(file)
+                if (_.includes(['.yaml', '.yml', '.json', '.js'], ext)) {
+                    let name = path.basename(file)
+                    name = name.substring(0, name.length - ext.length)
+                    $logger.debug(`DATA ${category}/${name} <- ${file}`)
+                    loadFileAs(data, category, name, file)
+                }
+            })
+        }
+    })
+    return data
+}
+
 module.exports = {
     getFileChecksum,
 	loadYaml,
 	loadJson,
-	loadText
+	loadText,
+	loadDataTree
 }
