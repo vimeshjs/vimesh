@@ -7,7 +7,6 @@ logs/
 .idea/
 uploads/
 tmp/
-cache/
 .vscode/
 launch.json
 mnt

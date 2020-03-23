@@ -1,0 +1,13 @@
+{
+  "name": "@vimesh/cache",
+  "version": "0.9.0",
+  "description": "Vimesh cache management",
+  "main": "index.js",
+  "repository": "https://github.com/vimeshjs/vimesh.git",
+  "author": "Jacky <jacky@vimesh.org>",
+  "license": "MIT",
+  "dependencies": {
+    "json-stable-stringify": "^1.0.1",
+    "lru-cache": "^5.1.1"
+  }
+}
