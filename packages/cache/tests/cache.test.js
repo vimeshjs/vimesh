@@ -49,6 +49,7 @@ test('Cache Two', () => {
 
     let cache2 = createMemoryCache({
         maxAge: '1h',
+        stale : false,
         onRefresh: function (key) {
             let file = __dirname + '/' + key.type + key.no + '.json'
             $logger.info(`Fetching ${pretty(key)} @ ${file}`)
@@ -71,6 +72,7 @@ test('Cache Two', () => {
     }).then(v => {
         expect(v.name).toBe('file2')
         expect(v.content).toBe("this is content 2")
+        clock.tick(duration('2h'))
         return cache2.get({ no: 1, type: 'file' })
     }).then(v => {
         expect(v.name).toBe('file1')
