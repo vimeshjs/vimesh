@@ -3108,6 +3108,13 @@ crc@^3.8.0:
   dependencies:
     buffer "^5.1.0"
 
+cron@^1.8.2:
+  version "1.8.2"
+  resolved "https://registry.npm.taobao.org/cron/download/cron-1.8.2.tgz#4ac5e3c55ba8c163d84f3407bde94632da8370ce"
+  integrity sha1-SsXjxVuowWPYTzQHvelGMtqDcM4=
+  dependencies:
+    moment-timezone "^0.5.x"
+
 cross-fetch@^3.0.4:
   version "3.0.4"
   resolved "https://registry.npm.taobao.org/cross-fetch/download/cross-fetch-3.0.4.tgz#7bef7020207e684a7638ef5f2f698e24d9eb283c"
@@ -6022,7 +6029,7 @@ modify-values@^1.0.0:
   resolved "https://registry.npm.taobao.org/modify-values/download/modify-values-1.0.1.tgz#b3939fa605546474e3e3e3c63d64bd43b4ee6022"
   integrity sha1-s5OfpgVUZHTj4+PGPWS9Q7TuYCI=
 
-moment-timezone@^0.5.28:
+moment-timezone@^0.5.28, moment-timezone@^0.5.x:
   version "0.5.28"
   resolved "https://registry.npm.taobao.org/moment-timezone/download/moment-timezone-0.5.28.tgz#f093d789d091ed7b055d82aa81a82467f72e4338"
   integrity sha1-8JPXidCR7XsFXYKqgagkZ/cuQzg=

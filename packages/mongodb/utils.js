@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const moment = require('moment')
 const { ObjectID, Timestamp } = require('mongodb')
 
 function getObjectID() {
@@ -40,7 +41,16 @@ function getTimestamp(dt) {
     return new Timestamp((dt % 1000) * 100000 + tsIndex, t);
 }
 
+function extractDate(dt){
+	if (dt instanceof ObjectID)
+		dt = dt.getTimestamp()
+	if (dt instanceof Timestamp)
+		return new Date(dt.getHighBits() * 1000)
+	return moment(dt).toDate();
+}
+
 module.exports = {
+    extractDate,
     getObjectID,
     toObjectID,
     toTimestamp,
