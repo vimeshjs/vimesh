@@ -1,5 +1,5 @@
 portlet:
   mock: true
-  log:
-    routes: true
-    request: true
+  compress: true
+  logRoutes: true
+  logRequest: true

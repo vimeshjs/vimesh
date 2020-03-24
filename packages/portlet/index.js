@@ -6,18 +6,19 @@ const fs = require('graceful-fs')
 const { getCRC16 } = require('@vimesh/utils')
 const { setupGraphQLService } = require('@vimesh/graphql')
 const express = require('express')
+const compression = require('compression')
 const helpers = require('./helpers')
 const ExpressHandlebars = require('./express-handlebars')
 
-const HTTP_METHODS = ['all', 'get', 'post', 'put', 'delete', 'patch', 'options', 'head']
+const HTTP_METHODS = ['all', 'get', 'post', 'put', 'delete', 'patch', 'config', 'head']
 
-function scanRoutes(app, current) {
-    const LOG_ROUTES = app.get('log routes')
+function scanRoutes(context, current) {
+    const app = context.app
     let pipelines = _.clone(current.pipelines || {})
     let layout = current.layout
     let before = _.clone(current.before || [])
     let after = _.clone(current.after || [])
-    let portlet = app.get('portlet')
+    let portlet = context.portlet
 
     if (!fs.existsSync(current.dir)) return
 
@@ -56,7 +57,7 @@ function scanRoutes(app, current) {
                 routes: []
             }
             current.routes.push(child)
-            scanRoutes(app, child)
+            scanRoutes(context, child)
         } else if (ext === '.js') {
             let methods = require(fullPath)
             methods = _.pick(methods, HTTP_METHODS)
@@ -101,7 +102,7 @@ function scanRoutes(app, current) {
                 let allHandlers = _.concat(mbefore, wrappedHandler, mafter)
                 allHandlers = _.map(allHandlers, h => _.isFunction(h) ? h : pipelines[h])
                 let realUrlPath = `${portlet ? '/@' + portlet : ''}${current.urlPath}/${action === 'index' ? '' : action}`.replace(/\[/g, ':').replace(/\]/g, '')
-                if (LOG_ROUTES) $logger.info(`ROUTE ${k.toUpperCase()} ${realUrlPath}`)
+                if (context.config.logRoutes) $logger.info(`ROUTE ${k.toUpperCase()} ${realUrlPath}`)
                 app[k](realUrlPath, ...allHandlers)
             })
         }
@@ -125,50 +126,54 @@ function calcPortFromPortletName(portlet) {
     return 10000 + getCRC16(portlet) % 10000
 }
 
-function setupViewServer(options) {
-    let portlet = options.portlet
-    let port = options.port || calcPortFromPortletName(portlet)
+function setupPortletServer(config) {
+    let portlet = config.name
+    let port = config.port || calcPortFromPortletName(portlet)
     let app = express()
-    let routesDir = path.join(process.cwd(), options.routesDir || 'routes')
-    let sharedDir = path.join(process.cwd(), options.sharedDir || 'shared')
+    let rootDir = config.rootDir || process.cwd()
+    let routesDir = path.join(rootDir, config.routesDir || 'routes')
+    let sharedDir = path.join(rootDir, config.sharedDir || 'shared')
     let layoutsDir = path.join(sharedDir, 'layouts')
     let partialsDir = path.join(sharedDir, 'partials')
     let pipelinesDir = path.join(sharedDir, 'pipelines')
+    let mockDir = path.join(rootDir, config.mock && config.mock.dir || 'mock')
 
     app.enable('trust proxy')
     app.disable('x-powered-by')
     app.disable('etag')
-    app.set('portlet', options.portlet || '')
 
     app.set('views', routesDir)
 
-    let config = {
+
+    let hbsOptions = {
         extname: '.hbs',
         layoutsDir: layoutsDir,
         partialsDir: partialsDir,
         helpers: helpers,
     }
-    if (options.layout) config.defaultLayout = options.layout
-    let hbs = new ExpressHandlebars(config)
+    if (config.layout) hbsOptions.defaultLayout = config.layout
+    let hbs = new ExpressHandlebars(hbsOptions)
 
     app.engine('.hbs', hbs.engine)
     app.set('view engine', '.hbs')
-    app.set('log routes', !!options.logRoutes)
 
+    let context = { app, config, portlet }
     let root = {
-        portlet: portlet,
         parent: null,
         urlPath: '',
         dir: routesDir,
         pipelines: {},
         before: [],
         after: [],
-        layout: options.layout,
+        layout: config.layout,
         routes: []
+    }
+    if (config.compress) {
+        $logger.info('Compression of HTTP response is enabled.')
+        app.use(compression())
     }
 
     if (fs.existsSync(pipelinesDir)) {
-        console.log(pipelinesDir)
         _.each(fs.readdirSync(pipelinesDir), f => {
             let ext = path.extname(f)
             if (ext === '.js') {
@@ -177,11 +182,13 @@ function setupViewServer(options) {
             }
         })
     }
-    scanRoutes(app, root)
+    scanRoutes(context, root)
 
-    app.use(express.static(options.publicDir || 'public'))
+    app.use(`/@${portlet}`, express.static(config.publicDir || 'public', {
+        maxAge: '1d'
+    }))
 
-    app.use(function (err, req, res, next) {
+    app.use(function (err, req, res) {
         $logger.error("500 (" + req.url + ")", err)
         if (req.xhr || err.code === 'EBADCSRFTOKEN') {
             res.status(500).json(normalizeError(err))
@@ -191,7 +198,7 @@ function setupViewServer(options) {
         }
     })
 
-    app.use(function (req, res, next) {
+    app.use(function (req, res) {
         $logger.error("404 (" + req.url + ") ");
         if (req.xhr) {
             res.status(404).json(normalizeError('404'))
@@ -204,9 +211,9 @@ function setupViewServer(options) {
         $logger.info(`Portlet ${portlet} starts on port ${port} with node.js ${process.version}`)
     })
 
-    if (options.mockDir) {
+    if (config.mock) {
         setupGraphQLService({
-            path: path.join(options.mockDir, 'graphql'),
+            path: path.join(mockDir, 'graphql'),
             attach: {
                 to: app
             }
@@ -218,5 +225,5 @@ function setupViewServer(options) {
 module.exports = {
     ...require('./xss'),
     normalizeError,
-    setupViewServer
+    setupPortletServer
 }

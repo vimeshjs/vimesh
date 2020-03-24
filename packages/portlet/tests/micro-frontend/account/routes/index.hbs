@@ -1,2 +1,15 @@
-this is index {{layout}}
-title : {{hello}}
+<div id="app">
+    <el-button @click="visible = true">Button</el-button>
+    <el-dialog :visible.sync="visible" title="Hello world">
+        <p>Try Element</p>
+    </el-dialog>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return { visible: false }
+        }
+    })
+</script>
