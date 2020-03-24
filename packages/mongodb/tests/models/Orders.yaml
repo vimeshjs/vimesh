@@ -1,0 +1,8 @@
+properties:
+  _id: number
+  user_name: string
+$mapping:
+  collection: orders
+  autoincrement:
+    start: 1000
+  id_prefix: CMP

@@ -1,12 +1,13 @@
+const _ = require('lodash')
 const { setupLogger } = require('@vimesh/logger')
 const { setupMongoDB } = require('..')
 
 const config = {
-    DATABASES : {
+    databases : {
         default : {
-            URI : "mongodb://localhost/unit_test"
+            uri : "mongodb://localhost/unit_test"
         }
     }
 }
 setupLogger()
-setupMongoDB(config, __dirname + '/models', 'default')
+setupMongoDB(_.merge(config, global.extraConfig), __dirname + '/models', 'default')

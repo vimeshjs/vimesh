@@ -48,34 +48,21 @@ function setupMongoDB(config, modelRoot, baseDb = 'base') {
     loadModels(__dirname + '/models', baseDb)
     loadModels(modelRoot, baseDb)
     let remains = {}
-    let databases = _.mapValues(config.DATABASES, function (v, k) {
-        var uri = v.URI;
-        var dbName = v.DB;
-        if (v.AUTO_RECONNECT === undefined)
-            v.AUTO_RECONNECT = true
+    let databases = _.mapValues(config.databases, function (v, k) {
+        let uri = v.uri;
+        var dbName = v.dbName;
+        if (v.autoReconnect === undefined)
+            v.autoReconnect = true
         let options = {};
-        if (v.POOLSIZE)
-            options.poolSize = v.POOLSIZE;
-        // uri += (uri.indexOf('?') > 0 ? '&' : '?') + "poolSize=" + v.POOLSIZE      
-        if (v.AUTO_RECONNECT)
-            options.autoReconnect = v.AUTO_RECONNECT ? true : false;
-        // uri += (uri.indexOf('?') > 0 ? '&' : '?') + "autoReconnect=" + (v.AUTO_RECONNECT ? "true" : "false") 
-        if (v.READ_PREFERENCE)
-            options.readPreference = v.READ_PREFERENCE;
-        // uri += (uri.indexOf('?') > 0 ? '&' : '?') + "readPreference=" + v.READ_PREFERENCE
-        if (v.USERNAME)
-            options['auth.user'] = v.USERNAME;
-        // uri += (uri.indexOf('?') > 0 ? '&' : '?') + "auth.user=" + v.USERNAME
-        if (v.PASSWD)
-            options['auth.password'] = v.PASSWD;
-        // uri += (uri.indexOf('?') > 0 ? '&' : '?') + "auth.password=" + v.PASSWD
-        if (v.AUTHMECHANISM)
-            options.authMechanism = v.AUTHMECHANISM;
-        // uri += (uri.indexOf('?') > 0 ? '&' : '?') + "authMechanism=" + v.AUTHMECHANISM
-        if (v.AUTHSOURCE)
-            options.authSource = v.AUTHSOURCE;
-        // uri += (uri.indexOf('?') > 0 ? '&' : '?') + "authSource=" + v.AUTHSOURCE
-        //options.useUnifiedTopology = true 
+        if (v.poolSize)
+            options.poolSize = v.poolSize;
+        options.autoReconnect = !!v.autoReconnect;
+        if (v.readPreference)
+            options.readPreference = v.readPreference;
+        if (v.authMechanism)
+            options.authMechanism = v.authMechanism;
+        if (v.authSource)
+            options.authSource = v.authSource;
         return retryPromise(
             _.bind(connectTo, null, uri, dbName, options, k, config.DB_DEBUG || v.DEBUG || false, v.ADMIN || false, remains),
             10000
@@ -88,9 +75,9 @@ function setupMongoDB(config, modelRoot, baseDb = 'base') {
             createDao(schema, name)
         })
     }).then(r => {
-        if (!config.MIGRATIONS_DIR) return
+        if (!config.migrationsDir) return
         let all = []
-        _.each(glob.sync(config.MIGRATIONS_DIR + "/*"), function(f){
+        _.each(glob.sync(config.migrationsDir + "/*"), function(f){
             let ext = path.extname(f)
             let name = path.basename(f)
             let key = f
@@ -130,6 +117,8 @@ function setupMongoDB(config, modelRoot, baseDb = 'base') {
             if (promise) all.push(promise)
         })
         return Promise.all(all)
+    }).then(r => {
+        if (config.onBeforeSetup) return config.onBeforeSetup()
     }).then(r => {
         let allSetups = []
         _.each($dao, function (dao, name) {

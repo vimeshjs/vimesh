@@ -22,13 +22,8 @@ properties:
   failure_number: number # 失败次数
   forbid_at:  date      # 禁用时间    
   company_id: ObjectId  # 公司ID
-  extra_perms:          # 附加权限
-    include:            # 包含附加权限
-      - string
-    exclude:            # 剔除附加权限
-      - string
   resetPasswordToken: string # 忘记密码时产生 重置密码使用
-  resetPasswordExpires: integer # 重置链接过期时间
+  resetPasswordExpires: number # 重置链接过期时间
   token: string         # 登录状态使用的token 确保用户不能多端同时登录    
 $mapping:
   collection: users

@@ -359,7 +359,7 @@ function createDao(schema, name, affix) {
         let idtype = schema.properties._id
         if (data._id === false) {
             // Do not fix id
-        } else if (undefined !== data._id) {
+        } else if (undefined !== data._id && null !== data._id && '' !== data._id) {
             if (idtype === 'number')
                 data._id = +data._id
             else if (idtype === 'ObjectId')

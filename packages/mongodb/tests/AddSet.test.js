@@ -1,3 +1,8 @@
+global.extraConfig = {
+    onBeforeSetup(){
+        return $dao.Ids.delete($dao.Orders.getAutoIdName())
+    } 
+}
 require('./fixture.js')
 const { getObjectID } = require('../utils')
 const didp1 = getObjectID()
@@ -11,6 +16,7 @@ beforeAll(function () {
         return Promise.all(
             [
                 $models.Departments.remove({}),
+                $models.Orders.remove({})
             ]
         )
     })
@@ -80,5 +86,23 @@ test('use $when$ with set', function () {
             expect(r.name).toBe('protect me')
             expect(r.enabled).toBeTruthy()
         })
+    })
+})
+
+test('use $when$ with set', function () {
+    return Promise.all([
+        $dao.Orders.set({ user_name: 'Tom' }),
+        $dao.Orders.set({ _id: '', user_name: 'Peter' }),
+        $dao.Orders.set({ _id: null, user_name: 'Jacky' })
+    ]).then(rs => {
+        return Promise.all([
+            $dao.Orders.get({ user_name: 'Tom' }),
+            $dao.Orders.get({ user_name: 'Peter' }),
+            $dao.Orders.get({ user_name: 'Jacky' })
+        ])
+    }).then(rs => {
+        expect(rs[0]._id).toBe(1000)
+        expect(rs[1]._id).toBe(1001)
+        expect(rs[2]._id).toBe(1002)
     })
 })
