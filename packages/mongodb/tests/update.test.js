@@ -92,7 +92,7 @@ test('use $when$ with set', function () {
     })
 })
 
-test('use $when$ with set', function () {
+test('use empty _id with set', function () {
     return Promise.each([
         $dao.Orders.set({ user_name: 'Tom' }),
         $dao.Orders.set({ _id: '', user_name: 'Peter' }),
