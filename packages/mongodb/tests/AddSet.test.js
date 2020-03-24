@@ -1,9 +1,13 @@
 global.extraConfig = {
-    onBeforeSetup(){
-        return $dao.Ids.delete($dao.Orders.getAutoIdName())
-    } 
+    onBeforeSetup() {
+        return Promise.all([
+            $dao.Ids.delete($dao.Orders.getAutoIdName()),
+            $models.Orders.remove({})
+        ])
+    }
 }
 require('./fixture.js')
+const Promise = require('bluebird')
 const { getObjectID } = require('../utils')
 const didp1 = getObjectID()
 const didp2 = getObjectID()
@@ -15,8 +19,7 @@ beforeAll(function () {
     return $mongodb.connected.then(() => {
         return Promise.all(
             [
-                $models.Departments.remove({}),
-                $models.Orders.remove({})
+                $models.Departments.remove({})
             ]
         )
     })
@@ -90,16 +93,16 @@ test('use $when$ with set', function () {
 })
 
 test('use $when$ with set', function () {
-    return Promise.all([
+    return Promise.each([
         $dao.Orders.set({ user_name: 'Tom' }),
         $dao.Orders.set({ _id: '', user_name: 'Peter' }),
         $dao.Orders.set({ _id: null, user_name: 'Jacky' })
-    ]).then(rs => {
-        return Promise.all([
+    ], r => r).then(rs => {
+        return Promise.each([
             $dao.Orders.get({ user_name: 'Tom' }),
             $dao.Orders.get({ user_name: 'Peter' }),
             $dao.Orders.get({ user_name: 'Jacky' })
-        ])
+        ], r => r)
     }).then(rs => {
         expect(rs[0]._id).toBe(1000)
         expect(rs[1]._id).toBe(1001)
