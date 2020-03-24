@@ -12,8 +12,10 @@
     "glob": "^7.1.6",
     "graceful-fs": "^4.2.3",
     "handlebars": "^4.7.3",
+    "http-proxy": "^1.18.0",
     "iconv": "^2.3.5",
     "lodash": "^4.17.15",
+    "morgan": "^1.10.0",
     "xss": "^1.0.6"
   }
 }

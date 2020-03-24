@@ -1,5 +1,3 @@
-'use strict';
-
 const _ = require('lodash')
 const path = require('path')
 const fs = require('graceful-fs')
@@ -157,6 +155,10 @@ function setupPortletServer(config) {
     app.engine('.hbs', hbs.engine)
     app.set('view engine', '.hbs')
 
+    if (config.logRequests) {
+        app.use(require("morgan")(config.logRequests.format || 'dev', { "stream": { write: message => $logger.debug(message.trim()) } }))
+    }
+
     let context = { app, config, portlet }
     let root = {
         parent: null,
@@ -188,37 +190,62 @@ function setupPortletServer(config) {
         maxAge: '1d'
     }))
 
-    app.use(function (err, req, res) {
+    if (config.mock) {
+        let graphqlDir = path.join(mockDir, 'graphql')
+        if (fs.existsSync(graphqlDir)) {
+            setupGraphQLService({
+                path: graphqlDir,
+                attach: {
+                    to: app
+                }
+            })
+        }
+
+        const portlets = config.mock.portlets
+        if (portlets) {
+            const httpProxy = require('http-proxy')
+            const proxy = httpProxy.createProxy()
+            _.each(portlets, (url, name) => {
+                $logger.info(`Proxy /@${name} to ${url}`)
+            })
+            app.use(function (req, res, next) {
+                let parts = req.path.split('/')
+                if (parts.length > 1 && parts[1][0] === '@') {
+                    let name = parts[1].substring(1)
+                    if (portlets[name]) {
+                        return proxy.web(req, res, {
+                            target: portlets[name]
+                        })
+                    }
+                }
+                next()
+            })
+        }
+    }
+
+    app.use(function (err, req, res, next) {
         $logger.error("500 (" + req.url + ")", err)
-        if (req.xhr || err.code === 'EBADCSRFTOKEN') {
-            res.status(500).json(normalizeError(err))
+        if (req.xhr) {
+            res.status(err.status || 500).json(normalizeError(err))
         } else {
-            res.locals.error = normalizeError(err)
-            res.status(500).render(`500`)
+            res.status(err.status || 500).render(`500`, normalizeError(err))
         }
     })
 
-    app.use(function (req, res) {
+    app.use(function (req, res, next) {
         $logger.error("404 (" + req.url + ") ");
         if (req.xhr) {
             res.status(404).json(normalizeError('404'))
         } else {
-            res.locals.error = normalizeError('404')
-            res.status(404).render(`404`)
+            res.status(404).render(`404`, normalizeError('404'))
         }
     })
+
     app.listen(port, function () {
         $logger.info(`Portlet ${portlet} starts on port ${port} with node.js ${process.version}`)
+        $logger.info(`Url http://localhost:${port}/@${portlet}/`)
     })
 
-    if (config.mock) {
-        setupGraphQLService({
-            path: path.join(mockDir, 'graphql'),
-            attach: {
-                to: app
-            }
-        })
-    }
     return app
 }
 

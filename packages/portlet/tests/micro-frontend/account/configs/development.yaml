@@ -1,5 +1,9 @@
+logger:
+  level: debug
 portlet:
-  mock: true
+  mock: 
+    portlets:
+      common: 'http://localhost:12447'
   compress: true
   logRoutes: true
-  logRequest: true
+  logRequests: true

@@ -60,10 +60,10 @@ function setupGraphQLService(options) {
             default:
                 server.applyMiddleware({ app : options.attach.to });
         }
-        $logger.info(`🚀 GraphQL server ${path.basename(options.path)} runs `)
+        $logger.info(`GraphQL server ${path.basename(options.path)} runs `)
     } else {
         return server.listen({ port: options.port }).then(({ url }) => {
-            $logger.info(`🚀 GraphQL server ${path.basename(options.path)} runs at ${url}`)
+            $logger.info(`GraphQL server ${path.basename(options.path)} runs at ${url}`)
             return {
                 name: options.name || path.basename(options.path),
                 url: url
@@ -85,7 +85,7 @@ function setupGraphQLProxy(options) {
     })
 
     return server.listen({ port: options.port }).then(({ url }) => {
-        $logger.info(`🚀 GraphQL proxy runs at ${url}`)
+        $logger.info(`GraphQL proxy runs at ${url}`)
         return {
             name: options.name || 'proxy',
             url: url

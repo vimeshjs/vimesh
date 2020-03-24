@@ -6,7 +6,7 @@ const winston = require('winston')
 function setupLogger(config) {
 
 	config = config || { console: {} }
-
+	
 	let transports = []
 	_.each(config, (typeConf, type) => {
 		switch (type) {

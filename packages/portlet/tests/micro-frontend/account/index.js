@@ -1,4 +1,3 @@
-'use strict';
 const { loadConfigs } = require('@vimesh/utils')
 const { setupLogger } = require('@vimesh/logger')
 const { setupPortletServer } = require('../../..')
