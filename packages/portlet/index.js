@@ -84,11 +84,11 @@ function PortletServer(config) {
     app.set('views', routesDir)
 
     let localCacheOption = {
-        maxAge: config.debug ? 0 : '100d',
+        maxAge: config.debug ? '5s' : '100d',
         extName : this.extName
     }
     let remoteCacheOption = {
-        maxAge: config.debug ? 0 : '100d',
+        maxAge: config.debug ? '5s' : '1m',
         enumForceReload: config.debug
     }
     let hveConfig = {
@@ -108,7 +108,8 @@ function PortletServer(config) {
         hveConfig.layouts.push({ portlet: name, cache: createRemoteTemplateCache(`${url}/_layouts`, remoteCacheOption) })
         hveConfig.partials.push({ portlet: name, cache: createRemoteTemplateCache(`${url}/_partials`, remoteCacheOption) })
     })
-    app.engine(extName, createHbsViewEngine(hveConfig))
+    const viewEngine = this.viewEngine = createHbsViewEngine(hveConfig)
+    app.engine(extName, this.viewEngine)
     app.set('view engine', extName)
     if (config.logRequests) {
         let format = config.logRequests.format || 'dev'
@@ -186,7 +187,9 @@ function PortletServer(config) {
         if (req.xhr) {
             res.status(404).json(normalizeError('404'))
         } else {
-            res.status(404).render(`404`, normalizeError('404'))
+            viewEngine('404', normalizeError('404'), (err, html) => {
+                res.status(404).end(html)
+            })
         }
     })
 
@@ -195,7 +198,9 @@ function PortletServer(config) {
         if (req.xhr) {
             res.status(err.status || 500).json(normalizeError(err))
         } else {
-            res.status(err.status || 500).render(`500`, normalizeError(err))
+            viewEngine('500', normalizeError('500'), (err, html) => {
+                res.status(err.status || 500).end(html)
+            })
         }
     })
 
@@ -217,6 +222,9 @@ PortletServer.prototype.scanRoutes = function (current) {
     let before = _.clone(current.before || [])
     let after = _.clone(current.after || [])
     let portlet = this.portlet
+    let viewEngine = this.viewEngine
+    let routesDir = app.get('views')
+    let extName = this.extName
 
     if (!fs.existsSync(current.dir)) return
 
@@ -293,7 +301,10 @@ PortletServer.prototype.scanRoutes = function (current) {
                             data = viewPath
                             viewPath = `${current.urlPath}/${action}`.substring(1) // Remove the first '/'r
                         }
-                        res.render(viewPath, data)
+                        //res.render(viewPath, data)
+                        viewEngine(viewPath, _.extend(res.locals, data), (err, html) => {
+                            res.end(html)
+                        })
                     }
                     handler(req, res, next)
                 }
@@ -313,7 +324,7 @@ PortletServer.prototype.sharedTemplatesMiddleware = function (sharedDir, type, r
     let md5 = req.query.md5
     if (!this.sharedTemplatesCaches[type]) {
         this.sharedTemplatesCaches[type] = createMemoryCache({
-            maxAge: '1d',
+            maxAge: this.config.debug ? '5s' : '1d',
             onEnumerate: () => {
                 let dir = path.join(sharedDir, type)
                 return globAsync(`${dir}/**/*${this.extName}`).then(files => {
@@ -325,7 +336,7 @@ PortletServer.prototype.sharedTemplatesMiddleware = function (sharedDir, type, r
             },
             onRefresh: function (key) {
                 let file = path.join(sharedDir, type, key + '.hbs')
-                $logger.info(`Loading shared ${type}/${key} from ${file}`)
+                $logger.info(`Loading shared/${type}/${key} `)
                 return accessAsync(file).then(r => {
                     return readFileAsync(file)
                 }).then(r => {

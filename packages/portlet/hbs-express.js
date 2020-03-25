@@ -37,9 +37,11 @@ function renderWithLayout(context) {
     return Promise.resolve(body)
 }
 HbsViewEngine.prototype.render = function (filename, context, callback) {
-    let settings = _.clone(context.settings)
-    let key = path.relative(settings.views, filename)
-    key = key.substring(0, key.length - this.extName.length)
+    let key = filename
+    if (_.endsWith(key, this.extName)){
+        path.relative(context.settings.views, filename)
+        key = key.substring(0, key.length - this.extName.length)
+    }
     let targetPortlet = null
     if (this.alias.views && this.alias.views[key]) key = this.alias.views[key]
     let view = null
