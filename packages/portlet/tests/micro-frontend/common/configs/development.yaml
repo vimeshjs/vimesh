@@ -1,5 +1,8 @@
+logger:
+  level: debug
 portlet:
   mock: true
+  debug: true
   compress: true
   logRoutes: true
-  logRequest: true
+  logRequests: true

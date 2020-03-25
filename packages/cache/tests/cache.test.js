@@ -2,6 +2,7 @@ const _ = require('lodash')
 const sinon = require('sinon')
 const fs = require('fs')
 const { setupLogger } = require('@vimesh/logger')
+const Promise = require('bluebird')
 clock = sinon.useFakeTimers({
     now: new Date(),
     shouldAdvanceTime: true
@@ -9,7 +10,7 @@ clock = sinon.useFakeTimers({
 
 const { duration, pretty } = require('@vimesh/utils')
 const { createMemoryCache } = require('..')
-
+const readdirAsync = Promise.promisify(fs.readdir)
 setupLogger()
 
 test('Cache One', () => {
@@ -77,5 +78,35 @@ test('Cache Two', () => {
     }).then(v => {
         expect(v.name).toBe('file1')
         expect(v.content).toBe("this is content 1")
+    })
+})
+
+test('Cache Enumberate', () => {
+    let cache3 = createMemoryCache({
+        maxAge: '1h',
+        enumInterval : '10m',
+        onEnumerate: _.bind(readdirAsync, null, __dirname),
+        onRefresh: function (key) {
+            let file = __dirname + '/' + key 
+            $logger.info(`Fetching ${key} @ ${file}`)
+            return new Promise((resolve, reject) => {
+                fs.readFile(file, (err, data) => {
+                    if (err)
+                        reject(err)
+                    else
+                        resolve(data.toString())
+                })
+            })
+        }
+    })
+    return cache3.enumerate(false).then(all => {
+        expect(_.keys(all)).toEqual([ 'cache.test.js', 'file1.json', 'file2.json' ])
+        //console.log(cache3.get('file1.json'))
+        cache3.get('file1.json').then(r => {
+            expect(r).toEqual({
+                "content" : "this is content 1",
+                "name" : "file1"
+            })
+        })
     })
 })

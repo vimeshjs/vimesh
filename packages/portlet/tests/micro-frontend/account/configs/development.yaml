@@ -1,9 +1,10 @@
 logger:
   level: debug
 portlet:
-  mock: 
-    portlets:
-      common: 'http://localhost:12447'
+  mock: true
+  debug: true
+  peers:
+    common: 'http://localhost:12447'
   compress: true
   logRoutes: true
   logRequests: true
