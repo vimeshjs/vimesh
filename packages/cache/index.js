@@ -14,7 +14,7 @@ function MemoryCache(options) {
     this.enumForceReload = options.enumForceReload || false
     this.onRefresh = options.onRefresh
     this.onEnumerate = options.onEnumerate
-    if (!this.onRefresh) throw Error('onRefresh() method must be provided when creating cache')    
+    if (!this.onRefresh) throw Error('onRefresh() method must be provided when creating cache.')    
     this.cache = new LRU({
         maxAge,
         stale,
@@ -38,7 +38,6 @@ MemoryCache.prototype.ensureEnumList = function() {
             if (_.isArray(rs)) this.enumList = rs
             return Promise.resolve(this.enumList)
         }).catch(ex => {
-            $logger.error('Fails to enumerate', ex)
             return Promise.resolve(this.enumList)
         })
     }

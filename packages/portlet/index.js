@@ -16,7 +16,7 @@ const readFileAsync = Promise.promisify(fs.readFile)
 const globAsync = Promise.promisify(glob)
 const HTTP_METHODS = ['all', 'get', 'post', 'put', 'delete', 'patch', 'config', 'head']
 
-function createLocalTemplateCache(dir, options) {
+function createLocalTemplateCache(portlet, dir, options) {
     let extName = options.extName || '.hbs'
     return createMemoryCache({
         maxAge: options.maxAge,
@@ -34,13 +34,13 @@ function createLocalTemplateCache(dir, options) {
                 let source = r.toString()
                 let uri = fn
                 let template = handlebars.compile(source, options.compilation)
-                return { uri, source, path : key, template }
+                return { portlet, uri, source, path: key, template }
             }).catch(ex => null)
         }
     })
 }
 
-function createRemoteTemplateCache(url, options) {
+function createRemoteTemplateCache(portlet, url, options) {
     return createMemoryCache({
         maxAge: options.maxAge,
         enumForceReload: options.enumForceReload,
@@ -55,7 +55,7 @@ function createRemoteTemplateCache(url, options) {
                 let source = resp.data.content
                 let uri = fullUrl
                 let template = handlebars.compile(source, options.compilation)
-                return { uri, source, path : key, template }
+                return { portlet, uri, source, path: key, template }
             }).catch(ex => null)
         }
     })
@@ -85,7 +85,7 @@ function PortletServer(config) {
 
     let localCacheOption = {
         maxAge: config.debug ? '5s' : '100d',
-        extName : this.extName
+        extName: this.extName
     }
     let remoteCacheOption = {
         maxAge: config.debug ? '5s' : '1m',
@@ -96,17 +96,17 @@ function PortletServer(config) {
         alias: config.alias || {},
         defaultLayout: config.layout,
         views: [{
-            cache: createLocalTemplateCache(routesDir, localCacheOption)
+            cache: createLocalTemplateCache(portlet, routesDir, localCacheOption)
         }, {
-            cache: createLocalTemplateCache(viewsDir, localCacheOption)
+            cache: createLocalTemplateCache(portlet, viewsDir, localCacheOption)
         }],
-        layouts: [{ cache: createLocalTemplateCache(layoutsDir, localCacheOption) }],
-        partials: [{ cache: createLocalTemplateCache(partialsDir, localCacheOption) }]
+        layouts: [{ cache: createLocalTemplateCache(portlet, layoutsDir, localCacheOption) }],
+        partials: [{ cache: createLocalTemplateCache(portlet, partialsDir, localCacheOption) }]
     }
     _.each(config.peers, (url, name) => {
-        hveConfig.views.push({ portlet: name, cache: createRemoteTemplateCache(`${url}/_views`, remoteCacheOption) })
-        hveConfig.layouts.push({ portlet: name, cache: createRemoteTemplateCache(`${url}/_layouts`, remoteCacheOption) })
-        hveConfig.partials.push({ portlet: name, cache: createRemoteTemplateCache(`${url}/_partials`, remoteCacheOption) })
+        hveConfig.views.push({ portlet: name, cache: createRemoteTemplateCache(name, `${url}/_views`, remoteCacheOption) })
+        hveConfig.layouts.push({ portlet: name, cache: createRemoteTemplateCache(name, `${url}/_layouts`, remoteCacheOption) })
+        hveConfig.partials.push({ portlet: name, cache: createRemoteTemplateCache(name, `${url}/_partials`, remoteCacheOption) })
     })
     const viewEngine = this.viewEngine = createHbsViewEngine(hveConfig)
     app.engine(extName, this.viewEngine)
@@ -188,6 +188,7 @@ function PortletServer(config) {
             res.status(404).json(normalizeError('404'))
         } else {
             viewEngine('404', normalizeError('404'), (err, html) => {
+                if (err) return req.next(err);
                 res.status(404).end(html)
             })
         }
@@ -199,7 +200,7 @@ function PortletServer(config) {
             res.status(err.status || 500).json(normalizeError(err))
         } else {
             viewEngine('500', normalizeError('500'), (err, html) => {
-                res.status(err.status || 500).end(html)
+                res.status(err && err.status || 500).end(html)
             })
         }
     })
@@ -223,8 +224,6 @@ PortletServer.prototype.scanRoutes = function (current) {
     let after = _.clone(current.after || [])
     let portlet = this.portlet
     let viewEngine = this.viewEngine
-    let routesDir = app.get('views')
-    let extName = this.extName
 
     if (!fs.existsSync(current.dir)) return
 
@@ -303,7 +302,8 @@ PortletServer.prototype.scanRoutes = function (current) {
                         }
                         //res.render(viewPath, data) --> It will check the view file in the disk, while our view may be in another peer server
                         viewEngine(viewPath, _.extend(res.locals, data), (err, html) => {
-                            res.end(html)
+                            if (err) return req.next(err);
+                            res.send(html)
                         })
                     }
                     handler(req, res, next)

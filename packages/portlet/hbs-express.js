@@ -2,11 +2,12 @@
 const _ = require('lodash')
 const path = require('path')
 const fs = require('graceful-fs')
-const { getCRC16, getMD5 } = require('@vimesh/utils')
-const helpers = require('./hbs-helpers')
-const handlebars = require('handlebars')
 const layoutPattern = /{{!<\s+([@A-Za-z0-9\._\-\/]+)\s*}}/;
 
+const allHelpers = [require('./hbs-helpers')]
+function registerHelpers(helpers){
+    allHelpers.push(helpers)
+}
 function HbsViewEngine(config) {
     this.extName = config.extName || '.hbs'
     this.views = config.views
@@ -25,7 +26,8 @@ function extractLayout(view) {
 }
 function renderWithLayout(context) {
     let layoutName = extractLayout(context.view) || context.layout
-    let body = context.view.template(context.locals, { partials: context.partials })
+    let body = context.view.template(context.locals, { partials: context.partials, helpers: context.helpers })
+    //$logger.debug(`Render @${context.view.portlet}/${context.view.path} ${layoutName ? 'with layout ' + layoutName : ''}`)
     if (layoutName) {
         layoutName = context.alias.layouts && context.alias.layouts[layoutName] || layoutName
         let layoutView = context.layouts[layoutName[0] == '@' ? layoutName : `@${context.portlet}/${layoutName}`]
@@ -38,7 +40,7 @@ function renderWithLayout(context) {
 }
 HbsViewEngine.prototype.render = function (filename, context, callback) {
     let key = filename
-    if (_.endsWith(key, this.extName)){
+    if (_.endsWith(key, this.extName)) {
         path.relative(context.settings.views, filename)
         key = key.substring(0, key.length - this.extName.length)
     }
@@ -76,10 +78,10 @@ HbsViewEngine.prototype.render = function (filename, context, callback) {
             let portlet = this.partials[i].portlet
             _.each(ps, (p, k) => {
                 if (portlet) {
-                    allPartials[`@${portlet}/${k}`] = p
+                    allPartials[`@${portlet}/${k}`] = p.template
                 } else {
-                    allPartials[`${k}`] = p
-                    allPartials[`@${this.portlet}/${k}`] = p
+                    allPartials[`${k}`] = p.template
+                    allPartials[`@${this.portlet}/${k}`] = p.template
                 }
             })
         })
@@ -99,7 +101,8 @@ HbsViewEngine.prototype.render = function (filename, context, callback) {
             portlet: this.portlet,
             alias: this.alias,
             layouts: allLayouts,
-            partials: _.map(allPartials, p => p.template),
+            partials: allPartials,
+            helpers: _.merge(...allHelpers, context.helpers),
             layout: context.layout || this.layout,
             locals: context,
             data: {},
@@ -107,6 +110,8 @@ HbsViewEngine.prototype.render = function (filename, context, callback) {
         })
     }).then(r => {
         callback(null, r)
+    }).catch(ex => {
+        callback(ex)
     })
 }
 
@@ -115,5 +120,6 @@ function createHbsViewEngine(config) {
     return _.bind(hve.render, hve)
 }
 module.exports = {
+    registerHelpers,
     createHbsViewEngine
 }

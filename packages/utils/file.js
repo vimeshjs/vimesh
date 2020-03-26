@@ -93,7 +93,10 @@ function loadConfigs(context, ...files) {
             let cf = yaml.load(template(context))
             configs = _.merge(configs, cf)
         } catch (ex) {
-            $logger.error(`Fails to load ${f}`, ex)
+            if (global.$logger)
+                $logger.error(`Fails to load ${f}`, ex)
+            else
+                console.log(ex)
         }
     })
     return configs

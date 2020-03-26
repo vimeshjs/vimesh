@@ -1,6 +1,6 @@
 timezone: Asia/Shanghai
 logger:
-  console:
+  console: {}
 portlet:
   name: account
   layout: main

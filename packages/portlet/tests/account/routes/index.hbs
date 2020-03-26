@@ -1,6 +1,14 @@
-{{!< main }}
+{{!< child }}
+{{{json hello name='helllo'}}}
+
+<h1>{{> @common/page/title}}</h1>
+
+{{> @common/page/nav}}
+
 <div id="app">
     <el-button @click="visible = true">Button</el-button>
+
+    <p>{{myName 'jacky'}}</p>
     <el-dialog :visible.sync="visible" title="Hello world">
         <p>Try Element</p>
     </el-dialog>
