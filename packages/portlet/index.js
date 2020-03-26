@@ -301,7 +301,7 @@ PortletServer.prototype.scanRoutes = function (current) {
                             data = viewPath
                             viewPath = `${current.urlPath}/${action}`.substring(1) // Remove the first '/'r
                         }
-                        //res.render(viewPath, data)
+                        //res.render(viewPath, data) --> It will check the view file in the disk, while our view may be in another peer server
                         viewEngine(viewPath, _.extend(res.locals, data), (err, html) => {
                             res.end(html)
                         })
