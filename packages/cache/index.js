@@ -8,10 +8,10 @@ function MemoryCache(options) {
     const max = options.maxCount || 10000
     const maxAge = duration(options.maxAge)
     const stale = options.stale
-    const updateAgeOnGet = options.updateAgeOnGet || true
+    const updateAgeOnGet = options.updateAgeOnGet
     this.enumList = null
     this.enumInterval = options.enumInterval
-    this.enumForceReload = options.enumForceReload || false
+    this.enumForceReload = options.enumForceReload
     this.onRefresh = options.onRefresh
     this.onEnumerate = options.onEnumerate
     if (!this.onRefresh) throw Error('onRefresh() method must be provided when creating cache.')    

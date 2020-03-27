@@ -1,7 +1,7 @@
 settings:
   accounts:
     _meta:
-      uri: accounts
+      uri: /@account/accounts
       sort: 10
       permission: accounts.view
       i18n:
@@ -9,7 +9,7 @@ settings:
         en: Accounts
   groups:
     _meta:
-      uri: groups
+      uri: /@account/groups
       sort: 20
       permission: groups.view
       i18n:
@@ -17,7 +17,7 @@ settings:
         en: Groups
   users:
     _meta:
-      uri: users
+      uri: /@account/users
       sort: 30
       permission: users.view
       i18n:
@@ -25,7 +25,7 @@ settings:
         en: Users
   roles:
     _meta:
-      uri: roles
+      uri: /@account/roles
       sort: 40
       permission: roles.view
       i18n:

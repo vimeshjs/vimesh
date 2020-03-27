@@ -1,20 +1,13 @@
 const _ = require('lodash')
 const { duration } = require('./datetime')
 
-function trim(s) {
-    if (!s) return null;
-    return s.replace(/(^\s*)|(\s*$)/g, "");
-}
-
 function retryPromise(fn, ms = 1000) {
     return new Promise(resolve => {
-        fn()
-            .then(resolve)
-            .catch(() => {
-                setTimeout(() => {
-                    retryPromise(fn, ms).then(resolve);
-                }, ms);
-            })
+        fn().then(resolve).catch(() => {
+            setTimeout(() => {
+                retryPromise(fn, ms).then(resolve);
+            }, ms)
+        })
     })
 }
 
@@ -42,7 +35,7 @@ function pretty(strOrJson) {
 }
 
 module.exports = {
-    trim,
+    retry: retryPromise,
     retryPromise,
     timeout,
     next,

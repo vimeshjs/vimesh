@@ -28,14 +28,21 @@ function extractLayout(view) {
 }
 function renderWithLayout(context) {
     let layoutName = extractLayout(context.view) || context.layout
-    let body = context.view.template(context.locals, { partials: context.partials, helpers: context.helpers })
+    let options = { partials: context.partials, helpers: context.helpers }
+    let body = context.view.template(context.locals, options)
     $logger.debug(`Render @${context.view.portlet}/${context.view.path} ${layoutName ? 'with layout ' + layoutName : ''}`)
     if (layoutName) {
         layoutName = context.alias.layouts && context.alias.layouts[layoutName] || layoutName
         let layoutView = context.layouts[layoutName[0] == '@' ? layoutName : `@${context.portlet}/${layoutName}`]
         if (layoutView) {
-            context.locals.body = body
-            return renderWithLayout(_.defaults({ data: { body }, view: layoutView, layout: null }, context))
+            let ncontext = _.clone(context)
+            let nlocals = _.clone(context.locals)
+            nlocals.body = body
+            ncontext.locals = nlocals
+            ncontext.view = layoutView
+            ncontext.layout = null
+            return renderWithLayout(ncontext)
+
         }
     }
     return Promise.resolve(body)

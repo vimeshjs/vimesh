@@ -1,0 +1,12 @@
+<script type="text/x-template" id="template-nested-menu-item">
+    <div>{{ item.title }}</div>
+</script>
+<script>
+    Vue.component('nested-menu-item', {
+        props: ['item'],
+        data: function () { return {} },
+        template: "#template-nested-menu-item",    
+        methods: {
+        }
+    })
+</script>
