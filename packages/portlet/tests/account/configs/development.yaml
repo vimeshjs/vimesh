@@ -2,7 +2,7 @@ logger:
   level: debug
 portlet:
   mock: true
-  debug: true
+  debug: false
   peers:
     common: 'http://localhost:12447'
   compress: true

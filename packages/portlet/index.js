@@ -30,6 +30,7 @@ function createLocalTemplateCache(portlet, dir, options) {
         },
         onRefresh: function (key) {
             let fn = `${dir}/${key}${extName}`
+            $logger.debug(`Loading ${fn}`)
             return accessAsync(fn).then(r => readFileAsync(fn)).then(r => {
                 let source = r.toString()
                 let uri = fn
@@ -93,6 +94,7 @@ function PortletServer(config) {
     }
     let hveConfig = {
         portlet: portlet,
+        pretty: config.debug,
         alias: config.alias || {},
         defaultLayout: config.layout,
         views: [{
@@ -344,6 +346,9 @@ PortletServer.prototype.sharedTemplatesMiddleware = function (sharedDir, type, r
                         content: r && r.toString(),
                         md5: getMD5(r)
                     }
+                }).catch(ex => {
+                    $logger.error(`Fails to load ${file}.`, ex)
+                    return null
                 })
             }
         })

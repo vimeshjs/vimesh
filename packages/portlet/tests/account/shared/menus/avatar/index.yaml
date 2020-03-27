@@ -1,0 +1,5 @@
+logout:
+  _meta:
+    uri: logout
+    sort: 1000
+

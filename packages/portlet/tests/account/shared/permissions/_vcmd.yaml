@@ -1,0 +1,20 @@
+view:
+  _meta:
+    i18n:
+      cn: 查看
+      en: View
+create:
+  _meta:
+    i18n:
+      cn: 创建
+      en: Create
+modify:
+  _meta:
+    i18n:
+      cn: 修改
+      en: Modify
+delete:
+  _meta:
+    i18n:
+      cn: 删除
+      en: Create

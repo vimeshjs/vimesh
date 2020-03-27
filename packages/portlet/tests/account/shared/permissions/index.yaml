@@ -1,0 +1,18 @@
+$super:
+  _meta:
+    i18n:
+      cn: 超级管理员
+      en: Super Admin
+$owner:
+  _meta:
+    i18n:
+      cn: 所有者
+      en: Owner
+accounts:
+  _meta:
+    i18n:
+      cn: 账户
+      en: Accounts
+  $include: _vcmd
+
+

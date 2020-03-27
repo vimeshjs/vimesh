@@ -1,24 +1,33 @@
-{{!< child }}
-{{{json hello name='helllo'}}}
+{{!< main }}
 
-<h1>{{> @common/page/title}}</h1>
+<el-table :data="tableData">
+    <el-table-column prop="date" label="日期" width="140">
+    </el-table-column>
+    <el-table-column prop="name" label="姓名" width="120">
+    </el-table-column>
+    <el-table-column prop="address" label="地址">
+    </el-table-column>
+</el-table>
 
-{{> @common/page/nav}}
+{{#contentFor 'css'}}
+<style>
+    
+</style>
+{{/contentFor}}
 
-<div id="app">
-    <el-button @click="visible = true">Button</el-button>
-
-    <p>{{myName 'jacky'}}</p>
-    <el-dialog :visible.sync="visible" title="Hello world">
-        <p>Try Element</p>
-    </el-dialog>
-</div>
-
-<script>
-    new Vue({
-        el: '#app',
-        data: function () {
-            return { visible: false }
+{{#contentFor 'scripts'}}
+<script type="application/javascript">
+Vue.mixin({
+    data () {
+        const item = {
+            date: '2016-05-1',
+            name: 'jacky',
+            address: 'shanghai'
+        };
+        return {
+            tableData: Array(20).fill(item)
         }
-    })
+    }
+})
 </script>
+{{/contentFor}}

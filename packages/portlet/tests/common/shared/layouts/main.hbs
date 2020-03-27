@@ -1,14 +1,62 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
     <title>{{portlet}} - {{title}}</title>
-    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
     <link rel="stylesheet" href="/@common/element-ui.theme-chalk@2.13.0.css">
     <script src="/@common/vue@2.6.11.min.js"></script>
     <script src="/@common/element-ui@2.13.0.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+        }
+
+        [v-cloak] {
+            display: none !important;
+        }
+
+        .el-header {
+            background-color: #B3C0D1;
+            color: #333;
+            line-height: 60px;
+        }
+
+        .el-aside {
+            color: #333;
+        }
+    </style>
+    {{{block 'css'}}}
+    {{{block 'scripts@head'}}}
 </head>
+
 <body>
-    {{{body}}}<br>
+    <div id='app' v-cloak>
+        <el-container>
+            <el-header>
+                {{> header }}
+            </el-header>
+            <el-container>
+                <el-aside width="240px">
+                    {{> menu }}
+                </el-aside>
+                <el-main>
+                    {{{body}}}
+                    {{> footer }}
+                </el-main>
+            </el-container>
+        </el-container>
+    </div>
+    {{{block 'scripts'}}}
+    <script>
+        new Vue({
+            el: '#app'
+        })
+    </script>
 </body>
+
 </html>

@@ -1,11 +1,12 @@
 
 const _ = require('lodash')
 const path = require('path')
-const fs = require('graceful-fs')
+const beautify = require('js-beautify')
+const minify = require('html-minifier')
 const layoutPattern = /{{!<\s+([@A-Za-z0-9\._\-\/]+)\s*}}/;
 
 const allHelpers = [require('./hbs-helpers')]
-function registerHelpers(helpers){
+function registerHelpers(helpers) {
     allHelpers.push(helpers)
 }
 function HbsViewEngine(config) {
@@ -16,6 +17,7 @@ function HbsViewEngine(config) {
     this.partials = config.partials
     this.alias = config.alias
     this.portlet = config.portlet
+    this.pretty = config.pretty
     _.each(this.views, item => item.cache.enumerate())
     _.each(this.layouts, item => item.cache.enumerate())
     _.each(this.partials, item => item.cache.enumerate())
@@ -27,7 +29,7 @@ function extractLayout(view) {
 function renderWithLayout(context) {
     let layoutName = extractLayout(context.view) || context.layout
     let body = context.view.template(context.locals, { partials: context.partials, helpers: context.helpers })
-    //$logger.debug(`Render @${context.view.portlet}/${context.view.path} ${layoutName ? 'with layout ' + layoutName : ''}`)
+    $logger.debug(`Render @${context.view.portlet}/${context.view.path} ${layoutName ? 'with layout ' + layoutName : ''}`)
     if (layoutName) {
         layoutName = context.alias.layouts && context.alias.layouts[layoutName] || layoutName
         let layoutView = context.layouts[layoutName[0] == '@' ? layoutName : `@${context.portlet}/${layoutName}`]
@@ -77,7 +79,9 @@ HbsViewEngine.prototype.render = function (filename, context, callback) {
         _.each(rs[1], (ps, i) => {
             let portlet = this.partials[i].portlet
             _.each(ps, (p, k) => {
+                if (!p || !p.template) return $logger.error(`Partitial @${portlet}/${k} is missing`)
                 if (portlet) {
+                    if (!allPartials[`${k}`]) allPartials[`${k}`] = p.template
                     allPartials[`@${portlet}/${k}`] = p.template
                 } else {
                     allPartials[`${k}`] = p.template
@@ -109,6 +113,23 @@ HbsViewEngine.prototype.render = function (filename, context, callback) {
             view: view
         })
     }).then(r => {
+        if (this.pretty) {
+            r = beautify.html(r)
+        } else {
+            r = minify.minify(r, {
+                minifyCSS: true,
+                minifyJS: true,
+                collapseWhitespace: true,
+                processScripts: [
+                    'text/javascript',
+                    'text/ecmascript',
+                    'text/jscript',
+                    'application/javascript',
+                    'application/x-javascript',
+                    'application/ecmascript'
+                ]
+            })
+        }
         callback(null, r)
     }).catch(ex => {
         callback(ex)

@@ -1,0 +1,36 @@
+settings:
+  accounts:
+    _meta:
+      uri: accounts
+      sort: 10
+      permission: accounts.view
+      i18n:
+        cn: 账户
+        en: Accounts
+  groups:
+    _meta:
+      uri: groups
+      sort: 20
+      permission: groups.view
+      i18n:
+        cn: 用户组
+        en: Groups
+  users:
+    _meta:
+      uri: users
+      sort: 30
+      permission: users.view
+      i18n:
+        cn: 用户
+        en: Users
+  roles:
+    _meta:
+      uri: roles
+      sort: 40
+      permission: roles.view
+      i18n:
+        cn: 角色
+        en: Roles
+
+
+  
