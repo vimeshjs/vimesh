@@ -1,0 +1,17 @@
+{
+  "name": "@vimesh/storage",
+  "version": "0.9.5",
+  "description": "Vimesh storage",
+  "main": "index.js",
+  "repository": "https://github.com/vimeshjs/vimesh.git",
+  "author": "Jacky <jacky@vimesh.org>",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^3.7.2",
+    "glob": "^7.1.6",
+    "graceful-fs": "^4.2.3",
+    "lodash": "^4.17.15",
+    "minio": "^7.0.15",
+    "mkdirp": "^1.0.3"
+  }
+}

@@ -102,7 +102,33 @@ function loadConfigs(context, ...files) {
     return configs
 }
 
+function isStream(val) {
+    return _.isObject(val) && _.isFunction(val.pipe)
+}
+
+function isReadableStream(val) {
+    return isStream(val) && _.isFunction(val.read)
+}
+
+function readStreamToBuffer(stream) {
+    return new Promise((resolve, reject) => {
+        const buffersCache = []
+        stream.on('data', (data) => {
+            buffersCache.push(data)
+        })
+        stream.on('end', () => {
+            resolve(Buffer.concat(buffersCache))
+        })
+        stream.on('error', (error) => {
+            reject(error)
+        })
+    })
+}
+
 module.exports = {
+    isStream,
+    isReadableStream,
+    readStreamToBuffer,
     getFileChecksum,
     loadYaml,
     loadJson,
