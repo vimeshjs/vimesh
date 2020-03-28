@@ -13,11 +13,14 @@ const statAsync = Promise.promisify(fs.stat)
 const globAsync = Promise.promisify(glob)
 const rmdirAsync = Promise.promisify(fs.rmdir)
 const unlinkAsync = Promise.promisify(fs.unlink)
-
+const Storage = require('./storage')
 function LocalStorage(config) {
+    Storage.call(this, 'local')
     this.root = config.root
     mkdirp.sync(this.root)
 }
+
+LocalStorage.prototype = Object.create(Storage.prototype);
 
 LocalStorage.prototype.listContainers = function () {
     return readdirAsync(this.root)
@@ -66,7 +69,7 @@ LocalStorage.prototype.getObject = function (container, filePath) {
     return this.isContainer(container).then(r => {
         if (r) {
             let fn = path.join(this.root, container, filePath)
-            return readFileAsync(fn)
+            return accessAsync(fn, fs.constants.F_OK).then(r => fs.createReadStream(fn)) 
         } else {
             return Promise.reject(Error(`Conatiner ${container} does not exist for file ${filePath}!`))
         }
