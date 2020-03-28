@@ -1,12 +1,19 @@
 <script type="text/x-template" id="template-nested-menu-item">
-    <div>{{ item.title }}</div>
+    <div v-if="!item.hidden">
+    <template v-if="!item.submenus">
+        <el-menu-item :index="item.index" @click="if (item.uri) location.href=item.uri" >
+            <i :class="item.icon"></i> \{{item.title}}
+        </el-menu-item>
+    </template>
+    <el-submenu v-else  :index="item.index" >
+      <template slot="title" > <i :class="item.icon"></i> \{{item.title}}  </template>
+      <nested-menu-item v-for="child in item.submenus" :item="child" />
+    </el-submenu>
+  </div>
 </script>
 <script>
     Vue.component('nested-menu-item', {
         props: ['item'],
-        data: function () { return {} },
-        template: "#template-nested-menu-item",    
-        methods: {
-        }
+        template: "#template-nested-menu-item"
     })
 </script>

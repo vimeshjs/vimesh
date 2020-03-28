@@ -28,23 +28,43 @@ function getSortedMenus(index, menus) {
         let submenus = getSortedMenus(mindex, _.omit(m, '_name', '_meta'))
         let uri = _.get(m, '_meta.uri')
         let i18n = _.get(m, '_meta.i18n')
+        let icon = _.get(m, '_meta.icon')
         let langs = _.keys(i18n)
         let title = langs.length > 0 ? i18n[langs[0]] : m._name
-        let menu = { index: mindex, title, uri }
+        let menu = { index: mindex, title, uri, icon }
         if (submenus.length > 0) menu.submenus = submenus
         return menu
     })
 }
-function menuData(name, options) {
-    let menusByZone = options.data.root._menusByZone
-    var val = getSortedMenus(name, menusByZone && menusByZone[name])
-    return `${!val ? "null" : sanitizeJsonToString(val)}`
+function getActiveMenu(menus, path) {
+    if (!menus || !path) return null
+    let activeMenu = null
+    _.each(menus, m => {
+        if (!activeMenu) {
+            if (path === m.uri) {
+                activeMenu = m.index
+            } else if (m.submenus) {
+                activeMenu = getActiveMenu(m.submenus, path)
+            }
+        }
+    })
+    return activeMenu
+}
+function menusByZone(name, options) {
+    let menus = getSortedMenus(name, options.data.root._menusByZone && options.data.root._menusByZone[name])
+    return `${sanitizeJsonToString({ activeMenu: getActiveMenu(menus, options.data.root._path), menus })}`
+}
+
+function T(name, options) {
+    if (!name) return ''
+    return _.get(options.data.root._i18nItems, name) || _.capitalize(name.substring(name.lastIndexOf('.') + 1))
 }
 
 module.exports = {
+    T,
     contentFor,
     content: contentFor,
-    menuData,
+    menusByZone,
     block,
     json
 }

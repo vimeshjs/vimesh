@@ -1,1 +1,48 @@
-list user
+<template>
+  <el-table :data="users.data" style="width: 100%">
+    <el-table-column prop="id" label="{{T 'models.users.id'}}" width="180">
+    </el-table-column>
+    <el-table-column prop="name" label="{{T 'models.users.name'}}" width="180">
+    </el-table-column>
+    <el-table-column prop="email" label="{{T 'models.users.email'}}">
+    </el-table-column>
+    <el-table-column prop="mobile" label="{{T 'models.users.mobile'}}">
+    </el-table-column>
+  </el-table>
+  <div class="block">
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :page-sizes="[10, 20, 50, 100]"
+      :current-page.sync="users.pageIndex" :page-size="users.pageSize" layout=" prev, pager, next" :total="users.count">
+    </el-pagination>
+  </div>
+</template>
+
+<script>
+  $mixins.push({
+    data() {
+      return {
+        users: { data: [], count: 0, pageIndex: 1, pageSize: 20 }
+      }
+    },
+    created() {
+      this.fetchUserList()
+    },
+    methods: {
+      fetchUserList() {
+        let self = this
+        axios.get('/@account/users/api/list?pageIndex=' + self.users.pageIndex + '&pageSize=' + self.users.pageSize).then(function (r) {
+          self.users.data = r.data.data
+          self.users.count = r.data.count
+        })
+      },
+      handleSizeChange(val) {
+        this.users.pageIndex = 1
+        this.users.pageSize = val
+        this.fetchUserList()
+      },
+      handleCurrentChange(val) {
+        this.users.pageIndex = val
+        this.fetchUserList()
+      }
+    },
+  })
+</script>

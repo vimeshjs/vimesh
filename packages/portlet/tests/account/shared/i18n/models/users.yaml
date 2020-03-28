@@ -1,0 +1,18 @@
+id: 
+  cn: 编号
+  en: ID
+name: 
+  cn: 姓名
+  en: Name
+email:
+  cn: 邮箱
+  en: Email
+password:
+  cn: 密码
+  en: Password
+mobile:
+  cn: 手机号
+  en: Mobile
+company:
+  cn: 公司
+  en: Company

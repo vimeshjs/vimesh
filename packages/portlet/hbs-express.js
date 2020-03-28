@@ -30,7 +30,7 @@ function renderWithLayout(context) {
     let layoutName = extractLayout(context.view) || context.layout
     let options = { partials: context.partials, helpers: context.helpers }
     let body = context.view.template(context.locals, options)
-    $logger.debug(`Render @${context.view.portlet}/${context.view.path} ${layoutName ? 'with layout ' + layoutName : ''}`)
+    //$logger.debug(`Render @${context.view.portlet}/${context.view.path} ${layoutName ? 'with layout ' + layoutName : ''}`)
     if (layoutName) {
         layoutName = context.alias.layouts && context.alias.layouts[layoutName] || layoutName
         let layoutView = context.layouts[layoutName[0] == '@' ? layoutName : `@${context.portlet}/${layoutName}`]

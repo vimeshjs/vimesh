@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/@common/element-ui.theme-chalk@2.13.0.css">
     <script src="/@common/vue@2.6.11.min.js"></script>
     <script src="/@common/element-ui@2.13.0.min.js"></script>
+    <script src="/@common/axios@0.19.2.min.js"></script>
 
     <style>
         body {
@@ -32,6 +33,9 @@
     </style>
     {{{block 'css'}}}
     {{{block 'scripts@head'}}}
+    <script type="text/javascript">
+        $mixins = []
+    </script>
 </head>
 
 <body>
@@ -40,20 +44,20 @@
             <el-header>
                 {{> header }}
             </el-header>
-            <el-container>
-                <el-aside width="240px">
+            <el-container >
+                <el-aside width="240px" >
                     {{> menu }}
                 </el-aside>
                 <el-main>
                     {{{body}}}
-                    {{> footer }}
                 </el-main>
             </el-container>
         </el-container>
     </div>
     {{{block 'scripts'}}}
-    <script>
+    <script type="text/javascript">
         new Vue({
+            mixins: $mixins,
             el: '#app'
         })
     </script>
