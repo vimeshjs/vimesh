@@ -120,6 +120,9 @@ function runResourcesMergingJob(portletServer) {
             }).catch(ex => {
                 $logger.error('Fails to receive i18n items.', ex)
             })
+        } else {
+            portletServer.menusReady = true
+            portletServer.i18nReady = true
         }
     }, duration('3s'))
 }

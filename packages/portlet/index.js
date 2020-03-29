@@ -4,7 +4,6 @@ const axios = require('axios')
 const fs = require('graceful-fs')
 const bodyParser = require('body-parser')
 const { getCRC16, duration } = require('@vimesh/utils')
-const { setupGraphQLService } = require('@vimesh/graphql')
 const Promise = require('bluebird')
 const express = require('express')
 const compression = require('compression')
@@ -81,18 +80,6 @@ function PortletServer(config) {
     }))
 
     setupSharedResources(this)
-
-    if (config.mock) {
-        let graphqlDir = path.join(mockDir, 'graphql')
-        if (fs.existsSync(graphqlDir)) {
-            setupGraphQLService({
-                path: graphqlDir,
-                attach: {
-                    to: app
-                }
-            })
-        }
-    }
 
     const peers = config.peers
     if (peers) {
