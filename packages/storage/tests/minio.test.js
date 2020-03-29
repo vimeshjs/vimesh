@@ -1,28 +1,38 @@
+
 const _ = require('lodash')
-const fs = require('fs')
-const glob = require('glob')
+const fs = require('graceful-fs')
 const { createStorage } = require('..')
-const root = `${__dirname}/d1/d2/d3`
+const Promise = require('bluebird')
+
 let storage = null
-function removeAll(dir) {
-    let fns = glob.sync(`${dir}/**`)
-    _.each(_.reverse(fns), function (fn) {
-        let stat = fs.statSync(fn)
-        if (stat.isFile()) {
-            fs.unlinkSync(fn)
-        } else {
-            fs.rmdirSync(fn)
+beforeAll(() => {
+    storage = createStorage({
+        type: 'minio',
+        options: {
+            endPoint: 'localhost',
+            port: 9000,
+            useSSL: false,
+            accessKey: 'minioadmin',
+            secretKey: 'minioadmin'
         }
     })
-}
-beforeAll(() => {
-    removeAll(`${__dirname}/d1`)
-    storage = createStorage({ type: 'local', options: { root } })
+    return storage.listObjects('bucket-001').then(fs => {
+        return Promise.each(fs, f => {
+            return storage.deleteObject('bucket-001', f.path)
+        })
+    }).catch(ex => { }).then(r => {
+        return storage.listObjects('bucket-002').then(fs => {
+            return Promise.each(fs, f => {
+                return storage.deleteObject('bucket-002', f.path)
+            })
+        }).catch(ex => { })
+    }).then(r => {
+        return Promise.all([
+            storage.deleteBucket('bucket-001'),
+            storage.deleteBucket('bucket-002')
+        ]).catch(ex => {})
+    })
 })
-test('auto create root folder', function () {
-    expect(fs.existsSync(root)).toBeTruthy()
-})
-
 test('create buckets', function () {
     return storage.createBucket('bucket-001', {}).then(() => {
         return storage.hasBucket('bucket-001').then(r => {
@@ -36,6 +46,7 @@ test('create buckets', function () {
         })
     })
 })
+
 
 test('list buckets', function () {
     return storage.listBuckets().then(rs => {

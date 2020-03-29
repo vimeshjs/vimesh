@@ -125,7 +125,16 @@ function readStreamToBuffer(stream) {
     })
 }
 
+function pipeStreams(...streams) {
+    return new Promise((resolve, reject) => {
+        streams.reduce((src, dst) => {
+            src.on('error', err => dst.emit('error', err))
+            return src.pipe(dst)
+        }).on('error', e => reject(e)).on('finish', () => resolve())
+    })
+}
 module.exports = {
+    pipeStreams,
     isStream,
     isReadableStream,
     readStreamToBuffer,
