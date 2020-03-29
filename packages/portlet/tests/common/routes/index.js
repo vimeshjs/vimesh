@@ -1,12 +1,8 @@
 
 function get(req, res) {
-    res.show({
-        title: 'account',
-        hello: 'world'
-    })
+    res.show({})
 }
 
 module.exports = {
-    layout: 'main',
     get
 }
