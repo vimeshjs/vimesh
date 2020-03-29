@@ -1,14 +1,15 @@
 
 const _ = require('lodash')
-const util = require( "util" )
+const util = require("util")
 const minio = require('minio')
-const Storage = require('./storage')
+const { Storage } = require('./storage')
+const { isStream, getMD5 } = require('@vimesh/utils')
 function MinioStorage(config) {
     Storage.call(this, config)
     this.client = new minio.Client(config.options)
 }
 
-util.inherits( MinioStorage, Storage )
+util.inherits(MinioStorage, Storage)
 
 MinioStorage.prototype.listBuckets = function () {
     return this.client.listBuckets()
@@ -36,6 +37,9 @@ MinioStorage.prototype.deleteBucket = function (name) {
 }
 
 MinioStorage.prototype.putObject = function (bucket, filePath, data, options) {
+    if (!options) options = { meta }
+    else if (!options.meta) options.meta = {}
+    if (!isStream(data)) options.meta.md5 = getMD5(data)
     return Promise.resolve(this.client.putObject(bucket, filePath, data, null, (options && options.meta)));
 }
 

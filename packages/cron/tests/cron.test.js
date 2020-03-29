@@ -2,7 +2,7 @@ const _ = require('lodash')
 const sinon = require('sinon')
 const { setupLogger } = require('@vimesh/logger')
 const { duration } = require('@vimesh/utils')
-clock = sinon.useFakeTimers({
+const clock = sinon.useFakeTimers({
     now: new Date(),
     shouldAdvanceTime: true
 })

@@ -1,8 +1,9 @@
+const _ = require('lodash')
 const fs = require('graceful-fs')
 const { pipeStreams } = require('@vimesh/utils')
 const path = require('path')
 const mkdirp = require('mkdirp')
-const { readStreamToBuffer } = require('@vimesh/utils')
+const { readStreamToBuffer, getFileChecksum } = require('@vimesh/utils')
 const Promise = require('bluebird')
 const accessAsync = Promise.promisify(fs.access)
 const statAsync = Promise.promisify(fs.stat)
@@ -13,31 +14,59 @@ function Storage(config) {
     this.config = config
 }
 
+function getFullLocalStat(localFilePath) {
+    let localStat
+    return accessAsync(localFilePath)
+        .then(r => statAsync(localFilePath))
+        .then(r => localStat = _.pick(r, 'size'))
+        .then(r => getFileChecksum(localFilePath))
+        .then(md5 => { localStat.md5 = md5 })
+        .catch(ex => { })
+        .then(r => localStat)
+}
+function compareLocalAndRemoteStat(localStat, remoteStat) {
+    if (!remoteStat || !localStat) return false
+    let rmd5 = remoteStat.meta && remoteStat.meta.md5
+    return remoteStat.size == localStat.size && (!rmd5 || rmd5 == localStat.md5)
+}
 let getObjectFileIndex = 1
 Storage.prototype.getObjectAsFile = function (bucket, filePath, localFilePath) {
     return Promise.all([
         this.statObject(bucket, filePath),
-        accessAsync(localFilePath).then(r => statAsync(localFilePath)).catch(ex => { })
+        getFullLocalStat(localFilePath)
     ]).then(rs => {
         let remoteStat = rs[0]
         let localStat = rs[1]
-        if (remoteStat && localStat && remoteStat.size == localStat.size) {
+        if (compareLocalAndRemoteStat(localStat, remoteStat)) {
             return Promise.resolve()
         } else {
             let dir = path.dirname(localFilePath)
             let partFilePath = `${localFilePath}.${getObjectFileIndex++}.part`
             let error = Error(`Fails to download the complete file ${filePath} at bucket ${bucket}!`)
-            return mkdirp(dir).then(r => this.getObject(bucket, filePath)).then(stream => {
-                return pipeStreams(stream, fs.createWriteStream(partFilePath)).then(r => statAsync(partFilePath))
-            }).then(s => {
-                if (remoteStat.size == s.size) {
-                    return renameAsync(partFilePath, localFilePath).catch(r =>
-                        unlinkAsync(partFilePath).then(r => Promise.reject(error)))
-                } else {
-                    return unlinkAsync(partFilePath).then(r => Promise.reject(error))
-                }
-            })
+            return (localStat ? unlinkAsync(localFilePath) : Promise.resolve())
+                .then(r => mkdirp(dir))
+                .then(r => this.getObject(bucket, filePath))
+                .then(stream => {
+                    return pipeStreams(stream, fs.createWriteStream(partFilePath)).then(r => statAsync(partFilePath))
+                })
+                .then(s => {
+                    if (remoteStat.size == s.size) {
+                        return renameAsync(partFilePath, localFilePath).catch(r =>
+                            unlinkAsync(partFilePath).then(r => Promise.reject(error)))
+                    } else {
+                        return unlinkAsync(partFilePath).then(r => Promise.reject(error))
+                    }
+                })
         }
+    })
+}
+
+Storage.prototype.putObjectAsFile = function (bucket, filePath, localFilePath, options) {
+    if (!options) options = { meta }
+    else if (!options.meta) options.meta = {}
+    return getFileChecksum(localFilePath, 'md5').then(md5 => {
+        options.meta.md5 = md5
+        return this.putObject(bucket, filePath, fs.createReadStream(localFilePath), options)
     })
 }
 
@@ -57,4 +86,8 @@ Storage.prototype.getPartialObjectAsString = function (bucket, filePath, offset,
     return this.getPartialObjectAsBuffer(bucket, filePath, offset, size).then(buffer => buffer.toString())
 }
 
-module.exports = Storage
+module.exports = {
+    compareLocalAndRemoteStat,
+    getFullLocalStat,
+    Storage
+}

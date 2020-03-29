@@ -4,6 +4,9 @@ const fs = require('graceful-fs')
 const { createStorage } = require('..')
 const Promise = require('bluebird')
 
+const { setupLogger } = require('@vimesh/logger')
+setupLogger()
+
 let storage = null
 beforeAll(() => {
     storage = createStorage({

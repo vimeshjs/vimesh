@@ -4,7 +4,16 @@ const glob = require('glob')
 const axios = require('axios')
 const { timeout } = require('@vimesh/utils')
 const express = require('express')
-const { createStorage, setupStorageMiddleware } = require('..')
+const { createStorage, setupFileDownloadMiddleware } = require('..')
+const { setupLogger } = require('@vimesh/logger')
+const sinon = require('sinon')
+const { duration } = require('@vimesh/utils')
+const clock = sinon.useFakeTimers({
+    now: new Date(),
+    shouldAdvanceTime: true
+})
+
+setupLogger()
 const root = `${__dirname}/d1/d2/d3`
 let storage = null
 function removeAll(dir) {
@@ -81,7 +90,7 @@ test('list, delete, stat object', function () {
 
 test('put stream', function () {
     let jscontent = null
-    return storage.putObject('bucket-001', 'folder1/streamfile.js', fs.createReadStream(__dirname + '/local.test.js'), { meta: { 'content-type': 'text/javascript' } }).then(r => {
+    return storage.putObjectAsFile('bucket-001', 'folder1/streamfile.js', __dirname + '/local.test.js', { meta: { 'content-type': 'text/javascript' } }).then(r => {
         return storage.getObjectAsBuffer('bucket-001', 'folder1/streamfile.js').then(r => {
             jscontent = r.toString()
             expect(jscontent.indexOf("'bucket-001', 'folder1/streamfile.js'") !== -1).toBeTruthy()
@@ -102,13 +111,24 @@ test('express middleware', function () {
 
     app.get('/', (req, res) => res.send('Storage Tests!'))
 
-    setupStorageMiddleware(app, '/@test', storage, 'bucket-001', `${__dirname}/tmp`)
+    setupFileDownloadMiddleware(app, '/@test/get', storage, 'bucket-001', `${__dirname}/tmp`, {maxAge : '1h'})
 
     app.listen(port, () => console.log(`Test app listening on port ${port}!`))
 
     return timeout('3s').then(r => {
-        return axios.get(`http://localhost:${port}/@test/file/folder1/b.txt`).then(r => {
+        return axios.get(`http://localhost:${port}/@test/get/folder1/b.txt`).then(r => {
             expect(r.data).toBe('Hi this is b')
+        })
+    }).then(r => {
+        return storage.putObject('bucket-001', 'folder1/b.txt', 'Hi this is m')
+    }).then(r => {
+        return axios.get(`http://localhost:${port}/@test/get/folder1/b.txt`).then(r => {
+            expect(r.data).toBe('Hi this is b')
+            clock.tick(duration('1h'));
+        })
+    }).then(r => {
+        return axios.get(`http://localhost:${port}/@test/get/folder1/b.txt`).then(r => {
+            expect(r.data).toBe('Hi this is m')
         })
     })
 })

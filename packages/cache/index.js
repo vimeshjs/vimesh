@@ -63,13 +63,13 @@ MemoryCache.prototype.get = function(keyObj) {
     if (val !== undefined) {
         if (reload) { // refresh when value is stale
             this.refreshValue(keyObj).catch(ex => {
-                $logger.error(`Fails to fetch value with key (key)`, ex)
+                $logger.error(`Fails to fetch value with key (${keyObj})`, ex)
             })
         }
         return Promise.resolve(val)
     } else {
         return this.refreshValue(keyObj).catch(ex => {
-            $logger.error(`Fails to fetch value with key (key)`, ex)
+            $logger.error(`Fails to fetch value with key (${keyObj})`, ex)
         })
     }
 }

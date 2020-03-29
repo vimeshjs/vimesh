@@ -4,7 +4,7 @@ const fs = require('graceful-fs')
 const path = require('path')
 const glob = require('glob')
 const mkdirp = require('mkdirp')
-const { isStream, isReadableStream, pipeStreams } = require('@vimesh/utils')
+const { isStream, isReadableStream, pipeStreams, getMD5 } = require('@vimesh/utils')
 const Promise = require('bluebird')
 const accessAsync = Promise.promisify(fs.access)
 const writeFileAsync = Promise.promisify(fs.writeFile)
@@ -14,7 +14,7 @@ const statAsync = Promise.promisify(fs.stat)
 const globAsync = Promise.promisify(glob)
 const rmdirAsync = Promise.promisify(fs.rmdir)
 const unlinkAsync = Promise.promisify(fs.unlink)
-const Storage = require('./storage')
+const { Storage } = require('./storage')
 function LocalStorage(config) {
     Storage.call(this, config)
     this.root = config.options.root
@@ -56,6 +56,7 @@ LocalStorage.prototype.putObject = function (bucket, filePath, data, options) {
                     return Promise.reject(Error(`Stream data must be readable to put into ${bucket}/${filePath}`))
                 }
             }
+            meta.md5 = getMD5(data)
             return mkdirp(dir).then(r => writeFileAsync(fn, data))
         } else {
             return Promise.reject(Error(`Conatiner ${bucket} does not exist for file ${filePath}!`))
