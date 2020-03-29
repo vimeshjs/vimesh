@@ -69,7 +69,7 @@ function setupLogger(config) {
 
 	var moduleOrig = require("module");
 	var _load_orig = moduleOrig._load;
-	var excludes = ['bson-ext', 'memcpy', 'internal/util', 'worker_threads']
+	var excludes = config.excludes || []
 	moduleOrig._load = function (name, parent, isMain) {
 		try {
 			if (excludes.indexOf(name) == -1)
