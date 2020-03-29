@@ -1,31 +1,11 @@
 const _ = require('lodash')
-const fs = require('fs')
+const fs = require('graceful-fs')
 const path = require('path')
 const crypto = require('crypto')
 const glob = require("glob")
 const yaml = require('js-yaml')
-
-function getFileChecksum(filename, type, callback) {
-    if (callback === undefined) {
-        callback = type;
-        type = 'md5';
-    }
-
-    if (!fs.existsSync(filename)) {
-        callback('File does not exist!');
-    } else {
-        let sum = crypto.createHash(type);
-        let s = fs.ReadStream(filename);
-        s.on('data', function (d) {
-            sum.update(d);
-        });
-
-        s.on('end', function () {
-            let d = sum.digest('hex');
-            callback(null, d);
-        });
-    }
-}
+const Promise = require('bluebird')
+const accessAsync = Promise.promisify(fs.access)
 
 function loadYaml(f) {
     try {
@@ -133,12 +113,27 @@ function pipeStreams(...streams) {
         }).on('error', e => reject(e)).on('finish', () => resolve())
     })
 }
+
+function getStreamChecksum(s, type) {
+    return new Promise((resolve, reject) => {
+        var sum = crypto.createHash(type || 'md5')
+        s.on('data', d => { sum.update(d) })
+        s.on('error', err => reject(err))
+        s.on('end', () => { resolve(sum.digest('hex')) })
+    })
+}
+
+function getFileChecksum(filename, type) {
+    return accessAsync(filename).then(r => getStreamChecksum(fs.ReadStream(filename), type))
+}
+
 module.exports = {
     pipeStreams,
     isStream,
     isReadableStream,
     readStreamToBuffer,
     getFileChecksum,
+    getStreamChecksum,
     loadYaml,
     loadJson,
     loadText,

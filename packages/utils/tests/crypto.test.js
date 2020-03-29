@@ -1,5 +1,6 @@
-const {xor, fromBase64, toBase64, getCRC16, getCRC32} = require('..')
+const {xor, fromBase64, toBase64, getCRC16, getCRC32, getMD5, getFileChecksum, getStreamChecksum} = require('..')
 const _ = require('lodash')
+const fs = require('fs')
 test('xor', function () {
 
     let str = 'xjzhang'
@@ -52,4 +53,13 @@ test('crc', () => {
     let c2 = getCRC16('account')
     console.log(c1, 10000 + (c1 % 10000))
     console.log(c2, 10000 + (c2 % 10000))
+})
+
+test('md5', () => {
+    let fn = `${__dirname}/crypto.test.js`
+    let md5 = getMD5(fs.readFileSync(fn))
+    console.log(md5)
+    return getFileChecksum(fn).then(fmd5 => {
+        expect(fmd5).toBe(md5)
+    })
 })

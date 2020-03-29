@@ -7,8 +7,10 @@
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
+    "bluebird": "^3.7.2",
     "crc": "^3.8.0",
     "glob": "^7.1.6",
+    "graceful-fs": "^4.2.3",
     "handlebars": "^4.7.3",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.15",

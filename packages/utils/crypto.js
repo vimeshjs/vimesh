@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const crypto = require('crypto')
 const crc = require('crc')
 

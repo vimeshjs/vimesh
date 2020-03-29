@@ -1,7 +1,10 @@
 const _ = require('lodash')
 const fs = require('fs')
 const glob = require('glob')
-const { createStorage } = require('..')
+const axios = require('axios')
+const { timeout } = require('@vimesh/utils')
+const express = require('express')
+const { createStorage, setupStorageMiddleware } = require('..')
 const root = `${__dirname}/d1/d2/d3`
 let storage = null
 function removeAll(dir) {
@@ -57,7 +60,7 @@ test('get and put object', function () {
 test('list, delete, stat object', function () {
 
     return Promise.all([
-        storage.putObject('bucket-001', 'folder1/b.txt', 'Hi this is a'),
+        storage.putObject('bucket-001', 'folder1/b.txt', 'Hi this is b'),
         storage.putObject('bucket-001', 'folder2/c.txt', 'Hi this is c'),
         storage.putObject('bucket-001', 'folder2/d.txt', 'Hi this is d'),
     ]).then(r => {
@@ -89,6 +92,23 @@ test('put stream', function () {
         }).then(r => {
             let buf = fs.readFileSync(`${__dirname}/tmp/downloaded.js`)
             expect(buf.toString()).toBe(jscontent)
+        })
+    })
+})
+
+test('express middleware', function () {
+    const app = express()
+    const port = 3000
+
+    app.get('/', (req, res) => res.send('Storage Tests!'))
+
+    setupStorageMiddleware(app, '/@test', storage, 'bucket-001', `${__dirname}/tmp`)
+
+    app.listen(port, () => console.log(`Test app listening on port ${port}!`))
+
+    return timeout('3s').then(r => {
+        return axios.get(`http://localhost:${port}/@test/file/folder1/b.txt`).then(r => {
+            expect(r.data).toBe('Hi this is b')
         })
     })
 })

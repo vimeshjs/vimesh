@@ -1,10 +1,10 @@
 const _ = require('lodash')
-const util = require( "util" )
+const util = require("util")
 const fs = require('graceful-fs')
 const path = require('path')
 const glob = require('glob')
 const mkdirp = require('mkdirp')
-const { isStream, isReadableStream, readStreamToBuffer } = require('@vimesh/utils')
+const { isStream, isReadableStream, pipeStreams } = require('@vimesh/utils')
 const Promise = require('bluebird')
 const accessAsync = Promise.promisify(fs.access)
 const writeFileAsync = Promise.promisify(fs.writeFile)
@@ -21,7 +21,7 @@ function LocalStorage(config) {
     mkdirp.sync(this.root)
 }
 
-util.inherits( LocalStorage, Storage )
+util.inherits(LocalStorage, Storage)
 
 LocalStorage.prototype.listBuckets = function () {
     return readdirAsync(this.root)
@@ -44,26 +44,23 @@ LocalStorage.prototype.deleteBucket = function (name, options) {
 }
 
 LocalStorage.prototype.putObject = function (bucket, filePath, data, options) {
+    let fn = path.join(this.root, bucket, filePath)
+    let dir = path.dirname(fn)
+    let meta = options && options.meta || {}
     return this.hasBucket(bucket).then(r => {
         if (r) {
-            let fn = path.join(this.root, bucket, filePath)
-            let dir = path.dirname(fn)
             if (isStream(data)) {
                 if (isReadableStream(data)) {
-                    return readStreamToBuffer(data).then(buffer => {
-                        return mkdirp(dir).then(r => writeFileAsync(fn, buffer))
-                            .then(r => writeFileAsync(`${fn}.meta.json`, JSON.stringify(options && options.meta || {}, null, 2)))
-                    })
+                    return mkdirp(dir).then(pipeStreams(data, fs.createWriteStream(fn)))
                 } else {
                     return Promise.reject(Error(`Stream data must be readable to put into ${bucket}/${filePath}`))
                 }
             }
             return mkdirp(dir).then(r => writeFileAsync(fn, data))
-                .then(r => writeFileAsync(`${fn}.meta.json`, JSON.stringify(options && options.meta || {}, null, 2)))
         } else {
             return Promise.reject(Error(`Conatiner ${bucket} does not exist for file ${filePath}!`))
         }
-    })
+    }).then(r => writeFileAsync(`${fn}.meta.json`, JSON.stringify(meta, null, 2)))
 }
 
 LocalStorage.prototype.getObject = function (bucket, filePath) {
@@ -81,7 +78,7 @@ LocalStorage.prototype.getPartialObject = function (bucket, filePath, offset, si
     return this.hasBucket(bucket).then(r => {
         if (r) {
             let fn = path.join(this.root, bucket, filePath)
-            let options = {start : offset}
+            let options = { start: offset }
             if (size > 0) options.end = offset + size - 1
             return accessAsync(fn).then(r => fs.createReadStream(fn, options))
         } else {

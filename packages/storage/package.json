@@ -13,5 +13,9 @@
     "lodash": "^4.17.15",
     "minio": "^7.0.15",
     "mkdirp": "^1.0.3"
+  },
+  "devDependencies": {
+    "axios": "^0.19.2",
+    "express": "^4.17.1"
   }
 }

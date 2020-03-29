@@ -21,8 +21,8 @@ Storage.prototype.getObjectAsFile = function (bucket, filePath, localFilePath) {
     ]).then(rs => {
         let remoteStat = rs[0]
         let localStat = rs[1]
-        if (remoteStat && localStat) {
-            if (remoteStat.size == localStat.size) return Promise.resolve()
+        if (remoteStat && localStat && remoteStat.size == localStat.size) {
+            return Promise.resolve()
         } else {
             let dir = path.dirname(localFilePath)
             let partFilePath = `${localFilePath}.${getObjectFileIndex++}.part`
