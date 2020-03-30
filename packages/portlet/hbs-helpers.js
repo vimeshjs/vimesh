@@ -21,7 +21,10 @@ function json(js, options) {
 `
 }
 function getSortedMenus(index, menus) {
-    menus = _.map(_.entries(menus), ar => _.extend({ _name: ar[0] }, ar[1]))
+    menus = _.filter(_.map(_.entries(menus), ar => _.extend({ _name: ar[0] }, ar[1])), m => {
+        if (!m._meta) $logger.warn(`Menu config (${JSON.stringify(m)}) seems wrong.`)
+        return !!m._meta
+    })
     menus = _.sortBy(menus, m => _.get(m, '_meta.sort') || 1)
     return _.map(menus, m => {
         let mindex = `${index}.${m._name}`

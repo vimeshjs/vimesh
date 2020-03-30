@@ -37,8 +37,8 @@ MinioStorage.prototype.deleteBucket = function (name) {
 }
 
 MinioStorage.prototype.putObject = function (bucket, filePath, data, options) {
-    if (!options) options = { meta }
-    else if (!options.meta) options.meta = {}
+    if (!options) options = {}
+    if (!options.meta) options.meta = {}
     if (!isStream(data)) options.meta.md5 = getMD5(data)
     return Promise.resolve(this.client.putObject(bucket, filePath, data, null, (options && options.meta)));
 }

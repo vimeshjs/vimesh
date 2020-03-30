@@ -93,19 +93,20 @@ test('use $when$ with set', function () {
 })
 
 test('use empty _id with set', function () {
+    let foundUsers = []
     return Promise.each([
-        $dao.Orders.set({ user_name: 'Tom' }),
-        $dao.Orders.set({ _id: '', user_name: 'Peter' }),
-        $dao.Orders.set({ _id: null, user_name: 'Jacky' })
-    ], r => r).then(rs => {
+        { user_name: 'Tom' },
+        { _id: '', user_name: 'Peter' },
+        { _id: null, user_name: 'Jacky' }
+    ], user => $dao.Orders.set(user)).then(rs => {
         return Promise.each([
-            $dao.Orders.get({ user_name: 'Tom' }),
-            $dao.Orders.get({ user_name: 'Peter' }),
-            $dao.Orders.get({ user_name: 'Jacky' })
-        ], r => r)
+            { user_name: 'Tom' },
+            { user_name: 'Peter' },
+            { user_name: 'Jacky' }
+        ], cond => $dao.Orders.get(cond).then(u => foundUsers.push(u)))
     }).then(rs => {
-        expect(rs[0]._id).toBe(1000)
-        expect(rs[1]._id).toBe(1001)
-        expect(rs[2]._id).toBe(1002)
+        expect(foundUsers[0]._id).toBe(1000)
+        expect(foundUsers[1]._id).toBe(1001)
+        expect(foundUsers[2]._id).toBe(1002)
     })
 })

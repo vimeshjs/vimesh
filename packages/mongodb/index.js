@@ -44,7 +44,13 @@ function connectTo(dbUri, dbName, options, name, debug, admin, remains) {
     })
 }
 
-function setupMongoDB(config, modelRoot, baseDb = 'base') {
+function setupMongoDB(config, modelRoot, baseDb) {
+    let dbNames = _.keys(config.databases)
+    if (dbNames.length == 0) {
+        $logger.error('There are no MongoDB databases defined!')
+        return 
+    }
+    if (!baseDb) baseDb = dbNames[0]
     loadModels(__dirname + '/models', baseDb)
     loadModels(modelRoot, baseDb)
     let remains = {}

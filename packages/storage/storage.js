@@ -62,8 +62,8 @@ Storage.prototype.getObjectAsFile = function (bucket, filePath, localFilePath) {
 }
 
 Storage.prototype.putObjectAsFile = function (bucket, filePath, localFilePath, options) {
-    if (!options) options = { meta }
-    else if (!options.meta) options.meta = {}
+    if (!options) options = {}
+    if (!options.meta) options.meta = {}
     return getFileChecksum(localFilePath, 'md5').then(md5 => {
         options.meta.md5 = md5
         return this.putObject(bucket, filePath, fs.createReadStream(localFilePath), options)

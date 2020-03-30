@@ -12,5 +12,11 @@
     "jest": "^25.1.0",
     "lerna": "^3.20.2",
     "sinon": "^9.0.1"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "scripts": {
+    "test": "jest --runInBand --forceExit"
   }
 }

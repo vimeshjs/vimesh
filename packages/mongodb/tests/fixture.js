@@ -4,10 +4,10 @@ const { setupMongoDB } = require('..')
 
 const config = {
     databases : {
-        default : {
+        main : {
             uri : "mongodb://localhost/unit_test"
         }
     }
 }
 setupLogger()
-setupMongoDB(_.merge(config, global.extraConfig), __dirname + '/models', 'default')
+setupMongoDB(_.merge(config, global.extraConfig), __dirname + '/models')

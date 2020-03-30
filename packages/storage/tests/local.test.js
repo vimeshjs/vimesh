@@ -124,7 +124,7 @@ test('express middleware', function () {
     }).then(r => {
         return axios.get(`http://localhost:${port}/@test/get/folder1/b.txt`).then(r => {
             expect(r.data).toBe('Hi this is b')
-            clock.tick(duration('1h'));
+            clock.tick(duration('1.1h'));
         })
     }).then(r => {
         return axios.get(`http://localhost:${port}/@test/get/folder1/b.txt`).then(r => {
