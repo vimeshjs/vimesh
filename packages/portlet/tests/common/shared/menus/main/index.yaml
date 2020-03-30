@@ -2,6 +2,6 @@ settings:
   _meta:
     sort: 1000
     icon: el-icon-setting
-    i18n:
+    title:
       cn: 配置
       en: Settings

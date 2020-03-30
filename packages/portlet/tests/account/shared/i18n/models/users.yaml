@@ -1,15 +1,13 @@
-id: 
-  cn: 编号
-  en: ID
+id: ID
 name: 
-  cn: 姓名
   en: Name
+  cn: 姓名
 email:
-  cn: 邮箱
   en: Email
+  cn: 邮箱
 password:
-  cn: 密码
   en: Password
+  cn: 密码
 mobile:
   cn: 手机号
   en: Mobile

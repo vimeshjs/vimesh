@@ -74,8 +74,11 @@ function mountSharedResourcesMiddleware(portletServer, type, extName) {
     portletServer.app.get(`/_${type}`, _.bind(sharedResourcesMiddleware, null, portletServer.sharedResourcesCaches[type]))
 }
 
-function runResourcesMergingJob(portletServer) {
+function runResourceJobs(portletServer) {
+    let interval = portletServer.config.resourcesJobInterval || '3s'
+    $logger.info(`Resources refresh with interval ${interval}`)
     setInterval(() => {
+        let portlet = portletServer.portlet
         let peers = portletServer.config.peers
         if (_.keys(peers).length > 0) {
             let names = _.keys(peers)
@@ -88,8 +91,8 @@ function runResourcesMergingJob(portletServer) {
                             let allInZone = _.filter(_.keys(all), key => _.startsWith(key, `${zone}/`))
                             if (allInZone.length > 0) {
                                 let menus = _.merge(..._.map(_.values(_.pick(all, allInZone)), r => r.content))
-                                let data = { zone, menus, version: `${portletServer.version}.${portletServer.startedAt.valueOf()}` }
-                                axios.post(`${url}/_menus/merge/${encodeURIComponent(zone)}`, data).catch(ex => {
+                                let data = { portlet, zone, menus, version: `${portletServer.version}.${portletServer.startedAt.valueOf()}` }
+                                axios.post(`${url}/_menus/merge`, data).catch(ex => {
                                     $logger.error('Fails to merge menus.', ex)
                                 })
                             }
@@ -99,12 +102,8 @@ function runResourcesMergingJob(portletServer) {
                     $logger.error('Fails to load zones.', ex)
                 })
             })
-            Promise.all(_.map(names, name => axios.get(`${peers[name]}/_menus/merged`))).then(rs => {
-                _.each(rs, r => {
-                    _.each(r.data, (menus, zone) => {
-                        portletServer.receivedMenusByZone[zone] = menus
-                    })
-                })
+            Promise.all(_.map(names, name => axios.get(`${peers[name]}/_menus/merge`))).then(rs => {
+                _.each(rs, r => portletServer.allMenusByZone = _.merge(portletServer.allMenusByZone, r.data))                
             }).then(r => {
                 portletServer.menusReady = true
             }).catch(ex => {
@@ -124,15 +123,36 @@ function runResourcesMergingJob(portletServer) {
             portletServer.menusReady = true
             portletServer.i18nReady = true
         }
-    }, duration('3s'))
+
+        portletServer.sharedResourcesCaches['menus'].enumerate(true).then(all => {
+            if (all.zones) {
+                _.each(all.zones.content, zone => {
+                    let allInZone = _.filter(_.keys(all), key => _.startsWith(key, `${zone}/`))
+                    if (allInZone.length > 0) {
+                        let val = _.merge(..._.map(_.values(_.pick(all, allInZone)), r => r.content))
+                        _.set(portletServer.allMenusByZone, `${portletServer.portlet}.${zone}`, val)
+                    }
+                })
+            }
+        })
+
+        portletServer.sharedResourcesCaches['i18n'].enumerate(true).then(all => {
+            mergeI18nItems(portletServer.mergedI18nItems, all)
+        })
+
+    }, duration(interval))
 }
-function mergeI18nItems(all, itemsToMerge){
+function mergeI18nItems(all, itemsToMerge) {
     _.each(itemsToMerge, (val, prefix) => {
         prefix = prefix.replace(/\//g, '.')
-        _.each(val.content, (trans, key) =>{
-            _.each(trans, (text, lang) => {
-                _.set(all, `${lang}.${prefix}.${key}`, text)
-            })
+        _.each(val.content, (trans, key) => {
+            if (_.isString(trans)){
+                _.set(all, `*.${prefix}.${key}`, trans)
+            }else {
+                _.each(trans, (text, lang) => {
+                    _.set(all, `${lang}.${prefix}.${key}`, text)
+                })
+            }
         })
     })
 }
@@ -145,35 +165,18 @@ function setupSharedResources(portletServer) {
     mountSharedResourcesMiddleware(portletServer, 'menus', '.yaml')
     mountSharedResourcesMiddleware(portletServer, 'i18n', '.yaml')
 
-    app.post('/_menus/merge/:zone', (req, res, next) => {
+    app.post('/_menus/merge', (req, res, next) => {
+        let portlet = req.body.portlet
         let zone = req.body.zone
-        if (portletServer.mergedMenusByZone[zone]) {
-            portletServer.mergedMenusByZone[zone] = _.merge(portletServer.mergedMenusByZone[zone], req.body.menus)
-        }
+        _.set(portletServer.allMenusByZone, `${portlet}.${zone}`, req.body.menus)
         res.json({})
     })
 
-    app.get('/_menus/merged', (req, res, next) => {
-        res.json(portletServer.mergedMenusByZone)
+    app.get('/_menus/merge', (req, res, next) => {
+        res.json(portletServer.allMenusByZone)
     })
 
-    portletServer.sharedResourcesCaches['menus'].enumerate(true).then(all => {
-        if (all.zones) {
-            _.each(all.zones.content, zone => {
-                portletServer.mergedMenusByZone[zone] = {}
-                let allInZone = _.filter(_.keys(all), key => _.startsWith(key, `${zone}/`))
-                if (allInZone.length > 0) {
-                    portletServer.mergedMenusByZone[zone] = _.merge(..._.map(_.values(_.pick(all, allInZone)), r => r.content))
-                }
-            })
-        }
-    })
-
-    portletServer.sharedResourcesCaches['i18n'].enumerate(true).then(all => {
-        mergeI18nItems(portletServer.mergedI18nItems, all)
-    })
-
-    runResourcesMergingJob(portletServer)
+    runResourceJobs(portletServer)
 }
 module.exports = {
     setupSharedResources

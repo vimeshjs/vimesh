@@ -5,7 +5,7 @@ settings:
       icon: el-icon-office-building
       sort: 10
       permission: accounts.view
-      i18n:
+      title:
         cn: 账户
         en: Accounts
   groups:
@@ -14,7 +14,7 @@ settings:
       icon: el-icon-s-flag
       sort: 20
       permission: groups.view
-      i18n:
+      title:
         cn: 用户组
         en: Groups
   users:
@@ -23,7 +23,7 @@ settings:
       icon: el-icon-user
       sort: 30
       permission: users.view
-      i18n:
+      title:
         cn: 用户
         en: Users
   roles:
@@ -32,6 +32,6 @@ settings:
       icon: el-icon-s-order
       sort: 40
       permission: roles.view
-      i18n:
+      title:
         cn: 角色
         en: Roles

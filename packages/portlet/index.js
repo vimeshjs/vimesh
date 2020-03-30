@@ -27,8 +27,7 @@ function PortletServer(config) {
 
     this.config = config
     this.sharedResourcesCaches = {}
-    this.mergedMenusByZone = {}
-    this.receivedMenusByZone = {}
+    this.allMenusByZone = {}
     this.mergedI18nItems = {}
     this.menusReady = false
     this.i18nReady = false
