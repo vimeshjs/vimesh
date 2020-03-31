@@ -1,15 +1,16 @@
-ok:
-  cn: 确认
-  en: OK
-cancel:
-  cn: 取消
-  en: Cancel
-new:
-  cn: 新建
-  en: New
-delete:
-  cn: 删除
-  en: Delete
-edit:
-  cn: 编辑
-  en: Edit
+ok: OK
+cancel: Cancel
+yes: Yes
+no: No
+new: New
+delete: Delete
+err_delete: Failed to delete
+ok_delete: Successed to delete
+are_you_sure: Are you sure?
+edit: Edit
+submit: Submit
+err_submit: Failed to submit !
+ok_submit: Successed to submit !
+reset: Reset
+actions: Actions
+comfirm: Comfirmation

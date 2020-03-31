@@ -35,6 +35,20 @@
     {{{block 'scripts@head'}}}
     <script type="text/javascript">
         $mixins = []
+        function toQuery(params){
+            if (!params) return ''
+            var parts = []
+            Object.entries(params).forEach(function([key,val], index) {
+                parts.push(key + '=' + encodeURIComponent(val))
+            })
+            return parts.join('&')
+        }
+        function toFullUrl(url, params){
+            return url + (url.indexOf('?') == -1 ? '?' : '') + toQuery(params)
+        }
+        function goto(url){
+            location.href = url
+        }
     </script>
 </head>
 
@@ -44,8 +58,8 @@
             <el-header>
                 {{> header }}
             </el-header>
-            <el-container >
-                <el-aside width="240px" >
+            <el-container>
+                <el-aside width="240px">
                     {{> menu }}
                 </el-aside>
                 <el-main>

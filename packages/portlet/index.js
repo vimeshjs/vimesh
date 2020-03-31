@@ -10,6 +10,7 @@ const compression = require('compression')
 const { setupRoutes } = require('./routes')
 const { setupSharedResources } = require('./shared-resources')
 const { createViewEngine } = require('./view-engine')
+const { formatError } = require('./utils')
 
 function PortletServer(config) {
     let portlet = this.portlet = config.name
@@ -22,7 +23,6 @@ function PortletServer(config) {
     this.partialsDir = path.join(sharedDir, 'partials')
     this.viewsDir = path.join(sharedDir, 'views')
     this.pipelinesDir = path.join(sharedDir, 'pipelines')
-    let mockDir = path.join(rootDir, config.mock && config.mock.dir || 'mock')
     let extName = this.extName = '.hbs'
 
     this.config = config
@@ -34,6 +34,23 @@ function PortletServer(config) {
     this.startedAt = new Date()
     let pkgPath = path.join(process.cwd(), 'package.json')
     this.version = fs.existsSync(pkgPath) ? require(pkgPath).version || '0' : '0'
+
+    if (config.mock) {
+        let mockDir = path.join(rootDir, config.mock && config.mock.dir || 'mock')
+        $logger.info(`Portlet ${portlet} is under mock mode!`)
+        global.$mock = {}
+        if (fs.existsSync(mockDir)) {
+            _.each(fs.readdirSync(mockDir), f => {
+                try {
+                    let key = f.substring(0, f.length - path.extname(f).length)
+                    $mock[key] = require(path.join(mockDir, f))
+                } catch (ex) {
+                    $logger.error('Fails to load mock!', ex)
+                }
+            })
+        }
+    }
+
 
     app.enable('trust proxy')
     app.disable('x-powered-by')
@@ -104,9 +121,9 @@ function PortletServer(config) {
     app.use(function (req, res, next) {
         $logger.error("404 (" + req.url + ") ");
         if (req.xhr) {
-            res.status(404).json(normalizeError('404'))
+            res.status(404).json(formatError('404'))
         } else {
-            viewEngine('404', normalizeError('404'), (err, html) => {
+            viewEngine('404', formatError('404'), (err, html) => {
                 if (err) return req.next(err);
                 res.status(404).end(html)
             })
@@ -116,9 +133,9 @@ function PortletServer(config) {
     app.use(function (err, req, res, next) {
         $logger.error("500 (" + req.url + ")", err)
         if (req.xhr) {
-            res.status(err.status || 500).json(normalizeError(err))
+            res.status(err.status || 500).json(formatError(err))
         } else {
-            viewEngine('500', normalizeError('500'), (err, html) => {
+            viewEngine('500', formatError('500'), (err, html) => {
                 res.status(err && err.status || 500).end(html)
             })
         }
@@ -135,18 +152,11 @@ function PortletServer(config) {
 
 }
 
-function normalizeError(err, errCode) {
-    let json = { error: { message: _.isString(err) ? err : err && err.message || err + '' } }
-    if (errCode !== undefined) json.error.code = errCode
-    return json
-}
-
 function setupPortletServer(config) {
     return new PortletServer(config)
 }
 
 module.exports = {
     ...require('./xss'),
-    normalizeError,
     setupPortletServer
 }

@@ -1,18 +1,7 @@
-id: 
-  en: ID
-  cn: ID
-name: 
-  en: Name
-  cn: 姓名
-email:
-  en: Email
-  cn: 邮箱
-password:
-  en: Password
-  cn: 密码
-mobile:
-  cn: 手机号
-  en: Mobile
-company:
-  cn: 公司
-  en: Company
+id: ID
+name: Name
+err_name_required: You must enter a name!
+email: Email
+password: Password
+mobile: Mobile
+company: Company

@@ -3,6 +3,7 @@ const _ = require('lodash')
 const path = require('path')
 const fs = require('graceful-fs')
 const { retryPromise } = require('@vimesh/utils')
+const { formatError, formatOK } = require('./utils')
 const HTTP_METHODS = ['all', 'get', 'post', 'put', 'delete', 'patch', 'config', 'head']
 
 function convertParameters(params, config) {
@@ -40,6 +41,12 @@ let wrappedMiddleware = function (context, req, res, next) {
         res.locals._menusByZone = _.merge(..._.values(portletServer.allMenusByZone))
         res.locals.portlet = portlet
         res.locals.layout = _.isFunction(mlayout) ? mlayout(req) : mlayout
+        res.ok = function(msg, code){
+            res.json(formatOK(msg, code))
+        }
+        res.error = function(err, code){
+            res.status(500).json(formatError(err, code))
+        }
         res.i18n = function (names) {
             if (_.isString(names)) names = _.map(names.split(';'), r => r.trim())
             return _.merge(..._.map(names, name => {
@@ -51,11 +58,19 @@ let wrappedMiddleware = function (context, req, res, next) {
                     fields = _.map(name.substring(p1 + 1, p2).split(','), r => r.trim())
                     name = name.substring(0, p1).trim()
                 }
+                if (!(/^[a-zA-Z_$][a-zA-Z_$0-9\.]*$/.test(name))){
+                    $logger.error(`Wrong i18n key "${name}"`)
+                    return
+                }
                 let lang = res.locals._language
                 let items = res.locals._i18nItems
                 let ls = _.keys(_.omit(items, '*'))
                 if (!lang && ls.length > 0) lang = ls[0]
                 let result = _.get(items[lang], name) || _.get(items['*'], name)
+                if (!result) {
+                    $logger.error(`I18n item "${name}" does not have any translation!`)
+                    return name
+                }
                 return fields && fields.length > 0 ? _.pick(result, fields) : result
             }))
         }
@@ -127,11 +142,9 @@ function scanRoutes(portletServer, current) {
             scanRoutes(portletServer, child)
         } else if (ext === '.js') {
             let methods = require(fullPath)
-            if (methods.setup) {
+            if (methods.$setup) {
                 $logger.info(`Setup ${portlet ? '/@' + portlet : ''}${current.urlPath}`)
-                methods.setup({
-                    mock: portletServer.config.mock
-                })
+                methods.$setup(portletServer.config)
             }
             methods = _.pick(methods, HTTP_METHODS)
             _.each(methods, (m, k) => {

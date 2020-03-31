@@ -25,7 +25,7 @@ function getSortedMenus(lang, index, menus) {
         let uri = _.get(m, '_meta.uri')
         let title = _.get(m, '_meta.title')
         let icon = _.get(m, '_meta.icon')
-        if (_.isObject(title)){
+        if (_.isObject(title)) {
             let i18n = title
             let ls = _.keys(i18n)
             title = i18n[lang] || ls.length > 0 && i18n[ls[0]]
@@ -42,24 +42,28 @@ function getActiveMenu(menus, path) {
     _.each(menus, m => {
         if (!activeMenu) {
             if (path === m.uri) {
-                activeMenu = m.index
+                activeMenu = m
+            } else if (m.uri && path.substring(0, m.uri.length) == m.uri) {
+                if (!activeMenu || activeMenu.uri.length < m.uri.length) activeMenu = m
             } else if (m.submenus) {
-                activeMenu = getActiveMenu(m.submenus, path)
+                let am = getActiveMenu(m.submenus, path)
+                if (am && (!activeMenu || activeMenu.uri.length < ac.uri.length)) activeMenu = am
             }
         }
     })
     return activeMenu
 }
 function menusByZone(name, options) {
-    let lang = options.data.root._language 
+    let lang = options.data.root._language
     let menusInZone = options.data.root._menusByZone && options.data.root._menusByZone[name]
     let menus = getSortedMenus(lang, name, menusInZone)
-    return `${sanitizeJsonToString({ activeMenu: getActiveMenu(menus, options.data.root._path), menus })}`
+    let am = getActiveMenu(menus, options.data.root._path)
+    return `${sanitizeJsonToString({ activeMenu: am && am.index, menus })}`
 }
 
 function T(name, options) {
     if (!name) return ''
-    let lang = options.data.root._language 
+    let lang = options.data.root._language
     let items = options.data.root._i18nItems
     let ls = _.keys(_.omit(items, '*'))
     if (!lang && ls.length > 0) lang = ls[0]

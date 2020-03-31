@@ -1,38 +1,69 @@
 <template>
+
+  <el-button type="primary" @click="createNewUser"><i class="el-icon-plus"></i> \{{i18n.new}}</el-button>
   <el-table :data="users.data" style="width: 100%">
-    <el-table-column prop="id" :label="i18n.id" width="180">
+    <el-table-column prop="_id" :label="i18n.id" width="100">
     </el-table-column>
-    <el-table-column prop="name" :label="i18n.name" width="180">
+    <el-table-column prop="name" :label="i18n.name" width="100">
     </el-table-column>
     <el-table-column prop="email" :label="i18n.email">
     </el-table-column>
     <el-table-column prop="mobile" :label="i18n.mobile">
     </el-table-column>
+    <el-table-column :label="i18n.actions" width="160">
+      <template slot-scope="scope">
+        <el-button @click="edit(scope.row)" type="primary" size="small" plain>\{{i18n.edit}}</el-button>
+        <el-button @click="recycle(scope.row)" type="danger" size="small" plain>\{{i18n.delete}}</el-button>
+      </template>
+    </el-table-column>
   </el-table>
   <div class="block">
-    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :page-sizes="[10, 20, 50, 100]"
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :page-sizes="pageSizes"
       :current-page.sync="users.pageIndex" :page-size="users.pageSize" layout=" prev, pager, next" :total="users.count">
     </el-pagination>
   </div>
 </template>
 
 <script>
-  let $i18n = {{{json i18n}}}
-  {{T 'common.ok'}}
+  let $i18n = {{{ json i18n }}}
   $mixins.push({
     data() {
       return {
         i18n: $i18n,
-        users: { data: [], count: 0, pageIndex: 1, pageSize: 20 }
+        users: { data: [], count: 0, pageIndex: 1, pageSize: 10 },
+        pageSizes: [10, 20, 50, 100]
       }
     },
     created() {
       this.fetchUserList()
     },
     methods: {
+      edit(data) {
+        goto(toFullUrl('/@account/users/edit', { id: data._id }))
+      },
+      recycle(data) {
+        let self = this
+        this.$confirm($i18n['are_you_sure'], $i18n['comfirm'], {
+          confirmButtonText: $i18n['ok'],
+          cancelButtonText: $i18n['cancel'],
+          type: 'warning'
+        }).then(function () {
+          axios.delete(toFullUrl('/@account/users', { id: data._id })).then(function (r) {
+            self.$message.success(r.data.message)
+            self.fetchUserList()
+          }).catch(function () {
+            self.$message.error(r.data.message)
+          })
+        }).catch(function () {
+        })
+      },
+      createNewUser() {
+        goto('/@account/users/edit')
+      },
       fetchUserList() {
         let self = this
-        axios.get('/@account/users/api/list?pageIndex=' + self.users.pageIndex + '&pageSize=' + self.users.pageSize).then(function (r) {
+        let params = { pageIndex: self.users.pageIndex, pageSize: self.users.pageSize }
+        axios.get(toFullUrl('/@account/users/list', params)).then(function (r) {
           self.users.data = r.data.data
           self.users.count = r.data.count
         })
