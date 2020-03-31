@@ -10,15 +10,8 @@ function contentFor(name, options) {
     if (!options.data.root._blocks[name]) options.data.root._blocks[name] = []
     options.data.root._blocks[name].push(options.fn(name))
 }
-function json(js, options) {
-    var name = options.hash.name || '?'
-    var val = null;
-    val = js == null ? "null" : sanitizeJsonToString(js)
-    return `
-    <script type="text/javascript">
-    var ${name} = ${val}
-    </script>
-`
+function json(js) {
+    return js == null ? "null" : sanitizeJsonToString(js)
 }
 function getSortedMenus(lang, index, menus) {
     menus = _.filter(_.map(_.entries(menus), ar => _.extend({ _name: ar[0] }, ar[1])), m => {

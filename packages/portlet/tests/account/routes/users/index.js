@@ -1,6 +1,9 @@
 
 function get(req, res){
-    res.show()
+    let data = {
+        i18n : res.i18n('models.users; common (ok, cancel)')
+    }
+    res.show(data)
 }
 
 module.exports = {

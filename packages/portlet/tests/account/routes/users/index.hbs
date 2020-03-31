@@ -1,12 +1,12 @@
 <template>
   <el-table :data="users.data" style="width: 100%">
-    <el-table-column prop="id" label="{{T 'models.users.id'}}" width="180">
+    <el-table-column prop="id" :label="i18n.id" width="180">
     </el-table-column>
-    <el-table-column prop="name" label="{{T 'models.users.name'}}" width="180">
+    <el-table-column prop="name" :label="i18n.name" width="180">
     </el-table-column>
-    <el-table-column prop="email" label="{{T 'models.users.email'}}">
+    <el-table-column prop="email" :label="i18n.email">
     </el-table-column>
-    <el-table-column prop="mobile" label="{{T 'models.users.mobile'}}">
+    <el-table-column prop="mobile" :label="i18n.mobile">
     </el-table-column>
   </el-table>
   <div class="block">
@@ -17,9 +17,12 @@
 </template>
 
 <script>
+  let $i18n = {{{json i18n}}}
+  {{T 'common.ok'}}
   $mixins.push({
     data() {
       return {
+        i18n: $i18n,
         users: { data: [], count: 0, pageIndex: 1, pageSize: 20 }
       }
     },

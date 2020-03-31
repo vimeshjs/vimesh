@@ -9,7 +9,10 @@ function convertParameters(params, config) {
     try {
         _.each(params, (v, k) => {
             switch (config[k]) {
-                case 'integer': params[k] = +v; break;
+                case 'integer':
+                case 'float':
+                case 'number':
+                    params[k] = +v; break;
                 case 'object': params[k] = JSON.parse(v); break;
             }
         })
@@ -37,6 +40,25 @@ let wrappedMiddleware = function (context, req, res, next) {
         res.locals._menusByZone = _.merge(..._.values(portletServer.allMenusByZone))
         res.locals.portlet = portlet
         res.locals.layout = _.isFunction(mlayout) ? mlayout(req) : mlayout
+        res.i18n = function (names) {
+            if (_.isString(names)) names = _.map(names.split(';'), r => r.trim())
+            return _.merge(..._.map(names, name => {
+                if (!name) return ''
+                let p1 = name.indexOf('(')
+                let p2 = name.indexOf(')')
+                let fields = null
+                if (p1 > 0 && p2 > p1) {
+                    fields = _.map(name.substring(p1 + 1, p2).split(','), r => r.trim())
+                    name = name.substring(0, p1).trim()
+                }
+                let lang = res.locals._language
+                let items = res.locals._i18nItems
+                let ls = _.keys(_.omit(items, '*'))
+                if (!lang && ls.length > 0) lang = ls[0]
+                let result = _.get(items[lang], name) || _.get(items['*'], name)
+                return fields && fields.length > 0 ? _.pick(result, fields) : result
+            }))
+        }
         res.show = function (viewPath, data) {
             if (!data) {
                 data = viewPath
@@ -115,7 +137,7 @@ function scanRoutes(portletServer, current) {
             _.each(methods, (m, k) => {
                 let mbefore = _.clone(before)
                 let mafter = _.clone(after)
-                let mcontext = {portletServer, portlet, current, action, viewEngine, layout}
+                let mcontext = { portletServer, portlet, current, action, viewEngine, layout }
                 if (_.isFunction(m)) {
                     mcontext.handler = m
                 } else if (_.isPlainObject(m)) {

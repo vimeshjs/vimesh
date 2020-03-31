@@ -1,4 +1,6 @@
-id: ID
+id: 
+  en: ID
+  cn: ID
 name: 
   en: Name
   cn: 姓名
