@@ -1,0 +1,58 @@
+{{!< default }}
+<el-form :model="form" status-icon :rules="rules" ref="form" label-width="100px">
+    <el-form-item :label="i18n.id" prop="_id">
+        <el-input v-model="form._id"></el-input>
+    </el-form-item>
+    <el-form-item :label="i18n.password" prop="password">
+        <el-input type="password" v-model="form.password"></el-input>
+    </el-form-item>
+    <el-form-item>
+        <el-button type="primary" @click="login()">\{{i18n.login}}</el-button><br>
+        * For demo purpose, please use admin/admin to login
+    </el-form-item>
+</el-form>
+
+<script>
+    let $i18n = {{{ json i18n }}}
+    $mixins.push({
+        data() {
+            return {
+                form: {},
+                i18n: $i18n,
+                rules: {
+                    _id: [
+                        { required: true, message: $i18n.err_required.replace(/@prop@/i, $i18n.id) }
+                    ],
+                    password: [
+                        { required: true, message: $i18n.err_required.replace(/@prop@/i, $i18n.password) }
+                    ]
+                }
+            }
+        },
+        methods: {
+            login() {
+                let self = this
+                this.$refs.form.validate((valid) => {
+                    if (valid) {
+                        axios.post('/@account/login', {
+                            login: self.form._id,
+                            password: self.form.password
+                        })
+                            .then(function (r) {
+                                self.$message.success(r.data.message)
+                                setTimeout(function () { goto('/@account/users') }, 2000)
+                            }).catch(function (r) {
+                                if (r.response)
+                                    self.$message.error(r.response.data.message)
+                            })
+                    } else {
+                        return false;
+                    }
+                });
+            },
+            register() {
+                this.$refs.form.resetFields();
+            }
+        }
+    })
+</script>

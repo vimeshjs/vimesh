@@ -1,5 +1,39 @@
 const _ = require('lodash')
+const JavaScriptObfuscator = require('javascript-obfuscator')
 const { sanitizeJsonToString } = require('./xss')
+
+const obfuscateOptions = {
+    compact: true,
+    controlFlowFlattening: false,
+    controlFlowFlatteningThreshold: 0.75,
+    deadCodeInjection: false,
+    deadCodeInjectionThreshold: 0.4,
+    debugProtection: false,
+    debugProtectionInterval: false,
+    disableConsoleOutput: false,
+    domainLock: [],
+    identifierNamesGenerator: 'mangled',
+    identifiersPrefix: '',
+    inputFileName: '',
+    log: false,
+    renameGlobals: false,
+    reservedNames: [],
+    reservedStrings: [],
+    rotateStringArray: true,
+    seed: 0,
+    selfDefending: false,
+    sourceMap: false,
+    sourceMapBaseUrl: '',
+    sourceMapFileName: '',
+    sourceMapMode: 'separate',
+    stringArray: true,
+    stringArrayEncoding: 'rc4',
+    stringArrayThreshold: 0.75,
+    target: 'browser',
+    transformObjectKeys: false,
+    unicodeEscapeSequence: false
+}
+
 function block(name, options) {
     if (options.data.root._blocks && options.data.root._blocks[name]) {
         return options.data.root._blocks[name].join('\n')
@@ -8,7 +42,12 @@ function block(name, options) {
 function contentFor(name, options) {
     if (!options.data.root._blocks) options.data.root._blocks = {}
     if (!options.data.root._blocks[name]) options.data.root._blocks[name] = []
-    options.data.root._blocks[name].push(options.fn(name))
+    let content = options.fn(this)
+    options.data.root._blocks[name].push(content)
+}
+function obfuscate(enabled, options){
+    let content = options.fn(this)
+    return enabled ? JavaScriptObfuscator.obfuscate(content, obfuscateOptions) : content
 }
 function json(js) {
     return js == null ? "null" : sanitizeJsonToString(js)
@@ -75,6 +114,7 @@ module.exports = {
     T,
     contentFor,
     content: contentFor,
+    obfuscate,
     menusByZone,
     block,
     json

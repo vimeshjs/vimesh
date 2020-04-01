@@ -1,4 +1,4 @@
-id: ID
+id: Login
 name: Name
 err_name_required: You must enter a name!
 email: Email

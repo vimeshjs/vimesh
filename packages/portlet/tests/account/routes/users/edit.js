@@ -1,7 +1,7 @@
 const _ = require('lodash')
 
 function get(req, res) {
-    let data = { i18n: res.i18n('models.users;common(submit,reset)') }
+    let data = { i18n: res.i18n('models.users;common') }
     Promise.all([
         (req.query.id ? $mock.users.get(req.query.id) : Promise.resolve({}))
     ]).then(rs => {
@@ -10,7 +10,7 @@ function get(req, res) {
     })
 }
 function post(req, res) {
-    $mock.users.set(req.body.form).then(r => {
+    $mock.users[req.body.editMode ? 'set' : 'add'](req.body.form).then(r => {
         res.ok(res.i18n('common.ok_submit'))
     }).catch(ex => {
         $logger.error(`Fails to save user! (${req.body})`, ex)

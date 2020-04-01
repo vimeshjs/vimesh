@@ -3,6 +3,7 @@ const path = require('path')
 const axios = require('axios')
 const fs = require('graceful-fs')
 const bodyParser = require('body-parser')
+const cookieParser = require('cookie-parser')
 const { getCRC16, duration } = require('@vimesh/utils')
 const Promise = require('bluebird')
 const express = require('express')
@@ -76,6 +77,7 @@ function PortletServer(config) {
         app.use(compression())
     }
 
+    app.use(cookieParser())
     app.use(bodyParser.urlencoded({
         extended: true,
         limit: config.uploadLimit || '100mb'

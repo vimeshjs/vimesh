@@ -33,7 +33,7 @@ function renderWithLayout(context) {
     //$logger.debug(`Render @${context.view.portlet}/${context.view.path} ${layoutName ? 'with layout ' + layoutName : ''}`)
     if (layoutName) {
         layoutName = context.alias.layouts && context.alias.layouts[layoutName] || layoutName
-        let layoutView = context.layouts[layoutName[0] == '@' ? layoutName : `@${context.portlet}/${layoutName}`]
+        let layoutView = context.layouts[layoutName]
         if (layoutView) {
             let ncontext = _.clone(context)
             let nlocals = _.clone(context.locals)
@@ -42,7 +42,8 @@ function renderWithLayout(context) {
             ncontext.view = layoutView
             ncontext.layout = null
             return renderWithLayout(ncontext)
-
+        } else {
+            $logger.error(`Could not found layout "${layoutName}"`)
         }
     }
     return Promise.resolve(body)
@@ -101,6 +102,7 @@ HbsViewEngine.prototype.render = function (filename, context, callback) {
             let portlet = this.partials[i].portlet
             _.each(ls, (l, k) => {
                 if (portlet) {
+                    if (!allLayouts[`${k}`]) allLayouts[`${k}`] = l
                     allLayouts[`@${portlet}/${k}`] = l
                 } else {
                     allLayouts[`${k}`] = l

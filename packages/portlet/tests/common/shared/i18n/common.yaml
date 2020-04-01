@@ -14,3 +14,4 @@ ok_submit: Successed to submit !
 reset: Reset
 actions: Actions
 comfirm: Comfirmation
+err_required: '@prop@ is required'

@@ -9,3 +9,6 @@ portlet:
   compress: true
   logRoutes: true
   logRequests: true
+  passport:
+    jwt:
+      expiration: 1h

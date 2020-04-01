@@ -102,10 +102,10 @@ function scanRoutes(portletServer, current) {
     let portlet = portletServer.portlet
     let viewEngine = portletServer.viewEngine
 
-    if (!fs.existsSync(current.dir)) return
+    if (!current.dir || !fs.existsSync(current.dir) || current.dir[0] == '_') return
 
-    if (fs.existsSync(path.join(current.dir, 'index.js'))) {
-        let methods = require(path.join(current.dir, 'index.js'))
+    if (fs.existsSync(path.join(current.dir, '_.js'))) {
+        let methods = require(path.join(current.dir, '_.js'))
         if (methods.before && methods.before.length > 0) {
             if (methods.before[0] === '|')
                 before = _.slice(methods.before, 1)
@@ -120,8 +120,13 @@ function scanRoutes(portletServer, current) {
         }
         if (methods.layout) layout = methods.layout
         if (methods.pipelines) pipelines = _.merge(pipelines, methods.pipelines)
+        if (methods.setup) {
+            $logger.info(`Setup ${portlet ? '/@' + portlet : ''}${current.urlPath}`)
+            methods.setup(portletServer)
+        }
     }
     _.each(fs.readdirSync(current.dir), f => {
+        if (f[0] == '_') return 
         let ext = path.extname(f)
         let action = path.basename(f)
         let fullPath = path.join(current.dir, f)
@@ -141,11 +146,11 @@ function scanRoutes(portletServer, current) {
             current.routes.push(child)
             scanRoutes(portletServer, child)
         } else if (ext === '.js') {
-            let methods = require(fullPath)
-            if (methods.$setup) {
+            let methods = require(fullPath)      
+            if (methods.setup) {
                 $logger.info(`Setup ${portlet ? '/@' + portlet : ''}${current.urlPath}`)
-                methods.$setup(portletServer.config)
-            }
+                methods.setup(portletServer)
+            }      
             methods = _.pick(methods, HTTP_METHODS)
             _.each(methods, (m, k) => {
                 let mbefore = _.clone(before)
