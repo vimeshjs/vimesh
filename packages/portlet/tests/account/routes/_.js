@@ -1,5 +1,6 @@
 
 const _ = require('lodash')
+const { formatDate } = require('@vimesh/utils')
 const { getJwtSecret } = require('./_lib/utils')
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
@@ -22,22 +23,24 @@ function setup({ app, config }) {
     }))
 
     passport.use(new JWTStrategy({
-        jwtFromRequest: function(req){
-            return req.cookies.jwt
-        } ,
+        jwtFromRequest: req => req.cookies.jwt,
         secretOrKey: jwtSecret,
     }, function (jwtPayload, callback) {
         if (Date.now() > jwtPayload.expires) {
-            return callback('jwt expired');
+            $logger.warn(`JWT token is expired (${JSON.stringify(jwtPayload)} @ ${formatDate(jwtPayload.expires)}) `)
+            return callback(null, null);
         }
         return callback(null, jwtPayload);
     }))
 }
 
-const jwt = passport.authenticate('jwt', {session: false})
+const jwt = passport.authenticate('jwt', {
+    session: false,
+    failureRedirect: '/@account/login'
+})
 
 function auth(req, res, next) {
-    console.log('Auth : ' , req.path , req.user)
+    console.log('Auth : ', req.path, req.user)
     next()
 }
 module.exports = {

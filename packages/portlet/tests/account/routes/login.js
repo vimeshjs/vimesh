@@ -34,7 +34,7 @@ function post(req, res, next) {
                 } else {
                     const token = jwt.sign(payload, jwtSecret)
                     res.cookie('jwt', token, { httpOnly: true })
-                    res.ok('ok')
+                    res.ok(res.i18n('pages.login.ok_login'))
                 }
             })
         })(req, res)
