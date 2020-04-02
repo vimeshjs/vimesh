@@ -39,7 +39,9 @@ let wrappedMiddleware = function (context, req, res, next) {
         res.locals._language = portletServer.config.language
         res.locals._i18nItems = portletServer.mergedI18nItems || {}
         res.locals._menusByZone = _.merge(..._.values(portletServer.allMenusByZone))
-        res.locals.portlet = portlet
+        res.locals._portlet = portlet
+        res.locals._user = req.user
+        res.locals._session = req.session
         res.locals.layout = _.isFunction(mlayout) ? mlayout(req) : mlayout
         res.ok = function(msg, code){
             res.json(formatOK(msg, code))
@@ -69,7 +71,7 @@ let wrappedMiddleware = function (context, req, res, next) {
                 let result = _.get(items[lang], name) || _.get(items['*'], name)
                 if (!result) {
                     $logger.error(`I18n item "${name}" does not have any translation!`)
-                    return name
+                    return {}
                 }
                 return fields && fields.length > 0 ? _.pick(result, fields) : result
             }))

@@ -1,0 +1,40 @@
+syntax = "proto3";
+package discovery;
+
+service KeyValueService {
+  rpc get(GetRequest) returns (GetResponse) {}
+  rpc keys(KeysRequest) returns (KeysResponse) {}
+  rpc set(SetRequest) returns (Result) {}
+  rpc del(DelRequest) returns (Result) {}
+}
+
+// message type definitions
+
+message GetRequest {
+    string key = 1;
+    bool recurse = 2;
+}
+message GetResponse {
+    map<string, string> data = 1;
+}
+
+message KeysRequest {
+    string key = 1;
+}
+
+message KeysResponse {
+    repeated string keys = 1;
+}
+
+message SetRequest {
+    string key = 1;
+    string value = 2;
+}
+
+message DelRequest {
+    string key = 1;
+}
+
+message Result {
+    bool ok = 1;
+}

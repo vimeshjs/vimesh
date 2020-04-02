@@ -1,0 +1,12 @@
+{
+  "name": "@vimesh/discovery",
+  "version": "0.9.6",
+  "description": "Vimesh share KV store, service discovery",
+  "main": "index.js",
+  "repository": "https://github.com/vimeshjs/vimesh.git",
+  "author": "Jacky <jacky@vimesh.org>",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^4.17.15"
+  }
+}

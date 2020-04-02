@@ -79,15 +79,14 @@ function getActiveMenu(menus, path) {
     if (!menus || !path) return null
     let activeMenu = null
     _.each(menus, m => {
-        if (!activeMenu) {
-            if (path === m.uri) {
-                activeMenu = m
-            } else if (m.uri && path.substring(0, m.uri.length) == m.uri) {
-                if (!activeMenu || activeMenu.uri.length < m.uri.length) activeMenu = m
-            } else if (m.submenus) {
-                let am = getActiveMenu(m.submenus, path)
-                if (am && (!activeMenu || activeMenu.uri.length < ac.uri.length)) activeMenu = am
-            }
+        if (path === m.uri) {
+            activeMenu = m
+        } else if (m.uri && path.substring(0, m.uri.length) == m.uri) {
+            if (!activeMenu || activeMenu.uri.length < m.uri.length) activeMenu = m
+        }  
+        if (m.submenus) {
+            let am = getActiveMenu(m.submenus, path)
+            if (am && (!activeMenu || activeMenu.uri.length < am.uri.length)) activeMenu = am
         }
     })
     return activeMenu

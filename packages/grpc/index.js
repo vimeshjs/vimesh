@@ -29,9 +29,12 @@ function setupGrpcService(options) {
                     $logger.warn(`There are no gRPC implementation for ${f}`)
                 }
                 const imp = require(js)
+                if (options.context) {
+                    _.each(_.keys(imp), k => imp[k] = _.bind(imp[k], options.context))
+                }
                 _.each(packageDefinition[_.keys(packageDefinition)[0]], (v, k) => {
                     if (v.service) {
-                        if (options.promisify === false){
+                        if (options.promisify === false) {
                             server.addService(v.service, imp)
                         } else {
                             server.addService(v.service, _.mapValues(imp, promiseFunc => {
@@ -69,17 +72,22 @@ function createGrpcClient(options) {
     _.each(packageDefinition[_.keys(packageDefinition)[0]], (v, k) => {
         if (v.service) {
             client = new v(options.url, options.credentials || grpc.credentials.createInsecure())
-            if (options.promisify !== false){
+            if (options.promisify !== false) {
                 Object.keys(Object.getPrototypeOf(client)).forEach(function (functionName) {
                     const originalFunction = client[functionName]
                     let newFunc = async (req, mt) => {
                         return new Promise((resolve, reject) => {
-                            originalFunction.bind(client)(req, mt, (err, res) => {
-                                if (err)
-                                    reject(err)
-                                else 
-                                    resolve(res)
-                            })
+                            try {
+                                originalFunction.bind(client)(req, mt, (err, res) => {
+                                    if (err)
+                                        reject(err)
+                                    else
+                                        resolve(res)
+                                })
+                            } catch (ex) {
+                                $logger.error(`Fails to call method "${functionName}" @ ${options.path}.  `, ex)
+                                reject(ex)
+                            }
                         })
                     }
                     client[functionName] = newFunc;
