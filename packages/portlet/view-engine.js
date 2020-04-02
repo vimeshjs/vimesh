@@ -42,23 +42,20 @@ function createLocalTemplateCache(portlet, dir, options) {
     })
 }
 
-function createRemoteTemplateCache(portlet, url, options) {
+function createRemoteTemplateCache(kvClient, portlet, type, options) {
+    let prefix = `${type}/@${portlet}/`
     return createMemoryCache({
         maxAge: options.maxAge,
         enumForceReload: options.enumForceReload,
         updateAgeOnGet: false,
-        onEnumerate: () => {
-            return axios.get(`${url}?file=*`).then(resp => {
-                return _.keys(resp.data)
-            })
+        onEnumerate: () => {            
+            return kvClient.keys(prefix).then(keys => _.map(keys, k => k.substring(prefix.length)))
         },
         onRefresh: function (key) {
-            let fullUrl = `${url}?file=${encodeURIComponent(key)}`
-            return axios.get(fullUrl).then(resp => {
-                let source = resp.data.content
-                let uri = fullUrl
+            return kvClient.get(`${prefix}${key}`).then(content => {
+                let source = content
                 let template = handlebars.compile(source, options.compilation)
-                return { portlet, uri, source, path: key, template }
+                return { portlet, source, path: key, template }
             }).catch(ex => null)
         }
     })
@@ -68,6 +65,7 @@ function createViewEngine(portletServer){
     let portlet = portletServer.portlet
     let config = portletServer.config
     let extName = portletServer.extName
+    let kvClient = portletServer.kvClient
     let localCacheOption = {
         maxAge: config.debug ? '3s' : '100d',
         extName
@@ -89,10 +87,10 @@ function createViewEngine(portletServer){
         layouts: [{ cache: createLocalTemplateCache(portlet, portletServer.layoutsDir, localCacheOption) }],
         partials: [{ cache: createLocalTemplateCache(portlet, portletServer.partialsDir, localCacheOption) }]
     }
-    _.each(config.peers, (url, name) => {
-        hveConfig.views.push({ portlet: name, cache: createRemoteTemplateCache(name, `${url}/_views`, remoteCacheOption) })
-        hveConfig.layouts.push({ portlet: name, cache: createRemoteTemplateCache(name, `${url}/_layouts`, remoteCacheOption) })
-        hveConfig.partials.push({ portlet: name, cache: createRemoteTemplateCache(name, `${url}/_partials`, remoteCacheOption) })
+    _.each(config.peers, name => {
+        hveConfig.views.push({ portlet: name, cache: createRemoteTemplateCache(kvClient, name, 'views', remoteCacheOption) })
+        hveConfig.layouts.push({ portlet: name, cache: createRemoteTemplateCache(kvClient, name, 'layouts', remoteCacheOption) })
+        hveConfig.partials.push({ portlet: name, cache: createRemoteTemplateCache(kvClient, name, 'partials', remoteCacheOption) })
     })
 
     return createHbsViewEngine(hveConfig)

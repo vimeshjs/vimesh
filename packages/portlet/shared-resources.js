@@ -12,29 +12,6 @@ const accessAsync = Promise.promisify(fs.access)
 const readFileAsync = Promise.promisify(fs.readFile)
 const globAsync = Promise.promisify(glob)
 
-
-function sharedResourcesMiddleware(caches, req, res, next) {
-    if (!caches) return next()
-    let file = req.query.file
-    let md5 = req.query.md5
-    if (file === '*') {
-        caches.enumerate(req.query.content === 'true').then(rs => {
-            res.json(rs)
-        }).catch(ex => {
-            res.json([])
-        })
-    } else {
-        caches.get(file).then(r => {
-            if (r.md5 === md5)
-                res.json({ md5 })
-            else
-                res.json(r)
-        }).catch(ex => {
-            res.json({})
-        })
-    }
-}
-
 function mountSharedResourcesMiddleware(portletServer, type, extName) {
     let sharedDir = portletServer.sharedDir
     if (!extName) extName = portletServer.extName
@@ -58,13 +35,14 @@ function mountSharedResourcesMiddleware(portletServer, type, extName) {
                     return readFileAsync(file)
                 }).then(r => {
                     let content = r.toString()
+                    if (extName === '.yaml') {
+                        content = yaml.load(content)
+                    }
+                    let portlet = portletServer.portlet
                     if (portletServer.kvClient) {
-                        let data = {
-                            key: `${type}/@${portletServer.portlet}/${key}`,
-                            value: content
-                        }
-                        portletServer.kvClient.set(data).catch(ex => {
-                            $logger.error(`Fails to send ${data.key} to discovery server`, ex)
+                        let dkey = `${type}/@${portlet}/${key}`                        
+                        portletServer.kvClient.set(dkey, content, {duration : '1m'}).catch(ex => {
+                            $logger.error(`Fails to send ${dkey} to discovery server`, ex)
                         })
                     }
                     return {
@@ -83,77 +61,44 @@ function mountSharedResourcesMiddleware(portletServer, type, extName) {
 }
 
 function runResourceJobs(portletServer) {
-    let interval = portletServer.config.resourcesJobInterval || '3s'
-    $logger.info(`Resources refresh with interval ${interval}`)
     setInterval(() => {
         let portlet = portletServer.portlet
-        let peers = portletServer.config.peers
-        if (_.keys(peers).length > 0) {
-            let names = _.keys(peers)
-            portletServer.sharedResourcesCaches['menus'].enumerate(true).then(all => {
-                Promise.all(_.map(names, name => axios.get(`${peers[name]}/_menus?file=zones`))).then(rs => {
-                    _.each(rs, (r, i) => {
-                        let name = names[i]
-                        let url = peers[name]
-                        _.each(r.data.content, zone => {
-                            let allInZone = _.filter(_.keys(all), key => _.startsWith(key, `${zone}/`))
-                            if (allInZone.length > 0) {
-                                let menus = _.merge(..._.map(_.values(_.pick(all, allInZone)), r => r.content))
-                                let data = { portlet, zone, menus, version: `${portletServer.version}.${portletServer.startedAt.valueOf()}` }
-                                axios.post(`${url}/_menus/merge`, data).catch(ex => {
-                                    $logger.error('Fails to merge menus.', ex)
-                                })
-                            }
-                        })
-                    })
-                }).catch(ex => {
-                    $logger.error('Fails to load zones.', ex)
-                })
-            })
-            Promise.all(_.map(names, name => axios.get(`${peers[name]}/_menus/merge`))).then(rs => {
-                _.each(rs, r => portletServer.allMenusByZone = _.merge(portletServer.allMenusByZone, r.data))
-            }).then(r => {
-                portletServer.menusReady = true
-            }).catch(ex => {
-                $logger.error('Fails to receive merged menus.', ex)
-            })
+        
+        _.each(portletServer.sharedResourcesCaches, cache => cache.enumerate(true))
 
-            Promise.all(_.map(names, name => axios.get(`${peers[name]}/_i18n?file=*&content=true`))).then(rs => {
-                _.each(rs, r => {
-                    mergeI18nItems(portletServer.mergedI18nItems, r.data)
-                })
-            }).then(r => {
-                portletServer.i18nReady = true
-            }).catch(ex => {
-                $logger.error('Fails to receive i18n items.', ex)
+        let kvClient = portletServer.kvClient
+        kvClient.get('menus/*').then(rs => {
+            portletServer.allMenusByZone  = {}
+            _.each(rs, (r, key) => {
+                key = key.substring(key.indexOf('/', key.indexOf('@')) + 1)
+                let pos = key.indexOf('/')
+                let zone = pos == -1 ? key : key.substring(0, pos)
+                portletServer.allMenusByZone[zone] = _.merge(portletServer.allMenusByZone[zone], r)
             })
-        } else {
+        }).then(r => {
             portletServer.menusReady = true
+        }).catch(ex => {
+            $logger.error('Fails to receive merged menus.', ex)
+        })
+
+        kvClient.get('i18n/*').then(rs => {
+            _.each(rs, (r, key) => {
+                key = key.substring(key.indexOf('/', key.indexOf('@')) + 1)
+                let data = {}
+                data[key] = r
+                mergeI18nItems(portletServer.mergedI18nItems, data)
+            })
+        }).then(r => {
             portletServer.i18nReady = true
-        }
-
-        portletServer.sharedResourcesCaches['menus'].enumerate(true).then(all => {
-            if (all.zones) {
-                _.each(all.zones.content, zone => {
-                    let allInZone = _.filter(_.keys(all), key => _.startsWith(key, `${zone}/`))
-                    if (allInZone.length > 0) {
-                        let val = _.merge(..._.map(_.values(_.pick(all, allInZone)), r => r.content))
-                        _.set(portletServer.allMenusByZone, `${portletServer.portlet}.${zone}`, val)
-                    }
-                })
-            }
+        }).catch(ex => {
+            $logger.error('Fails to receive i18n items.', ex)
         })
-
-        portletServer.sharedResourcesCaches['i18n'].enumerate(true).then(all => {
-            mergeI18nItems(portletServer.mergedI18nItems, all)
-        })
-
-    }, duration(interval))
+    }, duration('3s'))
 }
 function mergeI18nItems(all, itemsToMerge) {
     _.each(itemsToMerge, (val, prefix) => {
         prefix = prefix.replace(/\//g, '.')
-        _.each(val.content, (trans, key) => {
+        _.each(val, (trans, key) => {
             if (!(/^[a-zA-Z_$][a-zA-Z_$0-9]*$/.test(key))) {
                 $logger.error(`Wrong i18n key ${key}`)
                 return
@@ -173,7 +118,6 @@ function setupSharedResources(portletServer) {
         $logger.warn('There are no discovery server found.')
         return
     }
-    let app = portletServer.app
 
     mountSharedResourcesMiddleware(portletServer, 'layouts')
     mountSharedResourcesMiddleware(portletServer, 'partials')
@@ -181,7 +125,7 @@ function setupSharedResources(portletServer) {
     mountSharedResourcesMiddleware(portletServer, 'menus', '.yaml')
     mountSharedResourcesMiddleware(portletServer, 'i18n', '.yaml')
 
-    //runResourceJobs(portletServer)
+    runResourceJobs(portletServer)
 
 }
 module.exports = {

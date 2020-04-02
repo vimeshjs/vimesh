@@ -9,6 +9,7 @@ const Promise = require('bluebird')
 const express = require('express')
 const compression = require('compression')
 const { setupRoutes } = require('./routes')
+const { setupProxy } = require('./proxy')
 const { setupSharedResources } = require('./shared-resources')
 const { createViewEngine } = require('./view-engine')
 const { formatError } = require('./utils')
@@ -54,11 +55,13 @@ function PortletServer(config) {
     }
     let discoveryUrl = _.get(config, 'discovery.url')
     this.kvClient = null
-    if (discoveryUrl){
+    if (discoveryUrl) {
         this.kvClient = createKeyValueClient({ url: discoveryUrl })
         this.selfUrl = config.selfUrl
-        if (this.selfUrl){
-            this.kvClient.set( `portlets/@${portlet}/url`, this.selfUrl)
+        if (this.selfUrl) {
+            setInterval(() => {
+                this.kvClient.set(`portlets/@${portlet}`, this.selfUrl, { duration: '1m' })
+            }, duration('3s'))
         }
     }
 
@@ -107,27 +110,7 @@ function PortletServer(config) {
     }))
 
     setupSharedResources(this)
-
-    const peers = config.peers
-    if (peers) {
-        const httpProxy = require('http-proxy')
-        const proxy = httpProxy.createProxy()
-        _.each(peers, (url, name) => {
-            $logger.info(`Proxy /@${name} to ${url}`)
-        })
-        app.use(function (req, res, next) {
-            let parts = req.path.split('/')
-            if (parts.length > 1 && parts[1][0] === '@') {
-                let name = parts[1].substring(1)
-                if (peers[name]) {
-                    return proxy.web(req, res, {
-                        target: peers[name]
-                    })
-                }
-            }
-            next()
-        })
-    }
+    setupProxy(this)
 
     app.use(function (req, res, next) {
         $logger.error("404 (" + req.url + ") ");

@@ -1,14 +1,18 @@
 logger:
   level: debug
 portlet:
+  port: 18002
   mock: true
   debug: true
   language: en
   peers:
-    common: 'http://localhost:12447'
+    - common
   compress: true
   logRoutes: true
   logRequests: true
   passport:
     jwt:
       expiration: 1h
+  selfUrl: localhost:18002
+  discovery:
+    url: localhost:18000
