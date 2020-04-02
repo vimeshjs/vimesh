@@ -12,7 +12,6 @@ const accessAsync = Promise.promisify(fs.access)
 const readFileAsync = Promise.promisify(fs.readFile)
 const globAsync = Promise.promisify(glob)
 
-
 function sharedResourcesMiddleware(caches, req, res, next) {
     if (!caches) return next()
     let file = req.query.file
@@ -53,19 +52,13 @@ function mountSharedResourcesMiddleware(portletServer, type, extName) {
             },
             onRefresh: function (key) {
                 let file = path.join(sharedDir, type, key + extName)
-                //$logger.debug(`Loading shared/${type}/${key} `)                
+                //$logger.debug(`Loading shared/${type}/${key} `)
                 return accessAsync(file).then(r => {
                     return readFileAsync(file)
                 }).then(r => {
                     let content = r.toString()
-                    if (portletServer.kvClient) {
-                        let data = {
-                            key: `${type}/@${portletServer.portlet}/${key}`,
-                            value: content
-                        }
-                        portletServer.kvClient.set(data).catch(ex => {
-                            $logger.error(`Fails to send ${data.key} to discovery server`, ex)
-                        })
+                    if (extName === '.yaml') {
+                        content = yaml.load(content)
                     }
                     return {
                         content,
@@ -77,9 +70,8 @@ function mountSharedResourcesMiddleware(portletServer, type, extName) {
                 })
             }
         })
-        portletServer.sharedResourcesCaches[type].enumerate(true)
     }
-
+    portletServer.app.get(`/_${type}`, _.bind(sharedResourcesMiddleware, null, portletServer.sharedResourcesCaches[type]))
 }
 
 function runResourceJobs(portletServer) {
@@ -111,7 +103,7 @@ function runResourceJobs(portletServer) {
                 })
             })
             Promise.all(_.map(names, name => axios.get(`${peers[name]}/_menus/merge`))).then(rs => {
-                _.each(rs, r => portletServer.allMenusByZone = _.merge(portletServer.allMenusByZone, r.data))
+                _.each(rs, r => portletServer.allMenusByZone = _.merge(portletServer.allMenusByZone, r.data))                
             }).then(r => {
                 portletServer.menusReady = true
             }).catch(ex => {
@@ -154,13 +146,13 @@ function mergeI18nItems(all, itemsToMerge) {
     _.each(itemsToMerge, (val, prefix) => {
         prefix = prefix.replace(/\//g, '.')
         _.each(val.content, (trans, key) => {
-            if (!(/^[a-zA-Z_$][a-zA-Z_$0-9]*$/.test(key))) {
+            if (!(/^[a-zA-Z_$][a-zA-Z_$0-9]*$/.test(key))){
                 $logger.error(`Wrong i18n key ${key}`)
                 return
             }
-            if (_.isString(trans)) {
+            if (_.isString(trans)){
                 _.set(all, `*.${prefix}.${key}`, trans)
-            } else {
+            }else {
                 _.each(trans, (text, lang) => {
                     _.set(all, `${lang}.${prefix}.${key}`, text)
                 })
@@ -169,10 +161,6 @@ function mergeI18nItems(all, itemsToMerge) {
     })
 }
 function setupSharedResources(portletServer) {
-    if (!portletServer.kvClient) {
-        $logger.warn('There are no discovery server found.')
-        return
-    }
     let app = portletServer.app
 
     mountSharedResourcesMiddleware(portletServer, 'layouts')
@@ -181,8 +169,18 @@ function setupSharedResources(portletServer) {
     mountSharedResourcesMiddleware(portletServer, 'menus', '.yaml')
     mountSharedResourcesMiddleware(portletServer, 'i18n', '.yaml')
 
-    //runResourceJobs(portletServer)
+    app.post('/_menus/merge', (req, res, next) => {
+        let portlet = req.body.portlet
+        let zone = req.body.zone
+        _.set(portletServer.allMenusByZone, `${portlet}.${zone}`, req.body.menus)
+        res.json({})
+    })
 
+    app.get('/_menus/merge', (req, res, next) => {
+        res.json(portletServer.allMenusByZone)
+    })
+
+    runResourceJobs(portletServer)
 }
 module.exports = {
     setupSharedResources

@@ -12,7 +12,6 @@ service KeyValueService {
 
 message GetRequest {
     string key = 1;
-    bool recurse = 2;
 }
 message GetResponse {
     map<string, string> data = 1;
@@ -29,6 +28,7 @@ message KeysResponse {
 message SetRequest {
     string key = 1;
     string value = 2;
+    string duration = 3;
 }
 
 message DelRequest {

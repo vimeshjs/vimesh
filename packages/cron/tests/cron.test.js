@@ -23,12 +23,12 @@ it('should run every 5 seconds ', () => {
         cron: '*/5 * * * * *'
     }
     const job = execute(config)
-    clock.tick(duration('1s'));
-    clock.tick(duration('1s'));
-    clock.tick(duration('4s'));
-    clock.tick(duration('7s'));
+    clock.tick(duration('1s'))
+    clock.tick(duration('1s'))
+    clock.tick(duration('4s'))
+    clock.tick(duration('7s'))
     job.stop()
-    //expect(callback).toHaveBeenCalledTimes(2);
+    //expect(callback).toHaveBeenCalledTimes(2)
 })
 
 it('should run every 7 seconds ', () => {
@@ -41,13 +41,13 @@ it('should run every 7 seconds ', () => {
         cron: '*/7 * * * * *'
     }
     const job = execute(config)
-    clock.tick(duration('1s'));
-    clock.tick(duration('1s'));
-    clock.tick(duration('4s'));
-    clock.tick(duration('7s'));
+    clock.tick(duration('1s'))
+    clock.tick(duration('1s'))
+    clock.tick(duration('4s'))
+    clock.tick(duration('7s'))
     job.stop()
-    //expect(callback).toHaveBeenCalledTimes(2);
-});
+    //expect(callback).toHaveBeenCalledTimes(2)
+})
 
 it('should run every 1 hour', () => {
     const callback = (config, memo) => {
@@ -62,11 +62,11 @@ it('should run every 1 hour', () => {
         memo: { count: 0 }
     }
     const job = execute(config)
-    clock.tick(duration('1h'));
-    clock.tick(duration('1h'));
-    clock.tick(duration('4h'));
-    clock.tick(duration('7h'));
+    clock.tick(duration('1h'))
+    clock.tick(duration('1h'))
+    clock.tick(duration('4h'))
+    clock.tick(duration('7h'))
     job.stop()
     console.log(new Date())
-    //expect(callback).toHaveBeenCalledTimes(2);
-});
+    //expect(callback).toHaveBeenCalledTimes(2)
+})

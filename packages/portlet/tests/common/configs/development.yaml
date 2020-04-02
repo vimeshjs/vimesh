@@ -1,8 +1,12 @@
 logger:
   level: debug
 portlet:
+  port: 18001
   mock: true
   debug: true
   compress: true
   logRoutes: true
   logRequests: true
+  selfUrl: localhost:18001
+  discovery:
+    url: localhost:18000

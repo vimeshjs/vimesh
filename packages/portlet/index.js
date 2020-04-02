@@ -12,6 +12,7 @@ const { setupRoutes } = require('./routes')
 const { setupSharedResources } = require('./shared-resources')
 const { createViewEngine } = require('./view-engine')
 const { formatError } = require('./utils')
+const { createKeyValueClient } = require('@vimesh/discovery')
 
 function PortletServer(config) {
     let portlet = this.portlet = config.name
@@ -51,7 +52,15 @@ function PortletServer(config) {
             })
         }
     }
-
+    let discoveryUrl = _.get(config, 'discovery.url')
+    this.kvClient = null
+    if (discoveryUrl){
+        this.kvClient = createKeyValueClient({ url: discoveryUrl })
+        this.selfUrl = config.selfUrl
+        if (this.selfUrl){
+            this.kvClient.set( `portlets/@${portlet}/url`, this.selfUrl)
+        }
+    }
 
     app.enable('trust proxy')
     app.disable('x-powered-by')
