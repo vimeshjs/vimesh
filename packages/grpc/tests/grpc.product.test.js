@@ -1,13 +1,16 @@
 
 const { createGrpcClient, GrpcStatus } = require('..')
 
-require('./grpcServer')
+const server = require('./grpcProductServer')
 
 let client = createGrpcClient({
-    path: __dirname + '/services/product.proto',
+    path: __dirname + '/services/product/product.proto',
     url: 'localhost:2000'
 })
 
+afterAll(() => {
+    server.forceShutdown()
+})
 test('find all', () => {
     return client.listProducts().then(result => {
         expect(result.products.length).toBe(3)

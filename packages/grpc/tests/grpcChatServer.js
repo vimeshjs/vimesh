@@ -3,7 +3,8 @@ const { setupLogger } = require('@vimesh/logger')
 const { setupGrpcService } = require('..')  
 
 setupLogger()
-setupGrpcService({
-    path : __dirname + '/services',
-    port : 2000
+module.exports = setupGrpcService({
+    path : __dirname + '/services/chat',
+    port : 2000,
+    promisify: false
 })

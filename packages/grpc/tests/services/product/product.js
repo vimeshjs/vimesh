@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const {GrpcError} = require('../..')
+const {GrpcError} = require('../../..')
 let products = [
     {
         id: 1,

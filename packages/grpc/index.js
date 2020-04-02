@@ -31,17 +31,21 @@ function setupGrpcService(options) {
                 const imp = require(js)
                 _.each(packageDefinition[_.keys(packageDefinition)[0]], (v, k) => {
                     if (v.service) {
-                        server.addService(v.service, _.mapValues(imp, promiseFunc => {
-                            return (call, callback) => {
-                                try {
-                                    let promise = promiseFunc(call, callback)
-                                    if (_.isFunction(promise && promise.then))
-                                        promise.then(r => callback(null, r)).catch(ex => callback(ex))
-                                } catch (ex) {
-                                    callback(ex)
+                        if (options.promisify === false){
+                            server.addService(v.service, imp)
+                        } else {
+                            server.addService(v.service, _.mapValues(imp, promiseFunc => {
+                                return (call, callback) => {
+                                    try {
+                                        let promise = promiseFunc(call, callback)
+                                        if (_.isFunction(promise && promise.then))
+                                            promise.then(r => callback(null, r)).catch(ex => callback(ex))
+                                    } catch (ex) {
+                                        callback(ex)
+                                    }
                                 }
-                            }
-                        }))
+                            }))
+                        }
                     }
                 })
             }
@@ -52,6 +56,7 @@ function setupGrpcService(options) {
     server.bind(url, options.credentials || grpc.ServerCredentials.createInsecure())
     server.start()
     $logger.info(`🚀 gRPC server runs at ${url}`);
+    return server
 }
 
 function createGrpcClient(options) {
@@ -64,20 +69,22 @@ function createGrpcClient(options) {
     _.each(packageDefinition[_.keys(packageDefinition)[0]], (v, k) => {
         if (v.service) {
             client = new v(options.url, options.credentials || grpc.credentials.createInsecure())
-            Object.keys(Object.getPrototypeOf(client)).forEach(function (functionName) {
-                const originalFunction = client[functionName]
-                let newFunc = async (req, mt) => {
-                    return new Promise((resolve, reject) => {
-                        originalFunction.bind(client)(req, mt, (err, res) => {
-                            if (err)
-                                reject(err)
-                            else 
-                                resolve(res)
+            if (options.promisify !== false){
+                Object.keys(Object.getPrototypeOf(client)).forEach(function (functionName) {
+                    const originalFunction = client[functionName]
+                    let newFunc = async (req, mt) => {
+                        return new Promise((resolve, reject) => {
+                            originalFunction.bind(client)(req, mt, (err, res) => {
+                                if (err)
+                                    reject(err)
+                                else 
+                                    resolve(res)
+                            })
                         })
-                    })
-                }
-                client[functionName] = newFunc;
-            })
+                    }
+                    client[functionName] = newFunc;
+                })
+            }
         }
     })
     return client
