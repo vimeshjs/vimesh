@@ -14,6 +14,7 @@ const statAsync = Promise.promisify(fs.stat)
 const globAsync = Promise.promisify(glob)
 const rmdirAsync = Promise.promisify(fs.rmdir)
 const unlinkAsync = Promise.promisify(fs.unlink)
+const copyFileAsync = Promise.promisify(fs.copyFile)
 const { Storage } = require('./storage')
 function LocalStorage(config) {
     Storage.call(this, config)
@@ -59,7 +60,7 @@ LocalStorage.prototype.putObject = function (bucket, filePath, data, options) {
             meta.md5 = getMD5(data)
             return mkdirp(dir).then(r => writeFileAsync(fn, data))
         } else {
-            return Promise.reject(Error(`Conatiner ${bucket} does not exist for file ${filePath}!`))
+            return Promise.reject(Error(`Bucket ${bucket} does not exist for file ${filePath}!`))
         }
     }).then(r => writeFileAsync(`${fn}.meta.json`, JSON.stringify(meta, null, 2)))
 }
@@ -70,7 +71,7 @@ LocalStorage.prototype.getObject = function (bucket, filePath) {
             let fn = path.join(this.root, bucket, filePath)
             return accessAsync(fn).then(r => fs.createReadStream(fn))
         } else {
-            return Promise.reject(Error(`Conatiner ${bucket} does not exist for file ${filePath}!`))
+            return Promise.reject(Error(`Bucket ${bucket} does not exist for file ${filePath}!`))
         }
     })
 }
@@ -83,7 +84,7 @@ LocalStorage.prototype.getPartialObject = function (bucket, filePath, offset, si
             if (size > 0) options.end = offset + size - 1
             return accessAsync(fn).then(r => fs.createReadStream(fn, options))
         } else {
-            return Promise.reject(Error(`Conatiner ${bucket} does not exist for file ${filePath}!`))
+            return Promise.reject(Error(`Bucket ${bucket} does not exist for file ${filePath}!`))
         }
     })
 }
@@ -94,7 +95,29 @@ LocalStorage.prototype.deleteObject = function (bucket, filePath) {
             let fn = path.join(this.root, bucket, filePath)
             return Promise.all([unlinkAsync(fn), unlinkAsync(`${fn}.meta.json`)])
         } else {
-            return Promise.reject(Error(`Conatiner ${bucket} does not exist for file ${filePath}!`))
+            return Promise.reject(Error(`Bucket ${bucket} does not exist for file ${filePath}!`))
+        }
+    })
+}
+
+LocalStorage.prototype.copyObject = function (sourceBucket, sourcePath, targetBucket, targetPath) {
+    if (targetPath === undefined){
+        targetPath = targetBucket
+        targetBucket = sourceBucket
+    }
+    return Promise.all([
+        this.hasBucket(sourceBucket),
+        this.hasBucket(targetBucket),
+    ]).then(r => {
+        if (r) {
+            let fnSource = path.join(this.root, sourceBucket, sourcePath)
+            let fnTarget = path.join(this.root, targetBucket, targetPath)
+            return Promise.all([
+                copyFileAsync(fnSource, fnTarget),
+                copyFileAsync(`${fnSource}.meta.json`, `${fnTarget}.meta.json`)
+            ])
+        } else {
+            return Promise.reject(Error(`Bucket ${sourceBucket} or ${targetBucket} does not exist !`))
         }
     })
 }
@@ -109,7 +132,7 @@ LocalStorage.prototype.statObject = function (bucket, filePath) {
                 return { path: filePath, size: s.size, modifiedAt: new Date(s.mtimeMs), meta }
             })
         } else {
-            return Promise.reject(Error(`Conatiner ${bucket} does not exist for file ${filePath}!`))
+            return Promise.reject(Error(`Bucket ${bucket} does not exist for file ${filePath}!`))
         }
     })
 }
@@ -131,7 +154,7 @@ LocalStorage.prototype.listObjects = function (bucket, prefix) {
                 }).then(r => all)
             })
         } else {
-            return Promise.reject(Error(`Conatiner ${bucket} does not exist for file ${filePath}!`))
+            return Promise.reject(Error(`Bucket ${bucket} does not exist for file ${filePath}!`))
         }
     })
 }

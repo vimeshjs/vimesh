@@ -61,6 +61,14 @@ MinioStorage.prototype.statObject = function (bucket, filePath) {
     })
 }
 
+MinioStorage.prototype.copyObject = function (sourceBucket, sourcePath, targetBucket, targetPath) {
+    if (targetPath === undefined) {
+        targetPath = targetBucket
+        targetBucket = sourceBucket
+    }
+    return this.client.copyObject(targetBucket, targetPath, `/${sourceBucket}/${sourcePath}`)
+}
+
 MinioStorage.prototype.listObjects = function (bucket, prefix) {
     return new Promise((resolve, reject) => {
         const stream = this.client.listObjectsV2(bucket, prefix || '', true)

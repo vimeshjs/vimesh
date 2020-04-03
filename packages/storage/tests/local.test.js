@@ -105,13 +105,26 @@ test('put stream', function () {
     })
 })
 
+test('copy ', function () {
+    return storage.copyObject('bucket-001', 'folder1/b.txt', 'folder1/b-001.txt').then(r => {
+        return storage.getObjectAsString('bucket-001', 'folder1/b-001.txt').then(r => {
+            expect(r).toBe('Hi this is b')
+            return storage.copyObject('bucket-001', 'folder1/b-001.txt', 'folder1/d.txt')
+        }).then(r => {
+            return storage.getObjectAsString('bucket-001', 'folder1/d.txt').then(r => {
+                expect(r).toBe('Hi this is b')
+            })
+        })
+    })
+})
+
 test('express middleware', function () {
     const app = express()
     const port = 3000
 
     app.get('/', (req, res) => res.send('Storage Tests!'))
 
-    setupFileDownloadMiddleware(app, '/@test/get', storage, 'bucket-001', `${__dirname}/tmp`, {maxAge : '1h'})
+    setupFileDownloadMiddleware(app, '/@test/get', storage, 'bucket-001', `${__dirname}/tmp`, { maxAge: '1h' })
 
     app.listen(port, () => console.log(`Test app listening on port ${port}!`))
 

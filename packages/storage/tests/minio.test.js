@@ -71,7 +71,7 @@ test('get and put object', function () {
 test('list, delete, stat object', function () {
 
     return Promise.all([
-        storage.putObject('bucket-001', 'folder1/b.txt', 'Hi this is a'),
+        storage.putObject('bucket-001', 'folder1/b.txt', 'Hi this is b'),
         storage.putObject('bucket-001', 'folder2/c.txt', 'Hi this is c'),
         storage.putObject('bucket-001', 'folder2/d.txt', 'Hi this is d'),
     ]).then(r => {
@@ -103,6 +103,19 @@ test('put stream', function () {
         }).then(r => {
             let buf = fs.readFileSync(`${__dirname}/tmp/downloaded.js`)
             expect(buf.toString()).toBe(jscontent)
+        })
+    })
+})
+
+test('copy ', function () {
+    return storage.copyObject('bucket-001', 'folder1/b.txt', 'folder1/b-001.txt').then(r => {
+        return storage.getObjectAsString('bucket-001', 'folder1/b-001.txt').then(r => {
+            expect(r).toBe('Hi this is b')
+            return storage.copyObject('bucket-001', 'folder1/b-001.txt', 'folder1/d.txt')
+        }).then(r => {
+            return storage.getObjectAsString('bucket-001', 'folder1/d.txt').then(r => {
+                expect(r).toBe('Hi this is b')
+            })
         })
     })
 })
