@@ -67,7 +67,13 @@ HbsViewEngine.prototype.render = function (filename, context, callback) {
     Promise.all(_.map(this.views, item => item.cache.enumerate())).then(rs => {
         let found = null
         _.find(rs, (r, i) => {
-            if (!targetPortlet && !this.views[i].portlet || targetPortlet === this.views[i].portlet) {
+            if (targetPortlet) {
+                let portlet = this.views[i].portlet || this.portlet
+                if (targetPortlet === portlet && r[key]) {
+                    found = r[key]
+                    return true
+                }
+            } else {
                 if (r[key]) {
                     found = r[key]
                     return true

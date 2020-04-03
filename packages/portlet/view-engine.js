@@ -87,7 +87,7 @@ function createViewEngine(portletServer){
         layouts: [{ cache: createLocalTemplateCache(portlet, portletServer.layoutsDir, localCacheOption) }],
         partials: [{ cache: createLocalTemplateCache(portlet, portletServer.partialsDir, localCacheOption) }]
     }
-    _.each(config.peers, name => {
+    _.each(config.depends, name => {
         hveConfig.views.push({ portlet: name, cache: createRemoteTemplateCache(kvClient, name, 'views', remoteCacheOption) })
         hveConfig.layouts.push({ portlet: name, cache: createRemoteTemplateCache(kvClient, name, 'layouts', remoteCacheOption) })
         hveConfig.partials.push({ portlet: name, cache: createRemoteTemplateCache(kvClient, name, 'partials', remoteCacheOption) })

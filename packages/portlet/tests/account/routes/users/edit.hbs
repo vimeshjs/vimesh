@@ -1,27 +1,64 @@
+<el-upload class="avatar-uploader" action="/@account/users/avatar" :show-file-list="false"
+    :on-success="handleAvatarSuccess" >
+    <img v-if="imageUrl" :src="imageUrl" class="avatar">
+    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+</el-upload>
 <el-form :model="form" ref="form" :rules="rules" label-width="100px" style="width: 460px;">
+
     <el-form-item :label="i18n.id" prop="_id" v-if="!editMode">
-        <el-input v-model="form._id" ></el-input>
+        <el-input v-model="form._id"></el-input>
     </el-form-item>
     <el-form-item :label="i18n.name" prop="name">
-        <el-input v-model="form.name" ></el-input>
+        <el-input v-model="form.name"></el-input>
     </el-form-item>
     <el-form-item :label="i18n.email" prop="email">
-        <el-input type='email' v-model="form.email" ></el-input>
+        <el-input type='email' v-model="form.email"></el-input>
     </el-form-item>
     <el-form-item :label="i18n.mobile" prop="mobile">
-        <el-input v-model="form.mobile" ></el-input>
+        <el-input v-model="form.mobile"></el-input>
     </el-form-item>
     <el-form-item>
         <el-button type="primary" @click="submitForm()">\{{i18n.submit}}</el-button>
         <el-button @click="resetForm()">\{{i18n.reset}}</el-button>
     </el-form-item>
 </el-form>
+{{#contentFor 'styles'}}
+<style>
+    .avatar-uploader .el-upload {
+        border: 1px dashed #d9d9d9;
+        border-radius: 6px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .avatar-uploader .el-upload:hover {
+        border-color: #409EFF;
+    }
+
+    .avatar-uploader-icon {
+        font-size: 28px;
+        color: #8c939d;
+        width: 178px;
+        height: 178px;
+        line-height: 178px;
+        text-align: center;
+    }
+
+    .avatar {
+        width: 178px;
+        height: 178px;
+        display: block;
+    }
+</style>
+{{/contentFor}}
 <script>
     let $form = {{{ json form }}}
     let $i18n = {{{ json i18n }}}
     $mixins.push({
         data() {
             return {
+                imageUrl: $form.avatar ? '/@account/users/avatar/' + $form.avatar : '',
                 editMode: !!$form._id,
                 form: $form,
                 i18n: $i18n,
@@ -44,7 +81,8 @@
                             self.$message.success(r.data.message)
                             setTimeout(function () { goto('/@account/users') }, 2000)
                         }).catch(function (r) {
-                            self.$message.error(r.response.data.message)
+                            console.log(r)
+                            self.$message.error(r.response && r.response.data.message)
                         })
                     } else {
                         return false;
@@ -53,6 +91,10 @@
             },
             resetForm() {
                 this.$refs.form.resetFields();
+            },
+            handleAvatarSuccess(res, file) {
+                if (res.token) this.form.avatarToken = res.token
+                this.imageUrl = URL.createObjectURL(file.raw);
             }
         }
     })

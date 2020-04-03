@@ -2,12 +2,9 @@ timezone: Asia/Shanghai
 logger:
   console: {}
 portlet:
+  version: 1.0.1
   name: account
   layout: main
-  alias:
-    views:
-      '404': '@common/404'
-      '500': '@common/500'
-    layouts:
-      empty: '@common/empty'
-      main: '@common/main'
+  language: en
+  depends:
+    - common

@@ -1,11 +1,8 @@
 const _ = require('lodash')
 const path = require('path')
-const axios = require('axios')
 const fs = require('graceful-fs')
-const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const { getCRC16, duration } = require('@vimesh/utils')
-const Promise = require('bluebird')
 const express = require('express')
 const compression = require('compression')
 const { setupRoutes } = require('./routes')
@@ -14,6 +11,7 @@ const { setupSharedResources } = require('./shared-resources')
 const { createViewEngine } = require('./view-engine')
 const { formatError } = require('./utils')
 const { createKeyValueClient } = require('@vimesh/discovery')
+const { createStorage, createScopedStorage, createCacheForScopedStorage } = require('@vimesh/storage')
 
 function PortletServer(config) {
     let portlet = this.portlet = config.name
@@ -36,7 +34,7 @@ function PortletServer(config) {
     this.i18nReady = false
     this.startedAt = new Date()
     let pkgPath = path.join(process.cwd(), 'package.json')
-    this.version = fs.existsSync(pkgPath) ? require(pkgPath).version || '0' : '0'
+    this.version = config.version || (fs.existsSync(pkgPath) ? require(pkgPath).version || '0' : '0')
 
     if (config.mock) {
         let mockDir = path.join(rootDir, config.mock && config.mock.dir || 'mock')
@@ -64,7 +62,16 @@ function PortletServer(config) {
             }, duration('3s'))
         }
     }
-
+    this.storages = {}
+    _.each(config.storages, (sconfig, name) => {
+        let storage = createStorage(sconfig)
+        storage.hasBucket(sconfig.bucket).then(exists => {
+            if (!exists) storage.createBucket(sconfig.bucket)
+        })
+        let scopedStorage = createScopedStorage(storage, sconfig.bucket, sconfig.prefix)
+        let cache = createCacheForScopedStorage(scopedStorage, sconfig.cacheDir, sconfig.cacheOptions)
+        this.storages[name] = { storage: scopedStorage, cache }
+    })
     app.enable('trust proxy')
     app.disable('x-powered-by')
     app.disable('etag')
@@ -90,19 +97,7 @@ function PortletServer(config) {
     }
 
     app.use(cookieParser())
-    app.use(bodyParser.urlencoded({
-        extended: true,
-        limit: config.uploadLimit || '100mb'
-    }))
-    app.use(bodyParser.json({
-        limit: config.uploadLimit || '100mb'
-    }))
 
-    /*
-    app.use(express.multiparty({
-        dest: $config.TMP_DIR
-    }).any());
-    */
     setupRoutes(this)
 
     app.use(`/@${portlet}`, express.static(config.publicDir || 'public', {
@@ -140,7 +135,7 @@ function PortletServer(config) {
     })
 
     app.listen(port, () => {
-        $logger.info(`Portlet ${portlet}(${this.version}) starts on port ${port} with node.js ${process.version}`)
+        $logger.info(`Portlet ${portlet}(version: ${this.version}) starts on port ${port} with node.js ${process.version}`)
         $logger.info(`Url http://localhost:${port}/@${portlet}/`)
     })
 

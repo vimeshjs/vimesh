@@ -4,12 +4,18 @@ portlet:
   port: 18002
   mock: true
   debug: true
-  language: en
-  peers:
-    - common
   compress: true
   logRoutes: true
   logRequests: true
+  uploadDir: '{{root}}/mnt/uploads'
+  storages:
+    avatar: 
+      type: local
+      options:
+        root: '{{root}}/mnt/storage'
+      bucket: 'main'
+      prefix: 'avatar/'
+      cacheDir: '{{root}}/mnt/cache'
   passport:
     jwt:
       expiration: 1h

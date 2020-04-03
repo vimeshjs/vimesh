@@ -9,10 +9,10 @@
   "dependencies": {
     "axios": "^0.19.2",
     "bluebird": "^3.7.2",
-    "body-parser": "^1.19.0",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
     "express": "^4.17.1",
+    "formidable": "^1.2.2",
     "glob": "^7.1.6",
     "graceful-fs": "^4.2.3",
     "handlebars": "^4.7.3",

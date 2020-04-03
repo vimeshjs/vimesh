@@ -1,10 +1,11 @@
 const _ = require('lodash')
 const fs = require('fs')
+const path = require('path')
 const glob = require('glob')
 const axios = require('axios')
 const { timeout } = require('@vimesh/utils')
 const express = require('express')
-const { createStorage, setupFileDownloadMiddleware } = require('..')
+const { createStorage, createScopedStorage, createCacheForScopedStorage } = require('..')
 const { setupLogger } = require('@vimesh/logger')
 const sinon = require('sinon')
 const { duration } = require('@vimesh/utils')
@@ -124,23 +125,31 @@ test('express middleware', function () {
 
     app.get('/', (req, res) => res.send('Storage Tests!'))
 
-    setupFileDownloadMiddleware(app, '/@test/get', storage, 'bucket-001', `${__dirname}/tmp`, { maxAge: '1h' })
-
+    let urlPath = '/@test/get'
+    let scopedStorage = createScopedStorage(storage, 'bucket-001', 'folder1/')
+    let cache = createCacheForScopedStorage(scopedStorage, `${__dirname}/tmp`, { maxAge: '1h' })
+    app.get(`${urlPath}/*`, function (req, res, next) {
+        let filePath = path.relative(`${urlPath}/`, req.path)
+        cache.get(filePath).then(stat => {
+            if (!stat || !stat.localFilePath) return next()
+            res.sendFile(stat.localFilePath)
+        })
+    })
     app.listen(port, () => console.log(`Test app listening on port ${port}!`))
 
     return timeout('3s').then(r => {
-        return axios.get(`http://localhost:${port}/@test/get/folder1/b.txt`).then(r => {
+        return axios.get(`http://localhost:${port}/@test/get/b.txt`).then(r => {
             expect(r.data).toBe('Hi this is b')
         })
     }).then(r => {
         return storage.putObject('bucket-001', 'folder1/b.txt', 'Hi this is m')
     }).then(r => {
-        return axios.get(`http://localhost:${port}/@test/get/folder1/b.txt`).then(r => {
+        return axios.get(`http://localhost:${port}/@test/get/b.txt`).then(r => {
             expect(r.data).toBe('Hi this is b')
             clock.tick(duration('1.1h'));
         })
     }).then(r => {
-        return axios.get(`http://localhost:${port}/@test/get/folder1/b.txt`).then(r => {
+        return axios.get(`http://localhost:${port}/@test/get/b.txt`).then(r => {
             expect(r.data).toBe('Hi this is m')
         })
     })

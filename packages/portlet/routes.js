@@ -2,6 +2,8 @@
 const _ = require('lodash')
 const path = require('path')
 const fs = require('graceful-fs')
+const mkdirp = require('mkdirp')
+const formidable = require('formidable')
 const { retryPromise } = require('@vimesh/utils')
 const { formatError, formatOK } = require('./utils')
 const HTTP_METHODS = ['all', 'get', 'post', 'put', 'delete', 'patch', 'config', 'head']
@@ -21,8 +23,20 @@ function convertParameters(params, config) {
         $logger.error(`Fails to convert ${JSON.stringify(params)} with config ${JSON.stringify(config)}`)
     }
 }
-
-let wrappedMiddleware = function (context, req, res, next) {
+function bodyParserMiddleware(req, res, next) {
+    let context = this
+    let options = {multiples: true}
+    if (context.uploadDir) options.uploadDir = context.uploadDir
+    let form = formidable(options)
+    form.parse(req, (err, fields, files) => {
+        if (err) return next(err)
+        req.body = fields
+        req.files = files
+        next()
+    })
+}
+function wrappedMiddleware(req, res, next) {
+    let context = this
     let portletServer = context.portletServer
     let portlet = context.portlet
     let mlayout = context.layout
@@ -43,10 +57,10 @@ let wrappedMiddleware = function (context, req, res, next) {
         res.locals._user = req.user
         res.locals._session = req.session
         res.locals.layout = _.isFunction(mlayout) ? mlayout(req) : mlayout
-        res.ok = function(msg, code){
+        res.ok = function (msg, code) {
             res.json(formatOK(msg, code))
         }
-        res.error = function(err, code){
+        res.error = function (err, code) {
             res.status(500).json(formatError(err, code))
         }
         res.i18n = function (names) {
@@ -60,7 +74,7 @@ let wrappedMiddleware = function (context, req, res, next) {
                     fields = _.map(name.substring(p1 + 1, p2).split(','), r => r.trim())
                     name = name.substring(0, p1).trim()
                 }
-                if (!(/^[a-zA-Z_$][a-zA-Z_$0-9\.]*$/.test(name))){
+                if (!(/^[a-zA-Z_$][a-zA-Z_$0-9\.]*$/.test(name))) {
                     $logger.error(`Wrong i18n key "${name}"`)
                     return
                 }
@@ -128,7 +142,7 @@ function scanRoutes(portletServer, current) {
         }
     }
     _.each(fs.readdirSync(current.dir), f => {
-        if (f[0] == '_') return 
+        if (f[0] == '_') return
         let ext = path.extname(f)
         let action = path.basename(f)
         let fullPath = path.join(current.dir, f)
@@ -148,11 +162,11 @@ function scanRoutes(portletServer, current) {
             current.routes.push(child)
             scanRoutes(portletServer, child)
         } else if (ext === '.js') {
-            let methods = require(fullPath)      
+            let methods = require(fullPath)
             if (methods.setup) {
                 $logger.info(`Setup ${portlet ? '/@' + portlet : ''}${current.urlPath}`)
                 methods.setup(portletServer)
-            }      
+            }
             methods = _.pick(methods, HTTP_METHODS)
             _.each(methods, (m, k) => {
                 let mbefore = _.clone(before)
@@ -183,7 +197,13 @@ function scanRoutes(portletServer, current) {
                     $logger.error('Route handler must be a function or an object with {before:, handler:, after:}')
                     return
                 }
-                let allHandlers = _.concat(mbefore, _.bind(wrappedMiddleware, null, mcontext), mafter)
+                let bpContext = _.pick(portletServer.config, 'uploadDir')
+                if (bpContext.uploadDir) mkdirp(bpContext.uploadDir)
+                let allHandlers = _.concat(
+                    _.bind(bodyParserMiddleware, bpContext),
+                    mbefore,
+                    _.bind(wrappedMiddleware, mcontext),
+                    mafter)
                 allHandlers = _.map(allHandlers, h => _.isFunction(h) ? h : pipelines[h])
                 let realUrlPath = `${portlet ? '/@' + portlet : ''}${current.urlPath}/${action === 'index' ? '' : action}`.replace(/\[/g, ':').replace(/\]/g, '')
                 if (portletServer.config.logRoutes) $logger.info(`ROUTE ${k.toUpperCase()} ${realUrlPath}`)

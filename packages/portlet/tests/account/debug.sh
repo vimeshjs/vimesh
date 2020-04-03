@@ -1,2 +1,2 @@
 #!/bin/bash
-cross-env NODE_ENV=development nodemon index.js
+cross-env NODE_ENV=development nodemon index.js --ignore mnt/
