@@ -10,6 +10,7 @@ let configs = loadConfigs(context, 'common', process.env.NODE_ENV || 'developmen
 
 setupLogger(configs.logger)
 
-setupMongoDB(configs.mongodb)
+if (configs.discovery.type === 'mongodb')
+    setupMongoDB(configs.mongodb)
 
 setupDiscoveryService(configs.discovery)

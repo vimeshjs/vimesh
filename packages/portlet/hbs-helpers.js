@@ -1,6 +1,7 @@
 const _ = require('lodash')
 const JavaScriptObfuscator = require('javascript-obfuscator')
 const { sanitizeJsonToString } = require('./xss')
+const babel = require("@babel/core")
 
 const obfuscateOptions = {
     compact: true,
@@ -45,9 +46,9 @@ function contentFor(name, options) {
     let content = options.fn(this)
     options.data.root._blocks[name].push(content)
 }
-function obfuscate(enabled, options){
+function obfuscate(enabled, options) {
     let content = options.fn(this)
-    return enabled ? JavaScriptObfuscator.obfuscate(content, obfuscateOptions) : content
+    return enabled ? '\n' + JavaScriptObfuscator.obfuscate(content, obfuscateOptions): content
 }
 function json(js) {
     return js == null ? "null" : sanitizeJsonToString(js)
@@ -83,7 +84,7 @@ function getActiveMenu(menus, path) {
             activeMenu = m
         } else if (m.uri && path.substring(0, m.uri.length) == m.uri) {
             if (!activeMenu || activeMenu.uri.length < m.uri.length) activeMenu = m
-        }  
+        }
         if (m.submenus) {
             let am = getActiveMenu(m.submenus, path)
             if (am && (!activeMenu || activeMenu.uri.length < am.uri.length)) activeMenu = am
@@ -109,8 +110,14 @@ function T(name, options) {
     return _.get(items[lang], name) || _.get(items['*'], name) || fallbackText
 }
 
+function es5(options) {
+    let code = options.fn(this)
+    let result = babel.transformSync(code, { presets: ["@babel/preset-env"] })
+    return `${result.code}`
+}
 module.exports = {
     T,
+    es5,
     contentFor,
     content: contentFor,
     obfuscate,

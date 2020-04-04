@@ -6,7 +6,6 @@ function setup({ storages }) {
 }
 
 function post(req, res) {
-    console.log(req.files)
     let file = req.files.file
     let localFilePath = file.path
     let fid = path.basename(localFilePath)

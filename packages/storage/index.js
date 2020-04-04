@@ -13,6 +13,7 @@ function createStorage(config) {
     throw Error(`Storage type "${config.type}" is not supported`)
 }
 function createScopedStorage(storage, bucket, prefix) {
+    prefix = prefix || ''
     return {
         storage,
         bucket,

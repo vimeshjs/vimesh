@@ -65,10 +65,11 @@ function PortletServer(config) {
     this.storages = {}
     _.each(config.storages, (sconfig, name) => {
         let storage = createStorage(sconfig)
-        storage.hasBucket(sconfig.bucket).then(exists => {
-            if (!exists) storage.createBucket(sconfig.bucket)
+        let bucket = sconfig.bucket || 'default'
+        storage.hasBucket(bucket).then(exists => {
+            if (!exists) storage.createBucket(bucket)
         })
-        let scopedStorage = createScopedStorage(storage, sconfig.bucket, sconfig.prefix)
+        let scopedStorage = createScopedStorage(storage, bucket, sconfig.prefix)
         let cache = createCacheForScopedStorage(scopedStorage, sconfig.cacheDir, sconfig.cacheOptions)
         this.storages[name] = { storage: scopedStorage, cache }
     })

@@ -26,6 +26,7 @@
 
 <script>
   let $i18n = {{{ json i18n }}}
+  //{{#es5 }}
   $mixins.push({
     data() {
       return {
@@ -42,30 +43,28 @@
         goto(toFullUrl('/@account/users/edit', { id: data._id }))
       },
       recycle(data) {
-        let self = this
         this.$confirm($i18n['are_you_sure'], $i18n['comfirm'], {
           confirmButtonText: $i18n['ok'],
           cancelButtonText: $i18n['cancel'],
           type: 'warning'
-        }).then(function () {
-          axios.delete(toFullUrl('/@account/users', { id: data._id })).then(function (r) {
-            self.$message.success(r.data.message)
-            self.fetchUserList()
-          }).catch(function () {
-            self.$message.error(r.data.message)
+        }).then(() => {
+          axios.delete(toFullUrl('/@account/users', { id: data._id })).then(r => {
+            this.$message.success(r.data.message)
+            this.fetchUserList()
+          }).catch(r => {
+            this.$message.error(r.data.message)
           })
-        }).catch(function () {
+        }).catch(() => {
         })
       },
       createNewUser() {
         goto('/@account/users/edit')
       },
       fetchUserList() {
-        let self = this
-        let params = { pageIndex: self.users.pageIndex, pageSize: self.users.pageSize }
-        axios.get(toFullUrl('/@account/users/list', params)).then(function (r) {
-          self.users.data = r.data.data
-          self.users.count = r.data.count
+        let params = { pageIndex: this.users.pageIndex, pageSize: this.users.pageSize }
+        axios.get(toFullUrl('/@account/users/list', params)).then(r => {
+          this.users.data = r.data.data
+          this.users.count = r.data.count
         })
       },
       handleSizeChange(val) {
@@ -79,4 +78,5 @@
       }
     },
   })
+  //{{/es5}}
 </script>

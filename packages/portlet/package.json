@@ -7,6 +7,8 @@
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
     "axios": "^0.19.2",
     "bluebird": "^3.7.2",
     "compression": "^1.7.4",

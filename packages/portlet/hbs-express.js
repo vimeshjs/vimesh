@@ -18,6 +18,7 @@ function HbsViewEngine(config) {
     this.alias = config.alias
     this.portlet = config.portlet
     this.pretty = config.pretty
+    this.htmlMinify = config.htmlMinify
     _.each(this.views, item => item.cache.enumerate())
     _.each(this.layouts, item => item.cache.enumerate())
     _.each(this.partials, item => item.cache.enumerate())
@@ -131,19 +132,21 @@ HbsViewEngine.prototype.render = function (filename, context, callback) {
         if (this.pretty) {
             r = beautify.html(r)
         } else {
-            r = minify.minify(r, {
-                minifyCSS: true,
-                minifyJS: true,
-                collapseWhitespace: true,
-                processScripts: [
-                    'text/javascript',
-                    'text/ecmascript',
-                    'text/jscript',
-                    'application/javascript',
-                    'application/x-javascript',
-                    'application/ecmascript'
-                ]
-            })
+            if (this.htmlMinify){
+                r = minify.minify(r, {
+                    minifyCSS: true,
+                    minifyJS: true,
+                    collapseWhitespace: true,
+                    processScripts: [
+                        'text/javascript',
+                        'text/ecmascript',
+                        'text/jscript',
+                        'application/javascript',
+                        'application/x-javascript',
+                        'application/ecmascript'
+                    ]
+                })
+            }
         }
         callback(null, r)
     }).catch(ex => {
