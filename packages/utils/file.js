@@ -3,6 +3,7 @@ const fs = require('graceful-fs')
 const path = require('path')
 const crypto = require('crypto')
 const glob = require("glob")
+const stream = require('stream')
 const yaml = require('js-yaml')
 const Promise = require('bluebird')
 const accessAsync = Promise.promisify(fs.access)
@@ -127,7 +128,29 @@ function getFileChecksum(filename, type) {
     return accessAsync(filename).then(r => getStreamChecksum(fs.ReadStream(filename), type))
 }
 
+class WritableBufferStream extends stream.Writable {
+    constructor(options) {
+        super(options);
+        this._chunks = [];
+    }
+
+    _write(chunk, enc, callback) {
+        this._chunks.push(chunk);
+        return callback(null);
+    }
+
+    _destroy(err, callback) {
+        this._chunks = null;
+        return callback(null);
+    }
+
+    toBuffer() {
+        return Buffer.concat(this._chunks);
+    }
+}
+
 module.exports = {
+    WritableBufferStream,
     pipeStreams,
     isStream,
     isReadableStream,

@@ -1,3 +1,14 @@
+{{tailwindUse 'text-red-400, text-blue'}}
+{{#contentFor 'styles'}}
+<style>
+    .test{
+        {{tailwindApply "text-orange-400,rounded"}}
+    }
+</style>
+{{/contentFor}}
+<div class='text-red-400'>Hello</div>
+<div style='{{tailwindApply "text-blue-400,rounded"}}'>Hello</div>
+<div class='test'>Hello</div>
 <el-upload class="avatar-uploader" action="/@account/users/avatar" :show-file-list="false"
     :on-success="handleAvatarSuccess" >
     <img v-if="imageUrl" :src="imageUrl" class="avatar">

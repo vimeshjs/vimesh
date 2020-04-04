@@ -2,6 +2,11 @@ const _ = require('lodash')
 const JavaScriptObfuscator = require('javascript-obfuscator')
 const { sanitizeJsonToString } = require('./xss')
 const babel = require("@babel/core")
+const fs = require('fs')
+const zlib = require('zlib')
+const path = require('path')
+const css = require('css')
+const { pipeStreams, WritableBufferStream } = require('@vimesh/utils')
 
 const obfuscateOptions = {
     compact: true,
@@ -115,11 +120,74 @@ function es5(options) {
     let result = babel.transformSync(code, { presets: ["@babel/preset-env"] })
     return `${result.code}`
 }
+
+
+const cssSource = fs.createReadStream(path.join(__dirname, '/tailwind@1.2.0.min.css.gz'))
+const cssUnzip = zlib.createGunzip()
+const cssBufferStream = new WritableBufferStream()
+let tailwindStyles = null
+let tailwindStylesMap = {}
+pipeStreams(cssSource, cssUnzip, cssBufferStream).then(() => {
+    tailwindStyles = css.parse(cssBufferStream.toBuffer().toString());
+    _.each(tailwindStyles.stylesheet.rules, (rule, i) => {
+        _.each(rule.selectors, selector => {
+            if (selector[0] !== '.') return
+            selector = selector.substring(1)
+            if (!tailwindStylesMap[selector]) tailwindStylesMap[selector] = {}
+            tailwindStylesMap[selector][i] = 1
+        })
+    })
+})
+
+function tailwindUse(usedClasses, options){
+    if (!options.data.root._tailwindStyles) options.data.root._tailwindStyles = {}
+    let items = _.map(usedClasses.split(','), s => {
+        s = _.trim(s)
+        if (!tailwindStylesMap[s]){
+            $logger.warn(`Could not find tailwind selector for "${s}"`)
+        }
+        return tailwindStylesMap[s]
+    })
+    options.data.root._tailwindStyles = _.merge(options.data.root._tailwindStyles, ...items)
+}
+
+function tailwindApply(usedClasses, options){
+    let items = _.map(usedClasses.split(','), s => tailwindStylesMap[_.trim(s)])
+    let ruleIdMap = _.merge(...items)
+    return _.map(_.sortBy(_.keys(ruleIdMap), i => +i), index => {
+        let ss = {
+            type: 'stylesheet',
+            stylesheet: {
+                rules: [tailwindStyles.stylesheet.rules[index]]
+            }
+        }
+        let lines = css.stringify(ss).split('\n')
+        return lines.slice(1, lines.length - 1).join('')
+    }).join('')
+}
+
+function tailwindBlock(options) {
+    if (options.data.root._tailwindStyles) {
+        let cssContent = _.map(_.sortBy(_.keys(options.data.root._tailwindStyles), i => +i), index => {
+            let ss = {
+                type: 'stylesheet',
+                stylesheet: {
+                    rules: [tailwindStyles.stylesheet.rules[index]]
+                }
+            }
+            return css.stringify(ss)
+        }).join('\n')
+        return ['<style>', cssContent, '</style>'].join('\n')
+    }
+}
+
 module.exports = {
     T,
     es5,
     contentFor,
-    content: contentFor,
+    tailwindUse,
+    tailwindApply,
+    tailwindBlock,
     obfuscate,
     menusByZone,
     block,
