@@ -9,9 +9,10 @@
     "packages/*"
   ],
   "devDependencies": {
-    "jest": "^25.1.0",
-    "lerna": "^3.20.2",
     "sinon": "^9.0.1"
+  },
+  "resolutions": {
+    "minimist": "^1.2.5"
   },
   "jest": {
     "testEnvironment": "node"
