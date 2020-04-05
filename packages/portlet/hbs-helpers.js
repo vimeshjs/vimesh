@@ -133,6 +133,19 @@ pipeStreams(cssSource, cssUnzip, cssBufferStream).then(() => {
         _.each(rule.selectors, selector => {
             if (selector[0] !== '.') return
             selector = selector.substring(1)
+            //let full = selector
+            let pos = selector.lastIndexOf('\\:')
+            let prefix = ''
+            if (pos != -1){
+                prefix = selector.substring(0, pos + 2)
+                selector = selector.substring(pos + 2)
+            }
+            pos = selector.indexOf(':')
+            if (pos != -1){
+                selector = selector.substring(0, pos)
+            }
+            selector = (prefix + selector).replace(/\\/g, '')
+            //if (full !== selector) console.log(`${full} -> ${selector}`)
             if (!tailwindStylesMap[selector]) tailwindStylesMap[selector] = {}
             tailwindStylesMap[selector][i] = 1
         })
@@ -141,11 +154,15 @@ pipeStreams(cssSource, cssUnzip, cssBufferStream).then(() => {
 
 function tailwindUse(usedClasses, options){
     if (!options.data.root._tailwindStyles) options.data.root._tailwindStyles = {}
+    if (!options.data.root._tailwindUsedClasses) options.data.root._tailwindUsedClasses = {}
+    if (!options.data.root._tailwindAllClasses) options.data.root._tailwindAllClasses = tailwindStylesMap
     let items = _.map(usedClasses.split(','), s => {
         s = _.trim(s)
-        if (!tailwindStylesMap[s]){
+        if (s && !tailwindStylesMap[s]){
             $logger.warn(`Could not find tailwind selector for "${s}"`)
+            return null
         }
+        options.data.root._tailwindUsedClasses[s] = 1
         return tailwindStylesMap[s]
     })
     options.data.root._tailwindStyles = _.merge(options.data.root._tailwindStyles, ...items)
