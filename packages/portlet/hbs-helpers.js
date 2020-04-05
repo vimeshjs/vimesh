@@ -160,9 +160,9 @@ function addRule(parent, rule, selector) {
 pipeStreams(cssSource, cssUnzip, cssBufferStream).then(() => {
     tailwindStyles = css.parse(cssBufferStream.toBuffer().toString());
     _.each(tailwindStyles.stylesheet.rules, (rule, i) => {
-        if (rule.selectors){
+        if (rule.selectors) {
             _.each(rule.selectors, selector => addRule(null, rule, selector))
-        } else if (rule.rules){
+        } else if (rule.rules) {
             _.each(rule.rules, r => {
                 _.each(r.selectors, selector => addRule(rule, r, selector))
             })
@@ -189,7 +189,7 @@ function tailwindUse(usedClasses, options) {
 function tailwindApply(usedClasses, options) {
     let items = _.map(usedClasses.split(' '), s => tailwindStylesMap[_.trim(s)])
     let ruleIdMap = _.merge(...items)
-    return _.map(_.sortBy(_.keys(ruleIdMap), i => +i), index => {        
+    return _.map(_.sortBy(_.keys(ruleIdMap), i => +i), index => {
         let lines = css.stringify(tailwindStylesList[index]).split('\n')
         return lines.slice(1, lines.length - 1).join('')
     }).join('')
@@ -197,16 +197,37 @@ function tailwindApply(usedClasses, options) {
 
 function tailwindBlock(options) {
     if (options.data.root._tailwindStyles) {
-        let cssContent = _.map(_.sortBy(_.keys(options.data.root._tailwindStyles), i => +i), index => {           
+        let cssContent = _.map(_.sortBy(_.keys(options.data.root._tailwindStyles), i => +i), index => {
             return css.stringify(tailwindStylesList[index])
         }).join('\n')
         return ['<style>', cssContent, '</style>'].join('\n')
     }
 }
 
+const { icon } = require('@fortawesome/fontawesome-svg-core')
+const allIcons = _.merge(
+    require('@fortawesome/free-solid-svg-icons'),
+    require('@fortawesome/free-regular-svg-icons'),
+    require('@fortawesome/free-solid-svg-icons')
+)
+function faIcon(name, options) {
+    let iconName = _.camelCase(name)
+    if (allIcons[iconName]){
+        let svg = icon(allIcons[iconName]).html[0]
+        let size = options.hash.size
+        let klass = options.hash.class
+        if (!size && !klass) size = 16
+        if (klass) svg = svg.replace('svg-inline--fa', klass)
+        if (size) svg = [svg.substring(0, 4), `style="width:${size}px;"`, svg.substring(4)].join(' ')
+        return svg
+    } else {
+        $logger.warn(`Icon ${name} does not exist!`)
+    }
+}
 module.exports = {
     T,
     es5,
+    faIcon,
     contentFor,
     tailwindUse,
     tailwindApply,

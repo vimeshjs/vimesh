@@ -35,13 +35,10 @@ function renderWithLayout(context) {
         layoutName = context.alias.layouts && context.alias.layouts[layoutName] || layoutName
         let layoutView = context.layouts[layoutName]
         if (layoutView) {
-            let ncontext = _.clone(context)
-            //let nlocals = _.clone(context.locals)
             context.locals.body = body
-            //ncontext.locals = nlocals
-            ncontext.view = layoutView
-            ncontext.layout = null
-            return renderWithLayout(ncontext)
+            context.view = layoutView
+            context.layout = null
+            return renderWithLayout(context)
         } else {
             $logger.error(`Could not found layout "${layoutName}"`)
         }
