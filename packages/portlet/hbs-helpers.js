@@ -53,7 +53,7 @@ function contentFor(name, options) {
 }
 function obfuscate(enabled, options) {
     let content = options.fn(this)
-    return enabled ? '\n' + JavaScriptObfuscator.obfuscate(content, obfuscateOptions): content
+    return enabled ? '\n' + JavaScriptObfuscator.obfuscate(content, obfuscateOptions) : content
 }
 function json(js) {
     return js == null ? "null" : sanitizeJsonToString(js)
@@ -126,39 +126,57 @@ const cssSource = fs.createReadStream(path.join(__dirname, '/tailwind@1.2.0.min.
 const cssUnzip = zlib.createGunzip()
 const cssBufferStream = new WritableBufferStream()
 let tailwindStyles = null
+let tailwindStylesList = []
 let tailwindStylesMap = {}
+function addRule(parent, rule, selector) {
+    if (selector[0] !== '.') return
+    selector = selector.substring(1)
+    let pos = selector.lastIndexOf('\\:')
+    let prefix = ''
+    if (pos != -1) {
+        prefix = selector.substring(0, pos + 2)
+        selector = selector.substring(pos + 2)
+    }
+    pos = selector.indexOf(':')
+    if (pos != -1) {
+        selector = selector.substring(0, pos)
+    }
+    selector = (prefix + selector).replace(/\\/g, '')
+    if (!tailwindStylesMap[selector]) tailwindStylesMap[selector] = {}
+    let index = tailwindStylesList.length
+    tailwindStylesMap[selector][index] = 1
+    let rules = [rule]
+    if (parent) {
+        parent = Object.create(parent)
+        parent.rules = [rule]
+        rules = [parent]
+    }
+    let ss = {
+        type: 'stylesheet',
+        stylesheet: { rules }
+    }
+    tailwindStylesList.push(ss)
+}
 pipeStreams(cssSource, cssUnzip, cssBufferStream).then(() => {
     tailwindStyles = css.parse(cssBufferStream.toBuffer().toString());
     _.each(tailwindStyles.stylesheet.rules, (rule, i) => {
-        _.each(rule.selectors, selector => {
-            if (selector[0] !== '.') return
-            selector = selector.substring(1)
-            //let full = selector
-            let pos = selector.lastIndexOf('\\:')
-            let prefix = ''
-            if (pos != -1){
-                prefix = selector.substring(0, pos + 2)
-                selector = selector.substring(pos + 2)
-            }
-            pos = selector.indexOf(':')
-            if (pos != -1){
-                selector = selector.substring(0, pos)
-            }
-            selector = (prefix + selector).replace(/\\/g, '')
-            //if (full !== selector) console.log(`${full} -> ${selector}`)
-            if (!tailwindStylesMap[selector]) tailwindStylesMap[selector] = {}
-            tailwindStylesMap[selector][i] = 1
-        })
+        if (rule.selectors){
+            _.each(rule.selectors, selector => addRule(null, rule, selector))
+        } else if (rule.rules){
+            _.each(rule.rules, r => {
+                _.each(r.selectors, selector => addRule(rule, r, selector))
+            })
+        }
     })
 })
 
-function tailwindUse(usedClasses, options){
+function tailwindUse(usedClasses, options) {
     if (!options.data.root._tailwindStyles) options.data.root._tailwindStyles = {}
     if (!options.data.root._tailwindUsedClasses) options.data.root._tailwindUsedClasses = {}
     if (!options.data.root._tailwindAllClasses) options.data.root._tailwindAllClasses = tailwindStylesMap
-    let items = _.map(usedClasses.split(','), s => {
+    let items = _.map(usedClasses.split(' '), s => {
         s = _.trim(s)
-        if (s && !tailwindStylesMap[s]){
+        if (s && !tailwindStylesMap[s]) {
             $logger.warn(`Could not find tailwind selector for "${s}"`)
             return null
         }
@@ -168,31 +186,19 @@ function tailwindUse(usedClasses, options){
     options.data.root._tailwindStyles = _.merge(options.data.root._tailwindStyles, ...items)
 }
 
-function tailwindApply(usedClasses, options){
-    let items = _.map(usedClasses.split(','), s => tailwindStylesMap[_.trim(s)])
+function tailwindApply(usedClasses, options) {
+    let items = _.map(usedClasses.split(' '), s => tailwindStylesMap[_.trim(s)])
     let ruleIdMap = _.merge(...items)
-    return _.map(_.sortBy(_.keys(ruleIdMap), i => +i), index => {
-        let ss = {
-            type: 'stylesheet',
-            stylesheet: {
-                rules: [tailwindStyles.stylesheet.rules[index]]
-            }
-        }
-        let lines = css.stringify(ss).split('\n')
+    return _.map(_.sortBy(_.keys(ruleIdMap), i => +i), index => {        
+        let lines = css.stringify(tailwindStylesList[index]).split('\n')
         return lines.slice(1, lines.length - 1).join('')
     }).join('')
 }
 
 function tailwindBlock(options) {
     if (options.data.root._tailwindStyles) {
-        let cssContent = _.map(_.sortBy(_.keys(options.data.root._tailwindStyles), i => +i), index => {
-            let ss = {
-                type: 'stylesheet',
-                stylesheet: {
-                    rules: [tailwindStyles.stylesheet.rules[index]]
-                }
-            }
-            return css.stringify(ss)
+        let cssContent = _.map(_.sortBy(_.keys(options.data.root._tailwindStyles), i => +i), index => {           
+            return css.stringify(tailwindStylesList[index])
         }).join('\n')
         return ['<style>', cssContent, '</style>'].join('\n')
     }
