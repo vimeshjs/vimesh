@@ -36,9 +36,9 @@ function renderWithLayout(context) {
         let layoutView = context.layouts[layoutName]
         if (layoutView) {
             let ncontext = _.clone(context)
-            let nlocals = _.clone(context.locals)
-            nlocals.body = body
-            ncontext.locals = nlocals
+            //let nlocals = _.clone(context.locals)
+            context.locals.body = body
+            //ncontext.locals = nlocals
             ncontext.view = layoutView
             ncontext.layout = null
             return renderWithLayout(ncontext)

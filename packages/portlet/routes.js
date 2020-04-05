@@ -7,7 +7,7 @@ const formidable = require('formidable')
 const { retryPromise } = require('@vimesh/utils')
 const { formatError, formatOK } = require('./utils')
 const HTTP_METHODS = ['all', 'get', 'post', 'put', 'delete', 'patch', 'config', 'head']
-const classNames = /<\w+?\s+?class\s*=\s*['\"](?<class>[^'\"]*)['\"]>/g
+const classNames = /<\w+?.*\s+?class\s*=\s*['\"](?<class>[^'\"]*)['\"].*>/g
 function convertParameters(params, config) {
     try {
         _.each(params, (v, k) => {
@@ -109,7 +109,7 @@ function wrappedMiddleware(req, res, next) {
                             }
                         })
                     }
-                    missedClasses = _.keys(missedClasses).join(',')
+                    missedClasses = _.keys(missedClasses).join(' ')
                     if (missedClasses)
                         $logger.error(`${req.path} : tailwind classes used but not delared >>> ${missedClasses}`)
                 }
