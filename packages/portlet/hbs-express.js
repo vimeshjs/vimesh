@@ -1,9 +1,11 @@
 
 const _ = require('lodash')
+const css = require('css')
 const path = require('path')
 const beautify = require('js-beautify')
 const minify = require('html-minifier')
 const layoutPattern = /{{!<\s+([@A-Za-z0-9\._\-\/]+)\s*}}/
+const classNames = /<\w+?.*\s+?class\s*=\s*['\"](?<class>[^'\"]*)['\"].*>/g
 const allHelpers = [require('./hbs-helpers')]
 function registerHelpers(helpers) {
     allHelpers.push(helpers)
@@ -124,12 +126,39 @@ HbsViewEngine.prototype.render = function (filename, context, callback) {
             data: {},
             view: view
         })
-    }).then(r => {
+    }).then(html => {
+        if (context._tailwindAllClasses && context._tailwindStylesList){     
+            let missedClasses = {}
+            let match
+            while((match = classNames.exec(html)) !== null){
+                _.each(match.groups.class.split(' '), cls => {
+                    cls = _.trim(cls)
+                    if (cls && context._tailwindAllClasses[cls] && 
+                        (!context._tailwindUsedClasses || !context._tailwindUsedClasses[cls])){
+                        missedClasses[cls] = 1
+                    }
+                })
+            }
+            if (_.keys(missedClasses).length > 0){
+                let items = _.map(_.keys(missedClasses), cls => context._tailwindAllClasses[cls])
+                let ruleIdMap = _.merge(...items)
+                let cssContent = _.map(_.sortBy(_.keys(ruleIdMap), i => +i), index => {
+                    return css.stringify(context._tailwindStylesList[index])
+                }).join('\n')
+                html = html.replace('/* TAILWINDCSS AUTO INJECTION PLACEHOLDER */', [
+                    '/* --- Tailwind CSS Auto Injected Styles --- */',
+                    cssContent,
+                    '/* ------------------------------------- */'
+                ].join('\n'))
+            } else {
+                html = html.replace('/* TAILWINDCSS AUTO INJECTION PLACEHOLDER */', '')
+            }
+        }
         if (this.pretty) {
-            r = beautify.html(r)
+            html = beautify.html(html)
         } else {
             if (this.htmlMinify){
-                r = minify.minify(r, {
+                html = minify.minify(html, {
                     minifyCSS: true,
                     minifyJS: true,
                     collapseWhitespace: true,
@@ -144,7 +173,7 @@ HbsViewEngine.prototype.render = function (filename, context, callback) {
                 })
             }
         }
-        callback(null, r)
+        callback(null, html)
     }).catch(ex => {
         callback(ex)
     })

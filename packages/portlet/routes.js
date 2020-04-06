@@ -7,7 +7,6 @@ const formidable = require('formidable')
 const { retryPromise } = require('@vimesh/utils')
 const { formatError, formatOK } = require('./utils')
 const HTTP_METHODS = ['all', 'get', 'post', 'put', 'delete', 'patch', 'config', 'head']
-const classNames = /<\w+?.*\s+?class\s*=\s*['\"](?<class>[^'\"]*)['\"].*>/g
 function convertParameters(params, config) {
     try {
         _.each(params, (v, k) => {
@@ -97,22 +96,7 @@ function wrappedMiddleware(req, res, next) {
             }
             //res.render(viewPath, data) --> It will check the view file in the disk, while our view may be in another peer server
             viewEngine(viewPath, _.extend(res.locals, data), (err, html) => {
-                if (err) return req.next(err);
-                if (portletServer.config.debug && res.locals._tailwindUsedClasses){     
-                    let missedClasses = {}
-                    let match
-                    while((match = classNames.exec(html)) !== null){
-                        _.each(match.groups.class.split(' '), cls => {
-                            cls = _.trim(cls)
-                            if (cls && res.locals._tailwindAllClasses[cls] && !res.locals._tailwindUsedClasses[cls]){
-                                missedClasses[cls] = 1
-                            }
-                        })
-                    }
-                    missedClasses = _.keys(missedClasses).join(' ')
-                    if (missedClasses)
-                        $logger.error(`${req.path} : tailwind classes used but not delared >>> ${missedClasses}`)
-                }
+                if (err) return req.next(err);                
                 res.send(html)
             })
         }

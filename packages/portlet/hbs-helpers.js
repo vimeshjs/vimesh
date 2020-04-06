@@ -174,7 +174,7 @@ function tailwindUse(usedClasses, options) {
     if (!options.data.root._tailwindStyles) options.data.root._tailwindStyles = {}
     if (!options.data.root._tailwindUsedClasses) options.data.root._tailwindUsedClasses = {}
     if (!options.data.root._tailwindAllClasses) options.data.root._tailwindAllClasses = tailwindStylesMap
-    let items = _.map(usedClasses.split(' '), s => {
+    let items = _.map(usedClasses.split(/\s+/), s => {
         s = _.trim(s)
         if (s && !tailwindStylesMap[s]) {
             $logger.warn(`Could not find tailwind selector for "${s}"`)
@@ -187,7 +187,7 @@ function tailwindUse(usedClasses, options) {
 }
 
 function tailwindApply(usedClasses, options) {
-    let items = _.map(usedClasses.split(' '), s => tailwindStylesMap[_.trim(s)])
+    let items = _.map(usedClasses.split(/\s+/), s => tailwindStylesMap[_.trim(s)])
     let ruleIdMap = _.merge(...items)
     return _.map(_.sortBy(_.keys(ruleIdMap), i => +i), index => {
         let lines = css.stringify(tailwindStylesList[index]).split('\n')
@@ -196,12 +196,15 @@ function tailwindApply(usedClasses, options) {
 }
 
 function tailwindBlock(options) {
+    if (!options.data.root._tailwindAllClasses) options.data.root._tailwindAllClasses = tailwindStylesMap
+    if (!options.data.root._tailwindStylesList) options.data.root._tailwindStylesList = tailwindStylesList
+    let cssContent = ''
     if (options.data.root._tailwindStyles) {
-        let cssContent = _.map(_.sortBy(_.keys(options.data.root._tailwindStyles), i => +i), index => {
+        cssContent = _.map(_.sortBy(_.keys(options.data.root._tailwindStyles), i => +i), index => {
             return css.stringify(tailwindStylesList[index])
         }).join('\n')
-        return ['<style>', cssContent, '</style>'].join('\n')
     }
+    return ['<style>', '/* TAILWINDCSS AUTO INJECTION PLACEHOLDER */', cssContent, '</style>'].join('\n')
 }
 
 const { icon } = require('@fortawesome/fontawesome-svg-core')
