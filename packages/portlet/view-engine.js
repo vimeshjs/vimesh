@@ -32,9 +32,8 @@ function createLocalTemplateCache(portlet, dir, options) {
             //$logger.debug(`Loading ${fn}`)
             return accessAsync(fn).then(r => readFileAsync(fn)).then(r => {
                 let source = r.toString()
-                let uri = fn
                 let template = handlebars.compile(source, options.compilation)
-                return { portlet, uri, source, path: key, template }
+                return { portlet, source, path: key, template }
             }).catch(ex => {
                 $logger.error(`Fails to load ${fn}`, ex)
             })
@@ -87,7 +86,7 @@ function createViewEngine(portletServer){
         layouts: [{ cache: createLocalTemplateCache(portlet, portletServer.layoutsDir, localCacheOption) }],
         partials: [{ cache: createLocalTemplateCache(portlet, portletServer.partialsDir, localCacheOption) }]
     }
-    _.each(config.depends, name => {
+    _.each(config.dependsOn, name => {
         hveConfig.views.push({ portlet: name, cache: createRemoteTemplateCache(kvClient, name, 'views', remoteCacheOption) })
         hveConfig.layouts.push({ portlet: name, cache: createRemoteTemplateCache(kvClient, name, 'layouts', remoteCacheOption) })
         hveConfig.partials.push({ portlet: name, cache: createRemoteTemplateCache(kvClient, name, 'partials', remoteCacheOption) })

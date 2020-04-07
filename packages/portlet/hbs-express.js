@@ -5,7 +5,7 @@ const path = require('path')
 const beautify = require('js-beautify')
 const minify = require('html-minifier')
 const layoutPattern = /{{!<\s+([@A-Za-z0-9\._\-\/]+)\s*}}/
-const classNames = /<\w+?.*\s+?class\s*=\s*['\"](?<class>[^'\"]*)['\"].*>/g
+const classNames = /class\s*=\s*['\"](?<class>[^'\"]*)['\"]/g
 const allHelpers = [require('./hbs-helpers')]
 function registerHelpers(helpers) {
     allHelpers.push(helpers)

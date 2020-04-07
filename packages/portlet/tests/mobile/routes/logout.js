@@ -3,8 +3,5 @@ function get(req, res, next){
     res.redirect('/')
 }
 module.exports = {
-    get: {
-        before: ['|'],
-        handler: get
-    },
+    get
 }

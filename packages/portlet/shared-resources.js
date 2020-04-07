@@ -99,8 +99,8 @@ function mergeI18nItems(all, itemsToMerge) {
     _.each(itemsToMerge, (val, prefix) => {
         prefix = prefix.replace(/\//g, '.')
         _.each(val, (trans, key) => {
-            if (!(/^[a-zA-Z_$][a-zA-Z_$0-9]*$/.test(key))) {
-                $logger.error(`Wrong i18n key ${key}`)
+            if (!key || key.indexOf('.') != -1) {
+                $logger.error(`I18n key (${key}) could not be empty or contain "."`)
                 return
             }
             if (_.isString(trans)) {

@@ -1,7 +1,7 @@
 settings:
   accounts:
     _meta:
-      uri: /@account/accounts
+      url: /@account/accounts
       icon: el-icon-office-building
       sort: 10
       permission: accounts.view
@@ -10,7 +10,7 @@ settings:
         en: Accounts
   groups:
     _meta:
-      uri: /@account/groups
+      url: /@account/groups
       icon: el-icon-s-flag
       sort: 20
       permission: groups.view
@@ -19,16 +19,16 @@ settings:
         en: Groups
   users:
     _meta:
-      uri: /@account/users
+      url: /@account/users
       icon: el-icon-user
-      sort: 5
+      sort: 30
       permission: users.view
       title:
         cn: 用户
         en: Users
   roles:
     _meta:
-      uri: /@account/roles
+      url: /@account/roles
       icon: el-icon-s-order
       sort: 40
       permission: roles.view

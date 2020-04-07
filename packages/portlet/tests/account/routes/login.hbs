@@ -37,14 +37,13 @@
                         axios.post('/@account/login', {
                             login: self.form._id,
                             password: self.form.password
+                        }).then(function (r) {
+                            self.$message.success(r.data.message)
+                            goto('/')
+                        }).catch(function (r) {
+                            if (r.response)
+                                self.$message.error(r.response.data.message)
                         })
-                            .then(function (r) {
-                                self.$message.success(r.data.message)
-                                setTimeout(function () { goto('/@account/users') }, 2000)
-                            }).catch(function (r) {
-                                if (r.response)
-                                    self.$message.error(r.response.data.message)
-                            })
                     } else {
                         return false;
                     }

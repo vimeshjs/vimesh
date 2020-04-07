@@ -1,0 +1,50 @@
+
+  <div class="container mx-auto lg:max-w-xl">
+    <div class=" text-center h-screen bg_color">
+      <div class="absolute flex content-between flex-wrap w-full h-screen pb-12 pt-16 ">
+        <div class="w-1/3"></div>
+        <div class="w-1/3"> <img class="w-full items-end rounded-full" src="/@mobile/img/logo.jpg" /></div>
+        <div class="w-1/3"></div>
+        <div class="w-1/6"></div>
+        <div class="w-4/6">
+          <button  @click="logout" class="button_border_white bg_button  font-bold py-3 px-16 rounded-full">\{{i18n.logout}}</button>
+        </div>
+        <div class="w-1/6 "></div>
+      </div>
+      <div class="flex items-end h-screen">
+        <img class="w-full items-end " src="/@mobile/img/city.png" />
+      </div>
+    </div>
+  </div>
+
+<script>
+    let $i18n = {{{ json i18n }}}
+    $mixins.push({
+        data() {
+            return {
+                i18n : $i18n
+            }
+        },
+        methods: {
+            logout(){
+                goto('logout')
+            }
+        }
+    })
+</script>
+
+{{#contentFor 'styles'}}
+<style >
+.bg_color{
+  background-color : #50C28A;
+}
+
+.button_border_white{
+    background-color: #F9FFFB;
+    color: #46AC89;
+    box-shadow:0px 5px 25px 0px rgba(231,231,231,1);
+    border:px solid rgba(247,247,247,1);
+}
+
+</style>
+{{/contentFor}}

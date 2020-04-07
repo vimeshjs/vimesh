@@ -9,7 +9,7 @@ function getSortedMenus(lang, index, menus) {
     return _.map(menus, m => {
         let mindex = `${index}.${m._name}`
         let submenus = getSortedMenus(lang, mindex, _.omit(m, '_name', '_meta'))
-        let uri = _.get(m, '_meta.uri')
+        let url = _.get(m, '_meta.url')
         let title = _.get(m, '_meta.title')
         let icon = _.get(m, '_meta.icon')
         if (_.isObject(title)) {
@@ -18,7 +18,7 @@ function getSortedMenus(lang, index, menus) {
             title = i18n[lang] || ls.length > 0 && i18n[ls[0]]
         }
         if (!title) title = m._name
-        let menu = { index: mindex, title, uri, icon }
+        let menu = { index: mindex, title, url, icon }
         if (submenus.length > 0) menu.submenus = submenus
         return menu
     })
@@ -27,24 +27,24 @@ function getActiveMenu(menus, path) {
     if (!menus || !path) return null
     let activeMenu = null
     _.each(menus, m => {
-        if (path === m.uri) {
+        if (path === m.url) {
             activeMenu = m
-        } else if (m.uri && path.substring(0, m.uri.length) == m.uri) {
-            if (!activeMenu || activeMenu.uri.length < m.uri.length) activeMenu = m
+        } else if (m.url && path.substring(0, m.url.length) == m.url) {
+            if (!activeMenu || activeMenu.url.length < m.url.length) activeMenu = m
         }
         if (m.submenus) {
             let am = getActiveMenu(m.submenus, path)
-            if (am && (!activeMenu || activeMenu.uri.length < am.uri.length)) activeMenu = am
+            if (am && (!activeMenu || activeMenu.url.length < am.url.length)) activeMenu = am
         }
     })
     return activeMenu
 }
 
 function getFirstMenu(menus) {
-    if (!menus || !path) return null
+    if (!menus) return null
     let firstMenu = null
     _.each(menus, m => {
-        if (!firstMenu && m.uri) {
+        if (!firstMenu && m.url) {
             firstMenu = m        
         }
         if (firstMenu) return
@@ -56,7 +56,24 @@ function getFirstMenu(menus) {
     return firstMenu
 }
 
+function getMenuByIndex(menus, index) {
+    if (!menus || !index) return null
+    let menu = null
+    _.each(menus, m => {
+        if (!menu && m.index === index) {
+            menu = m        
+        }
+        if (menu) return
+        if (m.submenus) {
+            let fm = getMenuByIndex(m.submenus, index)
+            if (fm) menu = fm
+        }
+    })
+    return menu
+}
+
 module.exports = {
+    getMenuByIndex,
     getSortedMenus,
     getActiveMenu,
     getFirstMenu

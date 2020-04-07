@@ -36,6 +36,7 @@
     {{{block 'scripts@head'}}}
     <script type="text/javascript">
         $mixins = []
+        $portlet = {{{json _portlet}}}
         function toQuery(params){
             if (!params) return ''
             var parts = []
@@ -45,10 +46,15 @@
             return parts.join('&')
         }
         function toFullUrl(url, params){
-            return url + (url.indexOf('?') == -1 ? '?' : '') + toQuery(params)
+            if (params)
+                url = url + (url.indexOf('?') == -1 ? '?' : '') + toQuery(params)
+            if (url.indexOf('://') == -1){
+                if (url[0] !== '/') url = '/@' + $portlet + '/' + url
+            }
+            return url
         }
         function goto(url){
-            location.href = url
+            window.location = toFullUrl(url)
         }
     </script>
 </head>

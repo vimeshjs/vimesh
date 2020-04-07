@@ -1,6 +1,6 @@
 logout:
   _meta:
-    uri: /@account/logout
+    url: /@account/logout
     sort: 1000
     title: Logout
 

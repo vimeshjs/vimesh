@@ -73,10 +73,6 @@ function wrappedMiddleware(req, res, next) {
                     fields = _.map(name.substring(p1 + 1, p2).split(','), r => r.trim())
                     name = name.substring(0, p1).trim()
                 }
-                if (!(/^[a-zA-Z_$][a-zA-Z_$0-9\.]*$/.test(name))) {
-                    $logger.error(`Wrong i18n key "${name}"`)
-                    return
-                }
                 let lang = res.locals._language
                 let items = res.locals._i18nItems
                 let ls = _.keys(_.omit(items, '*'))

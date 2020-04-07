@@ -6,9 +6,10 @@ portlet:
   name: account
   layout: main
   language: en
-  depends:
+  dependsOn:
     - common
   redirects:
-    '/': 'menu://main/$first'
+    '/': 'menu://main'
+    '/users' : 'menu://main/settings/users'
     '/login': '/@account/login'
     '/logout': '/@account/logout'

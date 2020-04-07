@@ -6,12 +6,13 @@ const { getCRC16, duration } = require('@vimesh/utils')
 const express = require('express')
 const compression = require('compression')
 const { setupRoutes } = require('./routes')
+const { setupRemoteApis } = require('./remote-apis')
 const { setupProxy } = require('./proxy')
 const { setupSharedResources } = require('./shared-resources')
 const { createViewEngine } = require('./view-engine')
 const { formatError } = require('./utils')
 const { createKeyValueClient } = require('@vimesh/discovery')
-const { setupRedirections } = require('./redirections')
+const { setupRedirects } = require('./redirects')
 const { createStorage, createScopedStorage, createCacheForScopedStorage } = require('@vimesh/storage')
 
 function PortletServer(config) {
@@ -100,6 +101,7 @@ function PortletServer(config) {
 
     app.use(cookieParser())
 
+    setupRemoteApis(this)
     setupRoutes(this)
 
     app.use(`/@${portlet}`, express.static(config.publicDir || 'public', {
@@ -109,7 +111,7 @@ function PortletServer(config) {
     setupSharedResources(this)
     setupProxy(this)
 
-    setupRedirections(this)
+    setupRedirects(this)
 
     app.use(function (req, res, next) {
         $logger.error("404 (" + req.url + ") ");

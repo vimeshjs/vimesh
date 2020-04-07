@@ -33,8 +33,12 @@ function post(req, res, next) {
                     res.error(error)
                 } else {
                     const token = jwt.sign(payload, jwtSecret)
-                    res.cookie('jwt', token, { httpOnly: true })
-                    res.ok(res.i18n('pages.login.ok_login'))
+                    if (req.query.tokenIn === 'json') {
+                        res.json({ token })
+                    } else {
+                        res.cookie('jwt', token, { httpOnly: true })
+                        res.ok(res.i18n('pages.login.ok_login'))
+                    }
                 }
             })
         })(req, res)

@@ -1,0 +1,18 @@
+logger:
+  level: debug
+portlet:
+  port: 19000
+  mock: true
+  debug: true
+  compress: true
+  logRoutes: true
+  logRequests: true
+  passport:
+    jwt:
+      expiration: 1h
+  selfUrl: localhost:19000
+  discovery:
+    url: localhost:18000
+  remoteApis:
+    auth: 
+      url: http://localhost:18002/@account/
