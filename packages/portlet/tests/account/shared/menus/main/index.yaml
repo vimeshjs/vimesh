@@ -21,7 +21,7 @@ settings:
     _meta:
       uri: /@account/users
       icon: el-icon-user
-      sort: 30
+      sort: 5
       permission: users.view
       title:
         cn: 用户

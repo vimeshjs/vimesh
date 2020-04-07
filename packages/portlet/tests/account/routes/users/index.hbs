@@ -40,7 +40,7 @@
     },
     methods: {
       edit(data) {
-        goto(toFullUrl('/@account/users/edit', { id: data._id }))
+        goto(toFullUrl('users/edit', { id: data._id }))
       },
       recycle(data) {
         this.$confirm($i18n['are_you_sure'], $i18n['comfirm'], {
@@ -48,7 +48,7 @@
           cancelButtonText: $i18n['cancel'],
           type: 'warning'
         }).then(() => {
-          axios.delete(toFullUrl('/@account/users', { id: data._id })).then(r => {
+          axios.delete(toFullUrl('users', { id: data._id })).then(r => {
             this.$message.success(r.data.message)
             this.fetchUserList()
           }).catch(r => {
@@ -58,11 +58,11 @@
         })
       },
       createNewUser() {
-        goto('/@account/users/edit')
+        goto('users/edit')
       },
       fetchUserList() {
         let params = { pageIndex: this.users.pageIndex, pageSize: this.users.pageSize }
-        axios.get(toFullUrl('/@account/users/list', params)).then(r => {
+        axios.get(toFullUrl('users/list', params)).then(r => {
           this.users.data = r.data.data
           this.users.count = r.data.count
         })

@@ -1,4 +1,3 @@
-
 <div class="flex">
     <div class="">
         <el-upload class="avatar-uploader" action="/@account/users/avatar" :show-file-list="false"
@@ -65,7 +64,7 @@
     $mixins.push({
         data() {
             return {
-                imageUrl: $form.avatar ? '/@account/users/avatar/' + $form.avatar : '',
+                imageUrl: $form.avatar ? toFullUrl('users/avatar/' + $form.avatar) : '',
                 editMode: !!$form._id,
                 form: $form,
                 i18n: $i18n,
@@ -84,9 +83,9 @@
                 let self = this
                 this.$refs.form.validate((valid) => {
                     if (valid) {
-                        axios.post('/@account/users/edit', { form: self.form, editMode: self.editMode }).then(function (r) {
+                        axios.post(toFullUrl('users/edit'), { form: self.form, editMode: self.editMode }).then(function (r) {
                             self.$message.success(r.data.message)
-                            setTimeout(function () { goto('/@account/users') }, 2000)
+                            goto('users')
                         }).catch(function (r) {
                             console.log(r)
                             self.$message.error(r.response && r.response.data.message)

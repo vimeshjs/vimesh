@@ -6,6 +6,7 @@ const fs = require('fs')
 const zlib = require('zlib')
 const path = require('path')
 const css = require('css')
+const { getSortedMenus, getActiveMenu } = require('./menus')
 const { pipeStreams, WritableBufferStream } = require('@vimesh/utils')
 
 const obfuscateOptions = {
@@ -46,6 +47,10 @@ function block(name, options) {
     }
 }
 function contentFor(name, options) {
+    if (!options) {
+        $logger.error('Block name must be provided in contentFor helper!')
+        return
+    }
     if (!options.data.root._blocks) options.data.root._blocks = {}
     if (!options.data.root._blocks[name]) options.data.root._blocks[name] = []
     let content = options.fn(this)
@@ -57,45 +62,6 @@ function obfuscate(enabled, options) {
 }
 function json(js) {
     return js == null ? "null" : sanitizeJsonToString(js)
-}
-function getSortedMenus(lang, index, menus) {
-    menus = _.filter(_.map(_.entries(menus), ar => _.extend({ _name: ar[0] }, ar[1])), m => {
-        if (!m._meta) $logger.warn(`Menu config (${JSON.stringify(m)}) seems wrong.`)
-        return !!m._meta
-    })
-    menus = _.sortBy(menus, m => _.get(m, '_meta.sort') || 1)
-    return _.map(menus, m => {
-        let mindex = `${index}.${m._name}`
-        let submenus = getSortedMenus(lang, mindex, _.omit(m, '_name', '_meta'))
-        let uri = _.get(m, '_meta.uri')
-        let title = _.get(m, '_meta.title')
-        let icon = _.get(m, '_meta.icon')
-        if (_.isObject(title)) {
-            let i18n = title
-            let ls = _.keys(i18n)
-            title = i18n[lang] || ls.length > 0 && i18n[ls[0]]
-        }
-        if (!title) title = m._name
-        let menu = { index: mindex, title, uri, icon }
-        if (submenus.length > 0) menu.submenus = submenus
-        return menu
-    })
-}
-function getActiveMenu(menus, path) {
-    if (!menus || !path) return null
-    let activeMenu = null
-    _.each(menus, m => {
-        if (path === m.uri) {
-            activeMenu = m
-        } else if (m.uri && path.substring(0, m.uri.length) == m.uri) {
-            if (!activeMenu || activeMenu.uri.length < m.uri.length) activeMenu = m
-        }
-        if (m.submenus) {
-            let am = getActiveMenu(m.submenus, path)
-            if (am && (!activeMenu || activeMenu.uri.length < am.uri.length)) activeMenu = am
-        }
-    })
-    return activeMenu
 }
 function menusByZone(name, options) {
     let lang = options.data.root._language
@@ -213,9 +179,9 @@ const allIcons = _.merge(
     require('@fortawesome/free-regular-svg-icons'),
     require('@fortawesome/free-solid-svg-icons')
 )
-function faIcon(name, options) {
+function fontAwesomeIcon(name, options) {
     let iconName = _.camelCase(name)
-    if (allIcons[iconName]){
+    if (allIcons[iconName]) {
         let svg = icon(allIcons[iconName]).html[0]
         let size = options.hash.size
         let klass = options.hash.class
@@ -230,13 +196,19 @@ function faIcon(name, options) {
 module.exports = {
     T,
     es5,
-    faIcon,
+    fontAwesomeIcon,
+    faIcon: fontAwesomeIcon,
     contentFor,
+    content: contentFor,
     tailwindUse,
+    twUse: tailwindUse,
     tailwindApply,
+    twApply: tailwindApply,
     tailwindBlock,
+    twBlock: tailwindBlock,
     obfuscate,
     menusByZone,
+    menus: menusByZone,
     block,
     json
 }

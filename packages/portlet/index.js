@@ -11,6 +11,7 @@ const { setupSharedResources } = require('./shared-resources')
 const { createViewEngine } = require('./view-engine')
 const { formatError } = require('./utils')
 const { createKeyValueClient } = require('@vimesh/discovery')
+const { setupRedirections } = require('./redirections')
 const { createStorage, createScopedStorage, createCacheForScopedStorage } = require('@vimesh/storage')
 
 function PortletServer(config) {
@@ -107,6 +108,8 @@ function PortletServer(config) {
 
     setupSharedResources(this)
     setupProxy(this)
+
+    setupRedirections(this)
 
     app.use(function (req, res, next) {
         $logger.error("404 (" + req.url + ") ");
