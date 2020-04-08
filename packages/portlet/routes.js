@@ -48,12 +48,12 @@ function wrappedMiddleware(req, res, next) {
         if (!ready) $logger.warn(`Server is not ready (menu: ${portletServer.menusReady}, i18n:${portletServer.i18nReady})!`)
         return ready ? Promise.resolve() : Promise.reject(Error())
     }).then(() => {
-        res.locals._path = req.path
-        res.locals._language = portletServer.config.language
+        res.locals.$path = res.locals._path = req.path
+        res.locals.$language = res.locals._language = portletServer.config.language
         res.locals._i18nItems = portletServer.mergedI18nItems || {}
         res.locals._menusByZone = portletServer.allMenusByZone
-        res.locals._portlet = portlet
-        res.locals._user = req.user
+        res.locals.$portlet = res.locals._portlet = portlet
+        res.locals.$user = res.locals._user = req.user
         res.locals._session = req.session
         res.locals.layout = _.isFunction(mlayout) ? mlayout(req) : mlayout
         res.ok = function (msg, code) {

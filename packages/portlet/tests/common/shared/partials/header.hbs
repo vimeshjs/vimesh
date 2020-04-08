@@ -2,7 +2,7 @@
 <span>Vimesh Portlet Test</span>
     <el-dropdown style="float: right;">
         <span class="el-dropdown-link">
-            {{_user.name}}<i class="el-icon-arrow-down el-icon--right"></i>
+            {{$user.name}}<i class="el-icon-arrow-down el-icon--right"></i>
         </span>
         <el-dropdown-menu slot="dropdown">
             <el-dropdown-item v-for="item in avatarMenus.menus" @click="onAvatarMenuClick(item)">\{{item.title}}
