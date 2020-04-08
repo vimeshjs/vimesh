@@ -72,7 +72,17 @@ function getMenuByIndex(menus, index) {
     return menu
 }
 
+function visitMenus(menus, callback) {
+    _.each(menus, m => {
+        callback(m)
+        if (m.submenus) {
+            visitMenus(m.submenus, callback)
+        }
+    })
+}
+
 module.exports = {
+    visitMenus,
     getMenuByIndex,
     getSortedMenus,
     getActiveMenu,

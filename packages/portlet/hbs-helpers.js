@@ -6,7 +6,7 @@ const fs = require('fs')
 const zlib = require('zlib')
 const path = require('path')
 const css = require('css')
-const { getSortedMenus, getActiveMenu } = require('./menus')
+const { getSortedMenus, getActiveMenu, visitMenus } = require('./menus')
 const { pipeStreams, WritableBufferStream } = require('@vimesh/utils')
 
 const obfuscateOptions = {
@@ -65,10 +65,19 @@ function json(js) {
 }
 function menusByZone(name, options) {
     let lang = options.data.root._language
+    let embedIcon = options.hash.embedIcon
     let menusInZone = options.data.root._menusByZone && options.data.root._menusByZone[name]
     let menus = getSortedMenus(lang, name, menusInZone)
+    if (embedIcon) {
+        visitMenus(menus, (menu) => {
+            if (menu.icon && _.startsWith(menu.icon, 'fa-')) {
+                let svg = fontAwesomeIcon(menu.icon, { hash: { class: `${name}-menu-item` } })
+                if (svg) menu.svg = svg
+            }
+        })
+    }
     let am = getActiveMenu(menus, options.data.root._path)
-    return `${sanitizeJsonToString({ activeMenu: am && am.index, menus })}`
+    return JSON.stringify({ activeMenu: am && am.index, menus })
 }
 
 function T(name, options) {
@@ -180,7 +189,8 @@ const allIcons = _.merge(
     require('@fortawesome/free-solid-svg-icons')
 )
 function fontAwesomeIcon(name, options) {
-    let iconName = _.camelCase(name)
+    if (!_.isString(name)) return
+    let iconName = _.camelCase(_.startsWith(name, 'fa-') ? name : 'fa-' + name)
     if (allIcons[iconName]) {
         let svg = icon(allIcons[iconName]).html[0]
         let size = options.hash.size

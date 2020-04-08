@@ -20,7 +20,7 @@ settings:
   users:
     _meta:
       url: /@account/users
-      icon: el-icon-user
+      icon: fa-user-circle
       sort: 30
       permission: users.view
       title:

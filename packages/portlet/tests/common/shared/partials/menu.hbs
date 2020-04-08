@@ -12,12 +12,12 @@
 </el-menu>
 {{#contentFor 'scripts'}}
 
-{{> components/nested-menu-item }}
+{{> nested-menu-item }}
 <script type="application/javascript">
     $mixins.push({
         data: function () {
             return {
-                mainMenus : {{{menusByZone 'main'}}} 
+                mainMenus : {{{menusByZone 'main' embedIcon=true }}} 
             }
         }
     })
