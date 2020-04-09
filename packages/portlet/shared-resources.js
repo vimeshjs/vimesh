@@ -23,8 +23,8 @@ function mountSharedResourcesMiddleware(portletServer, type, extName) {
                 let dir = path.join(sharedDir, type)
                 return globAsync(`${dir}/**/*${extName}`).then(files => {
                     return _.map(files, f => {
-                        f = f.replace(/\\/g, '/')
                         let rf = path.relative(dir, f)
+                        rf = rf.replace(/\\/g, '/')
                         return rf.substring(0, rf.length - extName.length)
                     })
                 })

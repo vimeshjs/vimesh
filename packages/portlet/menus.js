@@ -2,7 +2,7 @@ const _ = require('lodash')
 
 function getSortedMenus(lang, index, menus) {
     menus = _.filter(_.map(_.entries(menus), ar => _.extend({ _name: ar[0] }, ar[1])), m => {
-        if (!m._meta) $logger.warn(`Menu config (${JSON.stringify(m)}) seems wrong.`)
+        if (!m._meta) $logger.warn(`Menu config (${JSON.stringify(m)}) has no _meta definition.`)
         return !!m._meta
     })
     menus = _.sortBy(menus, m => _.get(m, '_meta.sort') || 1)
