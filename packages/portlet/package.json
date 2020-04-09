@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/portlet",
-  "version": "0.9.19",
+  "version": "0.9.20",
   "description": "Vimesh micro-frontend framework",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
@@ -37,5 +37,6 @@
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0"
-  }
+  },
+  "gitHead": "ece0678ea6a474dd8c195354453c63a0ec8a5a34"
 }
