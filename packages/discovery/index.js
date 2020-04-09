@@ -26,24 +26,40 @@ function createKeyValueClient(options) {
     })
     return {
         get(key) {
-            key = _.trim(key)
-            return client.get({ key }).then(r => {
-                let data = r.data
-                _.each(data, (v, k) => data[k] = JSON.parse(v))
-                return _.endsWith(key, '*') ? (data || {}) : (data && data[key] || null)
+            return new Promise((resolve, reject) => {
+                key = _.trim(key)
+                client.get({ key }, (err, r) => {
+                    if (err) return reject(err)
+                    let data = r.data
+                    _.each(data, (v, k) => data[k] = JSON.parse(v))
+                    resolve(_.endsWith(key, '*') ? (data || {}) : (data && data[key] || null))
+                })
             })
         },
         set(key, value, options) {
-            value = JSON.stringify(value)
-            let data = { key, value }
-            if (options && options.duration) data.duration = options.duration
-            return client.set(data)
+            return new Promise((resolve, reject) => {
+                value = JSON.stringify(value)
+                let data = { key, value }
+                if (options && options.duration) data.duration = options.duration
+                client.set(data, (err, r) => {
+                    if (err) return reject(err)
+                    resolve(r)
+                })
+            })
         },
         keys(prefix) {
-            return client.keys({ key: prefix }).then(r => r.keys)
+            return new Promise((resolve, reject) => {
+                client.keys({ key: prefix }, (err, r) => {
+                    err ? reject(err) : resolve(r.keys)
+                })
+            })
         },
         del(key) {
-            return client.del({ key })
+            return new Promise((resolve, reject) => {
+                client.del({ key }, (err, r) => {
+                    err ? reject(err) : resolve(r)
+                })
+            })
         }
     }
 }

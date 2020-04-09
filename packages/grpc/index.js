@@ -4,7 +4,7 @@ const path = require('path')
 const glob = require('glob')
 
 const protoLoader = require('@grpc/proto-loader')
-const grpc = require('grpc')
+const grpc = require('@grpc/grpc-js')
 const boom = require('grpc-boom')
 
 function setupGrpcService(options) {
@@ -56,9 +56,10 @@ function setupGrpcService(options) {
     })
 
     let url = `${options.host || 'localhost'}:${options.port}`
-    server.bind(url, options.credentials || grpc.ServerCredentials.createInsecure())
-    server.start()
-    $logger.info(`🚀 gRPC server runs at ${url}`);
+    server.bindAsync(url, options.credentials || grpc.ServerCredentials.createInsecure(), (err, port) => {
+        server.start()
+        $logger.info(`gRPC server runs at ${url}`);
+    })
     return server
 }
 
@@ -71,28 +72,8 @@ function createGrpcClient(options) {
     const packageDefinition = grpc.loadPackageDefinition(protoDefinition)
     _.each(packageDefinition[_.keys(packageDefinition)[0]], (v, k) => {
         if (v.service) {
-            client = new v(options.url, options.credentials || grpc.credentials.createInsecure())
-            if (options.promisify !== false) {
-                Object.keys(Object.getPrototypeOf(client)).forEach(function (functionName) {
-                    const originalFunction = client[functionName]
-                    let newFunc = async (req, mt) => {
-                        return new Promise((resolve, reject) => {
-                            try {
-                                originalFunction.bind(client)(req, mt, (err, res) => {
-                                    if (err)
-                                        reject(err)
-                                    else
-                                        resolve(res)
-                                })
-                            } catch (ex) {
-                                $logger.error(`Fails to call method "${functionName}" @ ${options.path}.  `, ex)
-                                reject(ex)
-                            }
-                        })
-                    }
-                    client[functionName] = newFunc;
-                })
-            }
+            $logger.info(`Create gRPC client for service ${k}`)
+            client = new v(options.url, options.credentials || grpc.credentials.createInsecure())            
         }
     })
     return client

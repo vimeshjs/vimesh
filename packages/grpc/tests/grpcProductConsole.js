@@ -5,16 +5,16 @@ const { createGrpcClient } = require('..')
 setupLogger()
 
 let client = createGrpcClient({
-    path: __dirname + '/services/product.proto',
+    path: __dirname + '/services/product/product.proto',
     url: 'localhost:2000'
 })
 
 
-client.listProducts().then(r => {
-    console.log(r)
+client.listProducts({}, (err,r) => {
+    console.log(err, r)
 })
 
 
-client.deleteProduct({id:123}).catch(ex => {
-    console.log(ex)
+client.deleteProduct({id:123},(err, r) => {
+    console.log(err, r)
 })

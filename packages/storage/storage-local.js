@@ -52,7 +52,8 @@ LocalStorage.prototype.putObject = function (bucket, filePath, data, options) {
         if (r) {
             if (isStream(data)) {
                 if (isReadableStream(data)) {
-                    return mkdirp(dir).then(pipeStreams(data, fs.createWriteStream(fn)))
+                    if (!fs.existsSync(dir)) mkdirp.sync(dir)
+                    return pipeStreams(data, fs.createWriteStream(fn))
                 } else {
                     return Promise.reject(Error(`Stream data must be readable to put into ${bucket}/${filePath}`))
                 }
@@ -101,7 +102,7 @@ LocalStorage.prototype.deleteObject = function (bucket, filePath) {
 }
 
 LocalStorage.prototype.copyObject = function (sourceBucket, sourcePath, targetBucket, targetPath) {
-    if (targetPath === undefined){
+    if (targetPath === undefined) {
         targetPath = targetBucket
         targetBucket = sourceBucket
     }

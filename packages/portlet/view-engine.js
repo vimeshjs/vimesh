@@ -20,6 +20,7 @@ function createLocalTemplateCache(portlet, dir, options) {
         onEnumerate: () => {
             return globAsync(`${dir}/**/*${extName}`).then(files => {
                 return _.map(files, f => {
+                    f = f.replace(/\\/g, '/')
                     let rf = path.relative(dir, f)
                     return rf.substring(0, rf.length - extName.length)
                 })

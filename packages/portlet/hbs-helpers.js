@@ -197,7 +197,7 @@ function fontAwesomeIcon(name, options) {
         let klass = options.hash.class
         if (!size && !klass) size = 16
         if (klass) svg = svg.replace('svg-inline--fa', klass)
-        if (size) svg = [svg.substring(0, 4), `style="width:${size}px;"`, svg.substring(4)].join(' ')
+        if (size) svg = [svg.substring(0, 4), `style="width:${size}px;height:${size}px;"`, svg.substring(4)].join(' ')
         return svg
     } else {
         $logger.warn(`Icon ${name} does not exist!`)
