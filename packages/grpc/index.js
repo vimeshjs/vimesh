@@ -55,7 +55,7 @@ function setupGrpcService(options) {
         }
     })
 
-    let url = `${options.host || 'localhost'}:${options.port}`
+    let url = `${options.host || '0.0.0.0'}:${options.port}`
     server.bindAsync(url, options.credentials || grpc.ServerCredentials.createInsecure(), (err, port) => {
         server.start()
         $logger.info(`gRPC server runs at ${url}`);
