@@ -17,7 +17,7 @@ function mountSharedResourcesMiddleware(portletServer, type, extName) {
     if (!extName) extName = portletServer.extName
     if (!portletServer.sharedResourcesCaches[type]) {
         portletServer.sharedResourcesCaches[type] = createMemoryCache({
-            maxAge: portletServer.config.debug ? '3s' : '1d',
+            maxAge: portletServer.config.debug ? '3s' : '1m',
             updateAgeOnGet: false,
             onEnumerate: () => {
                 let dir = path.join(sharedDir, type)
@@ -41,8 +41,8 @@ function mountSharedResourcesMiddleware(portletServer, type, extName) {
                     }
                     let portlet = portletServer.portlet
                     if (portletServer.kvClient) {
-                        let dkey = `${type}/@${portlet}/${key}`                        
-                        portletServer.kvClient.set(dkey, content, {duration : '1m'}).catch(ex => {
+                        let dkey = `${type}/@${portlet}/${key}`
+                        portletServer.kvClient.set(dkey, content, { duration: portletServer.config.debug ? '1m' : '10m' }).catch(ex => {
                             $logger.error(`Fails to send ${dkey} to discovery server`, ex)
                         })
                     }
@@ -64,12 +64,12 @@ function mountSharedResourcesMiddleware(portletServer, type, extName) {
 function runResourceJobs(portletServer) {
     setInterval(() => {
         let portlet = portletServer.portlet
-        
+
         _.each(portletServer.sharedResourcesCaches, cache => cache.enumerate(true))
 
         let kvClient = portletServer.kvClient
         kvClient.get('menus/*').then(rs => {
-            portletServer.allMenusByZone  = {}
+            portletServer.allMenusByZone = {}
             _.each(rs, (r, key) => {
                 key = key.substring(key.indexOf('/', key.indexOf('@')) + 1)
                 let pos = key.indexOf('/')
