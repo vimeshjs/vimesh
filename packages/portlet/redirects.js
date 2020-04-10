@@ -15,7 +15,10 @@ function setupRedirects(portletServer) {
         app.get(path, function (req, res, next) {
             if (menu) {
                 let menusInZone = portletServer.allMenusByZone[menu.zone]
-                if (!menusInZone) return next()
+                if (!menusInZone) {
+                    $logger.error(`Could not find menu zone "${menu.zone}" when redirecting "${path}"`)
+                    return next()
+                }
                 let menus = getSortedMenus('', menu.zone, menusInZone)
                 let menuItem = null
                 if (menu.index == menu.zone) {
@@ -24,6 +27,7 @@ function setupRedirects(portletServer) {
                     menuItem = getMenuByIndex(menus, menu.index)
                 }
                 if (menuItem) {
+                    $logger.debug(`Redirecting ${path} -> ${url} -> ${menuItem.url}`)
                     res.redirect(menuItem.url)
                 } else {
                     next()
