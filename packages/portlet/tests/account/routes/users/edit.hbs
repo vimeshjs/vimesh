@@ -9,21 +9,21 @@
     <div class="flex-auto">
         <el-form :model="form" ref="form" :rules="rules" label-width="100px" style="width: 460px;">
 
-            <el-form-item :label="i18n.id" prop="_id" v-if="!editMode">
+            <el-form-item :label="T('id')" prop="_id" v-if="!editMode">
                 <el-input v-model="form._id"></el-input>
             </el-form-item>
-            <el-form-item :label="i18n.name" prop="name">
+            <el-form-item :label="T('name')" prop="name">
                 <el-input v-model="form.name"></el-input>
             </el-form-item>
-            <el-form-item :label="i18n.email" prop="email">
+            <el-form-item :label="T('email')" prop="email">
                 <el-input type='email' v-model="form.email"></el-input>
             </el-form-item>
-            <el-form-item :label="i18n.mobile" prop="mobile">
+            <el-form-item :label="T('mobile')" prop="mobile">
                 <el-input v-model="form.mobile"></el-input>
             </el-form-item>
             <el-form-item>
-                <el-button type="primary" @click="submitForm()">\{{i18n.submit}}</el-button>
-                <el-button @click="resetForm()">\{{i18n.reset}}</el-button>
+                <el-button type="primary" @click="submitForm()">\{{T('submit')}}</el-button>
+                <el-button @click="resetForm()">\{{T('reset')}}</el-button>
             </el-form-item>
         </el-form>
     </div>
@@ -59,21 +59,20 @@
 </style>
 {{/contentFor}}
 <script>
+    setupI18n({{{ json i18n }}})
     let $form = {{{ json form }}}
-    let $i18n = {{{ json i18n }}}
     $mixins.push({
         data() {
             return {
                 imageUrl: $form.avatar ? toFullUrl('users/avatar/' + $form.avatar) : '',
                 editMode: !!$form._id,
                 form: $form,
-                i18n: $i18n,
                 rules: {
                     _id: [
-                        { required: true, message: $i18n.err_required.replace(/@prop@/i, $i18n.id) }
+                        { required: true, message: T('err_required').replace(/@prop@/i, T('id')) }
                     ],
                     name: [
-                        { required: true, message: $i18n.err_name_required }
+                        { required: true, message: T('err_name_required') }
                     ]
                 }
             }

@@ -12,25 +12,24 @@
                 v-model="form.password" class="w-64"></el-input>
         </el-form-item>
         <el-form-item class="text-center">
-            <el-button type="primary" @click="login()">\{{i18n.login}}</el-button><br>
+            <el-button type="primary" @click="login()">\{{T('login')}}</el-button><br>
         </el-form-item>
     </el-form>
 
 </div>
 
 <script>
-    let $i18n = {{{ json i18n }}}
+    setupI18n({{{ json i18n }}})
     $mixins.push({
         data() {
             return {
                 form: { login: 'admin', password: 'admin' },
-                i18n: $i18n,
                 rules: {
                     login: [
-                        { required: true, message: $i18n.err_required.replace(/@prop@/i, $i18n.id) }
+                        { required: true, message: T('err_required').replace(/@prop@/i, T('id')) }
                     ],
                     password: [
-                        { required: true, message: $i18n.err_required.replace(/@prop@/i, $i18n.password) }
+                        { required: true, message: T('err_required').replace(/@prop@/i, T('password')) }
                     ]
                 }
             }
@@ -40,7 +39,7 @@
                 let self = this
                 this.$refs.form.validate((valid) => {
                     if (valid) {
-                        axios.post(toFullUrl('login'), self.form).then(function (r) {
+                        axios.post(toFullUrl('login'), ).then(function (r) {
                             goto('/')
                         }).catch(function (r) {
                             if (r.response)

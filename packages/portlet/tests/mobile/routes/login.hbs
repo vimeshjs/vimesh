@@ -14,7 +14,7 @@
                                 {{{faIcon 'fa-user' class='w-6 h-6 mt-2 ml-2 text-gray-600'}}}
                             </div>
                             <div class="w-5/6 ip_color">
-                                <input :placeholder="i18n.placeholder_login"
+                                <input :placeholder="T('placeholder_login')"
                                     class=" ip_color appearance-none outline-none h-10" v-model="form.login" />
                             </div>
                         </div>
@@ -26,7 +26,7 @@
                                 {{{faIcon 'fa-lock' class='w-6 h-6 mt-2 ml-2 text-gray-600'}}}
                             </div>
                             <div class="w-5/6 ip_color">
-                                <input :placeholder="i18n.placeholder_password"
+                                <input :placeholder="T('placeholder_password')"
                                     class=" ip_color appearance-none outline-none h-10" v-model="form.password" />
                             </div>
                         </div>
@@ -34,7 +34,7 @@
 
                     <div class="text-center mt-4">
                         <button @click="login"
-                            class=" button_border_green  font-bold py-3 w-full rounded-full">\{{i18n.login}}</button>
+                            class=" button_border_green  font-bold py-3 w-full rounded-full">\{{T('login}}</button>
                     </div>
                 </div>
             </div>
@@ -47,11 +47,10 @@
 </div>
 
 <script>
-    let $i18n = {{{ json i18n }}}
+    setupI18n({{{ json i18n }}})
     $mixins.push({
         data() {
             return {
-                i18n: $i18n,
                 form: {
                     login: '',
                     password: ''
