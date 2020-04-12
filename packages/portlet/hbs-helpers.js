@@ -40,11 +40,20 @@ const obfuscateOptions = {
     transformObjectKeys: false,
     unicodeEscapeSequence: false
 }
-
+function injectBlocks(context, html) {
+    _.each(context._blocks, (block, name) => {
+        html = html.replace(`<!-- *****BLOCK ${name}***** -->`, block.join('\n'))
+    })
+    return html
+}
 function block(name, options) {
-    if (options.data.root._blocks && options.data.root._blocks[name]) {
-        return options.data.root._blocks[name].join('\n')
-    }
+    if (!options.data.root._blocks) options.data.root._blocks = {}
+    if (!options.data.root._blocks[name]) options.data.root._blocks[name] = []
+    options.data.root._helperPostProcessor.push({
+        order: 10,
+        processor: injectBlocks
+    })
+    return `<!-- *****BLOCK ${name}***** -->`
 }
 function contentFor(name, options) {
     if (!options) {
@@ -64,7 +73,7 @@ function json(js) {
     return js == null ? "null" : sanitizeJsonToString(js)
 }
 function menusByZone(name, options) {
-    let lang = options.data.root._language
+    let lang = options.data.root.$language
     let embedIcon = options.hash.embedIcon
     let menusInZone = options.data.root._menusByZone && options.data.root._menusByZone[name]
     let menus = getSortedMenus(lang, name, menusInZone)
@@ -76,13 +85,13 @@ function menusByZone(name, options) {
             }
         })
     }
-    let am = getActiveMenu(menus, options.data.root._path)
+    let am = getActiveMenu(menus, options.data.root.$path)
     return JSON.stringify({ activeMenu: am && am.index, menus })
 }
 
 function T(name, options) {
     if (!name) return ''
-    let lang = options.data.root._language
+    let lang = options.data.root.$language
     let items = options.data.root._i18nItems
     let ls = _.keys(_.omit(items, '*'))
     if (!lang && ls.length > 0) lang = ls[0]
@@ -158,18 +167,56 @@ function tailwindUse(usedClasses, options) {
         options.data.root._tailwindUsedClasses[s] = 1
         return tailwindStylesMap[s]
     })
-    options.data.root._tailwindStyles = _.merge(options.data.root._tailwindStyles, ...items)
+    options.data.root._tailwindStyles = _.merge({}, options.data.root._tailwindStyles, ...items)
 }
 
 function tailwindApply(usedClasses, options) {
-    let items = _.map(usedClasses.split(/\s+/), s => tailwindStylesMap[_.trim(s)])
-    let ruleIdMap = _.merge(...items)
+    let items = _.map(usedClasses.split(/\s+/), s => {
+        s = _.trim(s)
+        if (s && !tailwindStylesMap[s]) {
+            $logger.warn(`Could not find tailwind selector for "${s}"`)
+        }
+        return tailwindStylesMap[s]
+    })
+    let ruleIdMap = _.merge({}, ...items)
     return _.map(_.sortBy(_.keys(ruleIdMap), i => +i), index => {
         let lines = css.stringify(tailwindStylesList[index]).split('\n')
         return lines.slice(1, lines.length - 1).join('')
     }).join('')
 }
 
+const CLASS_NAMES = /class\s*=\s*['\"](?<class>[^'\"]*)['\"]/g
+const TAILWIND_PLACEHOLDER = '/* TAILWINDCSS AUTO INJECTION PLACEHOLDER */'
+function injectTailwindStyles(context, html) {
+    if (context._tailwindAllClasses && context._tailwindStylesList) {
+        let missedClasses = {}
+        let match
+        while ((match = CLASS_NAMES.exec(html)) !== null) {
+            _.each(match.groups.class.split(' '), cls => {
+                cls = _.trim(cls)
+                if (cls && context._tailwindAllClasses[cls] &&
+                    (!context._tailwindUsedClasses || !context._tailwindUsedClasses[cls])) {
+                    missedClasses[cls] = 1
+                }
+            })
+        }
+        if (_.keys(missedClasses).length > 0) {
+            let items = _.map(_.keys(missedClasses), cls => context._tailwindAllClasses[cls])
+            let ruleIdMap = _.merge({}, ...items)
+            let cssContent = _.map(_.sortBy(_.keys(ruleIdMap), i => +i), index => {
+                return css.stringify(context._tailwindStylesList[index])
+            }).join('\n')
+            html = html.replace(TAILWIND_PLACEHOLDER, [
+                '/* --- Tailwind CSS Auto Injected Styles --- */',
+                cssContent,
+                '/* ------------------------------------- */'
+            ].join('\n'))
+        } else {
+            html = html.replace(TAILWIND_PLACEHOLDER, '')
+        }
+    }
+    return html
+}
 function tailwindBlock(options) {
     if (!options.data.root._tailwindAllClasses) options.data.root._tailwindAllClasses = tailwindStylesMap
     if (!options.data.root._tailwindStylesList) options.data.root._tailwindStylesList = tailwindStylesList
@@ -179,11 +226,16 @@ function tailwindBlock(options) {
             return css.stringify(tailwindStylesList[index])
         }).join('\n')
     }
-    return ['<style>', '/* TAILWINDCSS AUTO INJECTION PLACEHOLDER */', cssContent, '</style>'].join('\n')
+    options.data.root._helperPostProcessor.push({
+        order: 1000,
+        processor: injectTailwindStyles
+    })
+    return ['<style>', TAILWIND_PLACEHOLDER, cssContent, '</style>'].join('\n')
 }
 
 const { icon } = require('@fortawesome/fontawesome-svg-core')
 const allIcons = _.merge(
+    {},
     require('@fortawesome/free-solid-svg-icons'),
     require('@fortawesome/free-regular-svg-icons'),
     require('@fortawesome/free-solid-svg-icons')

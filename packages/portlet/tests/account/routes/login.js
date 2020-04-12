@@ -14,7 +14,9 @@ function setup({ config }) {
 }
 
 function get(req, res, next) {
-    let data = { i18n: res.i18n('models.users(id,password);pages.login;common') }
+    let data = {
+        i18n: res.i18n('pages.login;common')
+    }
     res.show(data)
 }
 

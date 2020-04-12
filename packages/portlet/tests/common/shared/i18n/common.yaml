@@ -15,3 +15,5 @@ reset: Reset
 actions: Actions
 comfirm: Comfirmation
 err_required: '@prop@ is required'
+
+project: Vimesh Portlet Tests

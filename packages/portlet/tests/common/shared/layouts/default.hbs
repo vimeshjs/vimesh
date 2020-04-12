@@ -20,18 +20,8 @@
         [v-cloak] {
             display: none !important;
         }
-
-        .el-header {
-            background-color: #B3C0D1;
-            color: #333;
-            line-height: 60px;
-        }
-
-        .el-aside {
-            color: #333;
-        }
     </style>
-    {{{tailwindBlock}}}
+    {{{twBlock}}}
     {{{block 'styles'}}}
     {{{block 'scripts@head'}}}
     <script type="text/javascript">
@@ -61,7 +51,10 @@
     <script type="text/javascript">
         new Vue({
             mixins: $mixins,
-            el: '#app'
+            el: '#app',
+            methods: {
+                T: function (item) { return this.i18n && this.i18n[item] || item }
+            }
         })
     </script>
 </body>

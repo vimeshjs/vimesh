@@ -2,11 +2,7 @@
 
 <el-menu 
     :default-active='mainMenus.activeMenu' 
-    background-color="#545c64" 
-    text-color="#fff" 
-    active-text-color="#ffd04b"
     :unique-opened="false"
-    :collapse-transition="false"
     >
     <nested-menu-item v-for="item in mainMenus.menus" :key="item.index" :item="item" />
 </el-menu>

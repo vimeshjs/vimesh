@@ -48,13 +48,14 @@ function wrappedMiddleware(req, res, next) {
         if (!ready) $logger.warn(`Server is not ready (menu: ${portletServer.menusReady}, i18n:${portletServer.i18nReady})!`)
         return ready ? Promise.resolve() : Promise.reject(Error())
     }).then(() => {
-        res.locals.$path = res.locals._path = req.path
-        res.locals.$language = res.locals._language = portletServer.config.language
+        res.locals.$path = req.path
+        res.locals.$language = portletServer.config.language
         res.locals._i18nItems = portletServer.mergedI18nItems || {}
         res.locals._menusByZone = portletServer.allMenusByZone
-        res.locals.$portlet = res.locals._portlet = portlet
-        res.locals.$user = res.locals._user = req.user
-        res.locals._session = req.session
+        res.locals.$portlet = portlet
+        res.locals.$user = req.user
+        res.locals.$session = req.session
+        res.locals._helperPostProcessor = []
         res.locals.layout = _.isFunction(mlayout) ? mlayout(req) : mlayout
         res.ok = function (msg, code) {
             res.json(formatOK(msg, code))
@@ -73,7 +74,7 @@ function wrappedMiddleware(req, res, next) {
                     fields = _.map(name.substring(p1 + 1, p2).split(','), r => r.trim())
                     name = name.substring(0, p1).trim()
                 }
-                let lang = res.locals._language
+                let lang = res.locals.$language
                 let items = res.locals._i18nItems
                 let ls = _.keys(_.omit(items, '*'))
                 if (!lang && ls.length > 0) lang = ls[0]

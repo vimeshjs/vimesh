@@ -1,26 +1,32 @@
 {{!< default }}
-<el-form :model="form" status-icon :rules="rules" ref="form" label-width="100px">
-    <el-form-item :label="i18n.id" prop="_id">
-        <el-input v-model="form._id"></el-input>
-    </el-form-item>
-    <el-form-item :label="i18n.password" prop="password">
-        <el-input type="password" v-model="form.password"></el-input>
-    </el-form-item>
-    <el-form-item>
-        <el-button type="primary" @click="login()">\{{i18n.login}}</el-button><br>
-        * For demo purpose, please use admin/admin to login
-    </el-form-item>
-</el-form>
+<div class="flex justify-center content-center h-screen mt-24">
+    <div>
+        <img src='/@common/logo-128x128.png'>
+    </div>
+    <el-form :model="form" status-icon :rules="rules" ref="form" label-width="100px" class="">
+        <el-form-item :label="T('user')" prop="login">
+            <el-input :placeholder="T('hint_user')" v-model="form.login" class="w-64"></el-input>
+        </el-form-item>
+        <el-form-item :label="T('password')" prop="password">
+            <el-input :placeholder="T('hint_password')" type="password" @keyup.enter.native='login()'
+                v-model="form.password" class="w-64"></el-input>
+        </el-form-item>
+        <el-form-item class="text-center">
+            <el-button type="primary" @click="login()">\{{i18n.login}}</el-button><br>
+        </el-form-item>
+    </el-form>
+
+</div>
 
 <script>
     let $i18n = {{{ json i18n }}}
     $mixins.push({
         data() {
             return {
-                form: {},
+                form: { login: 'admin', password: 'admin' },
                 i18n: $i18n,
                 rules: {
-                    _id: [
+                    login: [
                         { required: true, message: $i18n.err_required.replace(/@prop@/i, $i18n.id) }
                     ],
                     password: [
@@ -34,11 +40,7 @@
                 let self = this
                 this.$refs.form.validate((valid) => {
                     if (valid) {
-                        axios.post('/@account/login', {
-                            login: self.form._id,
-                            password: self.form.password
-                        }).then(function (r) {
-                            self.$message.success(r.data.message)
+                        axios.post(toFullUrl('login'), self.form).then(function (r) {
                             goto('/')
                         }).catch(function (r) {
                             if (r.response)

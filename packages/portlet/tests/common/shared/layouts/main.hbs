@@ -1,87 +1,19 @@
-<!doctype html>
-<html>
-
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-
-    <title>{{portlet}} - {{title}}</title>
-    <link rel="shortcut icon" href="/@common/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="/@common/element-ui.theme-chalk@2.13.0.css">
-    <script src="/@common/vue@2.6.11.min.js"></script>
-    <script src="/@common/element-ui@2.13.0.min.js"></script>
-    <script src="/@common/axios@0.19.2.min.js"></script>
-
-    <style>
-        body {
-            margin: 0;
-        }
-
-        [v-cloak] {
-            display: none !important;
-        }
-
-        .el-header {
-            background-color: #B3C0D1;
-            color: #333;
-            line-height: 60px;
-        }
-
-        .el-aside {
-            color: #333;
-        }
-    </style>
-    {{{tailwindBlock}}}
-    {{{block 'styles'}}}
-    {{{block 'scripts@head'}}}
-    <script type="text/javascript">
-        $mixins = []
-        $portlet = {{{json $portlet}}}
-        function toQuery(params){
-            if (!params) return ''
-            var parts = []
-            Object.entries(params).forEach(function([key,val], index) {
-                parts.push(key + '=' + encodeURIComponent(val))
-            })
-            return parts.join('&')
-        }
-        function toFullUrl(url, params){
-            if (params)
-                url = url + (url.indexOf('?') == -1 ? '?' : '') + toQuery(params)
-            if (url.indexOf('://') == -1){
-                if (url[0] !== '/') url = '/@' + $portlet + '/' + url
-            }
-            return url
-        }
-        function goto(url){
-            window.location = toFullUrl(url)
-        }
-    </script>
-</head>
-
-<body>
-    <div id='app' v-cloak>
-        <el-container>
-            <el-header>
-                {{> header }}
-            </el-header>
-            <el-container>
-                <el-aside width="240px">
-                    {{> menu }}
-                </el-aside>
-                <el-main>
-                    {{{body}}}
-                </el-main>
-            </el-container>
-        </el-container>
-    </div>
-    {{{block 'scripts'}}}
-    <script type="text/javascript">
-        new Vue({
-            mixins: $mixins,
-            el: '#app'
-        })
-    </script>
-</body>
-
-</html>
+{{!< default }}
+{{#contentFor 'styles'}}
+<style>
+    .el-aside {
+        color: #333;
+    }
+</style>
+{{/contentFor}}
+<el-container>
+    {{> header }}
+    <el-container>
+        <el-aside width="240px">
+            {{> menu }}
+        </el-aside>
+        <el-main>
+            {{{body}}}
+        </el-main>
+    </el-container>
+</el-container>
