@@ -164,6 +164,9 @@ function scanRoutes(portletServer, current) {
                 methods.setup(portletServer)
             }
             methods = _.pick(methods, HTTP_METHODS)
+            if (_.keys(methods).length === 0){
+                $logger.warn(`${fullPath} has no HTTP handlers`)
+            }
             _.each(methods, (m, k) => {
                 let mbefore = _.clone(before)
                 let mafter = _.clone(after)
