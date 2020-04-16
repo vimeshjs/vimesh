@@ -34,12 +34,11 @@ function bodyParserMiddleware(req, res, next) {
         next()
     })
 }
-function wrappedMiddleware(req, res, next) {
+function setupMiddleware(req, res, next) {
     let context = this
     let portletServer = context.portletServer
     let portlet = context.portlet
     let mlayout = context.layout
-    let handler = context.handler
     let current = context.current
     let action = context.action
     let viewEngine = context.viewEngine
@@ -102,7 +101,7 @@ function wrappedMiddleware(req, res, next) {
             convertParameters(req.query, inputs.query)
             convertParameters(req.params, inputs.params)
         }
-        handler(req, res, next)
+        next()
     })
 }
 function scanRoutes(portletServer, current) {
@@ -200,8 +199,9 @@ function scanRoutes(portletServer, current) {
                 if (bpContext.uploadDir) mkdirp(bpContext.uploadDir)
                 let allHandlers = _.concat(
                     _.bind(bodyParserMiddleware, bpContext),
+                    _.bind(setupMiddleware, mcontext),                    
                     mbefore,
-                    _.bind(wrappedMiddleware, mcontext),
+                    mcontext.handler,
                     mafter)
                 allHandlers = _.map(allHandlers, h => _.isFunction(h) ? h : pipelines[h])
                 let realUrlPath = `${portlet ? '/@' + portlet : ''}${current.urlPath}/${action === 'index' ? '' : action}`.replace(/\[/g, ':').replace(/\]/g, '')
