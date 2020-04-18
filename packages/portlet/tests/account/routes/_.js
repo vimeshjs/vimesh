@@ -40,6 +40,7 @@ const jwt = passport.authenticate('jwt', {
 })
 
 function auth(req, res, next) {
+    res.locals.$user = req.user
     console.log('Auth : ', req.path, req.user)
     next()
 }

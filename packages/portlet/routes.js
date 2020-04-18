@@ -52,8 +52,6 @@ function setupMiddleware(req, res, next) {
         res.locals._i18nItems = portletServer.mergedI18nItems || {}
         res.locals._menusByZone = portletServer.allMenusByZone
         res.locals.$portlet = portlet
-        res.locals.$user = req.user
-        res.locals.$session = req.session
         res.locals._helperPostProcessor = []
         res.locals.layout = _.isFunction(mlayout) ? mlayout(req) : mlayout
         res.ok = function (msg, code) {

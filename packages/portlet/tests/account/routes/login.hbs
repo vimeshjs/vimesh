@@ -36,14 +36,13 @@
         },
         methods: {
             login() {
-                let self = this
                 this.$refs.form.validate((valid) => {
                     if (valid) {
-                        axios.post(toFullUrl('login'), ).then(function (r) {
+                        axios.post(toFullUrl('login'), this.form).then(r => {
                             goto('/')
-                        }).catch(function (r) {
+                        }).catch(r => {
                             if (r.response)
-                                self.$message.error(r.response.data.message)
+                                this.$message.error(r.response.data.message)
                         })
                     } else {
                         return false;

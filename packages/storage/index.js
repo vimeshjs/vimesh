@@ -1,9 +1,14 @@
+const _ = require('lodash')
+const fs = require('fs')
 const path = require('path')
+const sharp = require('sharp')
 const Promise = require('bluebird')
 const { createMemoryCache } = require('@vimesh/cache')
 const { getFullLocalStat, compareLocalAndRemoteStat } = require('./storage')
 const { createLocalStorage } = require('./storage-local')
 const { createMinioStorage } = require('./storage-minio')
+const { getMD5 } = require('@vimesh/utils')
+const writeFileAsync = Promise.promisify(fs.writeFile)
 
 function createStorage(config) {
     switch (config.type) {
@@ -59,15 +64,28 @@ function createScopedStorage(storage, bucket, prefix) {
         }
     }
 }
-function createCacheForStorage(storage, bucket, cacheDir, options) {
-    options = options || {}
+function createSmartCache(storage, bucket, prefix, cacheDir, options) {
     return createMemoryCache({
         maxAge: options.maxAge || '10m',
         updateAgeOnGet: false,
         onRefresh: function (filePath) {
-            let localFilePath = path.join(cacheDir, filePath)
+            let query = null
+            let pos = filePath.indexOf('?')
+            let fullFilePath = null
+            if (pos != -1) {
+                query = {}
+                _.each(filePath.substring(pos + 1).split('&'), r => {
+                    let parts = r.split('=')
+                    query[parts[0]] = parts.length == 1 ? true : decodeURIComponent(parts[1])
+                })
+                if (_.keys(query).length == 0) query = null
+
+                fullFilePath = filePath.replace(/\?/g, '`1`').replace(/&/g, '`2`').replace(/=/g, '`3`')
+                filePath = filePath.substring(0, pos)
+            }
+            let localFilePath = prefix ? path.join(cacheDir, prefix, filePath) : path.join(cacheDir, filePath)
             return Promise.all([
-                storage.statObject(bucket, filePath),
+                bucket ? storage.statObject(bucket, filePath) : storage.statObject(filePath),
                 getFullLocalStat(localFilePath)
             ]).then(rs => {
                 let remoteStat = rs[0]
@@ -84,39 +102,47 @@ function createCacheForStorage(storage, bucket, cacheDir, options) {
                         })
                     })
                 }
+            }).then(result => {
+                if (!query || !result) return result
+                let localFullFilePath = prefix ? path.join(cacheDir, prefix, fullFilePath) : path.join(cacheDir, fullFilePath)
+
+                if (query.cmd === 'image.info') {
+                    return sharp(result.localFilePath).metadata().then(metadata => {
+                        let json = JSON.stringify(metadata)
+                        return writeFileAsync(localFullFilePath, json).then(r => {
+                            let meta = { source: result }
+                            meta.type = 'application/json'
+                            return { size: json.length, md5: getMD5(json), localFilePath: localFullFilePath, meta }
+                        })
+                    })
+                } else if (query.cmd === 'image.resize' || !query.cmd) {
+                    let options = _.pick(query, 'fit', 'position', 'background')
+                    let width = query.w || query.width || query.s || query.size
+                    if (width) width = +width
+                    let height = query.h || query.height || query.s || query.size
+                    if (height) height = +height
+                    return sharp(result.localFilePath)
+                        .resize(width, height, options)
+                        .toFile(localFullFilePath)
+                        .then(() => {
+                            return getFullLocalStat(localFullFilePath)
+                        }).then(localStat => {
+                            let meta = _.pick(result.meta, 'type')
+                            return { size: localStat.size, md5: localStat.md5, localFilePath: localFullFilePath, meta }
+                        })
+                }
+
+                return result
             })
         }
     })
 }
+function createCacheForStorage(storage, bucket, cacheDir, options) {
+    return createSmartCache(storage, bucket, null, cacheDir, options || {})
+}
 
 function createCacheForScopedStorage(scopedStorage, cacheDir, options) {
-    options = options || {}
-    return createMemoryCache({
-        maxAge: options.maxAge || '10m',
-        updateAgeOnGet: false,
-        onRefresh: function (filePath) {
-            let localFilePath = path.join(cacheDir, scopedStorage.prefix, filePath)
-            return Promise.all([
-                scopedStorage.statObject(filePath),
-                getFullLocalStat(localFilePath)
-            ]).then(rs => {
-                let remoteStat = rs[0]
-                let localStat = rs[1]
-                let cached = compareLocalAndRemoteStat(localStat, remoteStat)
-                if (cached) {
-                    return { size: localStat.size, md5: localStat.md5, localFilePath, meta: remoteStat.meta }
-                } else {
-                    return scopedStorage.getObjectAsFile(filePath, localFilePath).then(r => {
-                        return getFullLocalStat(localFilePath).then(r => {
-                            localStat = r
-                            cached = localStat && remoteStat.size == localStat.size && (!remoteStat.md5 || remoteStat.md5 == localStat.md5)
-                            return cached ? { size: localStat.size, md5: localStat.md5, localFilePath, meta: remoteStat.meta } : null
-                        })
-                    })
-                }
-            })
-        }
-    })
+    return createSmartCache(scopedStorage, null, scopedStorage.prefix, cacheDir, options || {})
 }
 
 module.exports = {
