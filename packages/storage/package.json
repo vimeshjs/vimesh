@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/storage",
-  "version": "0.9.20",
+  "version": "0.9.26",
   "description": "Vimesh storage",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
