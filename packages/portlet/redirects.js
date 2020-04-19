@@ -12,14 +12,14 @@ function setupRedirects(portletServer) {
             let parts = url.substring('menu://'.length).split('/')
             menu = { zone: parts[0], index: parts.join('.') }
         }
-        app.get(path, function (req, res, next) {
+        function doRedirect(req, res, next) {
             if (menu) {
                 let menusInZone = portletServer.allMenusByZone[menu.zone]
                 if (!menusInZone) {
                     $logger.error(`Could not find menu zone "${menu.zone}" when redirecting "${path}"`)
                     return next()
                 }
-                let menus = getSortedMenus('', menu.zone, menusInZone)
+                let menus = getSortedMenus('', menu.zone, menusInZone, res.locals.$permissions)
                 let menuItem = null
                 if (menu.index == menu.zone) {
                     menuItem = getFirstMenu(menus)
@@ -35,7 +35,8 @@ function setupRedirects(portletServer) {
             } else {
                 res.redirect(url)
             }
-        })
+        }
+        app.get(path, portletServer.beforeAll, doRedirect)
     })
 }
 

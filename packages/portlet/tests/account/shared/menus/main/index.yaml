@@ -4,7 +4,7 @@ settings:
       url: /@account/accounts
       icon: el-icon-office-building
       sort: 10
-      permission: accounts.view
+      permission: $accounts.view
       title:
         cn: 账户
         en: Accounts
@@ -13,7 +13,7 @@ settings:
       url: /@account/groups
       icon: el-icon-s-flag
       sort: 20
-      permission: groups.view
+      permission: $groups.view
       title:
         cn: 用户组
         en: Groups
@@ -22,7 +22,7 @@ settings:
       url: /@account/users
       icon: fa-user-circle
       sort: 30
-      permission: users.view
+      permission: $users.view
       title:
         cn: 用户
         en: Users
@@ -31,7 +31,7 @@ settings:
       url: /@account/roles
       icon: el-icon-s-order
       sort: 40
-      permission: roles.view
+      permission: $roles.view
       title:
         cn: 角色
         en: Roles

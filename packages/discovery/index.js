@@ -31,7 +31,14 @@ function createKeyValueClient(options) {
                 client.get({ key }, (err, r) => {
                     if (err) return reject(err)
                     let data = r.data
-                    _.each(data, (v, k) => data[k] = JSON.parse(v))
+                    _.each(data, (v, k) => {
+                        try {
+                            if (v !== 'undefined')
+                                data[k] = JSON.parse(v)
+                        } catch (ex) {
+                            $logger.error(`Fails to parse value ${k} : ${v} .`, ex)
+                        }
+                    })
                     resolve(_.endsWith(key, '*') ? (data || {}) : (data && data[key] || null))
                 })
             })

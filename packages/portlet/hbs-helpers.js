@@ -74,9 +74,10 @@ function json(js) {
 }
 function menusByZone(name, options) {
     let lang = options.data.root.$language
+    let permissions = options.data.root.$permissions || {}
     let embedIcon = options.hash.embedIcon
     let menusInZone = options.data.root._menusByZone && options.data.root._menusByZone[name]
-    let menus = getSortedMenus(lang, name, menusInZone)
+    let menus = getSortedMenus(lang, name, menusInZone, permissions)
     if (embedIcon) {
         visitMenus(menus, (menu) => {
             if (menu.icon && _.startsWith(menu.icon, 'fa-')) {

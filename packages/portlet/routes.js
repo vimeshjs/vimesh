@@ -53,6 +53,7 @@ function setupMiddleware(req, res, next) {
         res.locals._menusByZone = portletServer.allMenusByZone
         res.locals.$portlet = portlet
         res.locals._helperPostProcessor = []
+        res.locals._allPermissions = portletServer.allPermissions
         res.locals.layout = _.isFunction(mlayout) ? mlayout(req) : mlayout
         res.ok = function (msg, code) {
             res.json(formatOK(msg, code))
@@ -115,6 +116,10 @@ function scanRoutes(portletServer, current) {
 
     if (fs.existsSync(path.join(current.dir, '_.js'))) {
         let methods = require(path.join(current.dir, '_.js'))
+        if (methods.beforeAll){
+            before = _.concat(before, methods.beforeAll)
+            portletServer.beforeAll = _.concat(portletServer.beforeAll, methods.beforeAll)
+        }
         if (methods.before && methods.before.length > 0) {
             if (methods.before[0] === '|')
                 before = _.slice(methods.before, 1)
@@ -213,6 +218,8 @@ function setupRoutes(portletServer) {
     let config = portletServer.config
     let routesDir = portletServer.routesDir
     let pipelinesDir = portletServer.pipelinesDir
+    let portlet = portletServer.portlet
+    let viewEngine = portletServer.viewEngine
     let root = {
         parent: null,
         urlPath: '',
@@ -233,6 +240,19 @@ function setupRoutes(portletServer) {
             }
         })
     }
+
+
+    let bpContext = _.pick(portletServer.config, 'uploadDir')
+    if (bpContext.uploadDir) mkdirp(bpContext.uploadDir)
+    portletServer.beforeAll.push(_.bind(bodyParserMiddleware, bpContext))
+    let mcontext = {
+        portletServer,
+        portlet,
+        current: root,
+        viewEngine,
+        layout: config.layout
+    }
+    portletServer.beforeAll.push(_.bind(setupMiddleware, mcontext))
 
     scanRoutes(portletServer, root)
 }

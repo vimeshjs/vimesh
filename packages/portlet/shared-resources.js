@@ -94,6 +94,12 @@ function runResourceJobs(portletServer) {
         }).catch(ex => {
             $logger.error('Fails to receive i18n items.', ex)
         })
+
+        kvClient.get('permissions/*').then(rs => {
+            portletServer.allPermissions = _.merge({}, ..._.values(rs))
+        }).catch(ex => {
+            $logger.error('Fails to receive permissions.', ex)
+        })
     }, duration('3s'))
 }
 function mergeI18nItems(all, itemsToMerge) {
@@ -125,6 +131,7 @@ function setupSharedResources(portletServer) {
     mountSharedResourcesMiddleware(portletServer, 'views')
     mountSharedResourcesMiddleware(portletServer, 'menus', '.yaml')
     mountSharedResourcesMiddleware(portletServer, 'i18n', '.yaml')
+    mountSharedResourcesMiddleware(portletServer, 'permissions', '.yaml')
 
     runResourceJobs(portletServer)
 

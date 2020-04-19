@@ -1,14 +1,21 @@
 const _ = require('lodash')
 
-function getSortedMenus(lang, index, menus) {
+function getSortedMenus(lang, index, menus, permissions) {
     menus = _.filter(_.map(_.entries(menus), ar => _.extend({ _name: ar[0] }, ar[1])), m => {
-        if (!m._meta) $logger.warn(`Menu config (${JSON.stringify(m)}) has no _meta definition.`)
+        let perm = _.get(m, '_meta.permission')
+        if (perm){
+            if (_.isString(perm) && (!permissions || !permissions[perm])){
+                return false
+            }
+        }
+        if (!m._meta) 
+            $logger.warn(`Menu config (${JSON.stringify(m)}) has no _meta definition.`)
         return !!m._meta
     })
     menus = _.sortBy(menus, m => _.get(m, '_meta.sort') || 1)
-    return _.map(menus, m => {
+    return _.filter(_.map(menus, m => {
         let mindex = `${index}.${m._name}`
-        let submenus = getSortedMenus(lang, mindex, _.omit(m, '_name', '_meta'))
+        let submenus = getSortedMenus(lang, mindex, _.omit(m, '_name', '_meta'), permissions)
         let url = _.get(m, '_meta.url')
         let title = _.get(m, '_meta.title')
         let icon = _.get(m, '_meta.icon')
@@ -21,7 +28,7 @@ function getSortedMenus(lang, index, menus) {
         let menu = { index: mindex, title, url, icon }
         if (submenus.length > 0) menu.submenus = submenus
         return menu
-    })
+    }), m => m.url || m.submenus && m.submenus.length > 0)
 }
 function getActiveMenu(menus, path) {
     if (!menus || !path) return null

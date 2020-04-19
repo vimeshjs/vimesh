@@ -64,7 +64,7 @@
     $mixins.push({
         data() {
             return {
-                imageUrl: $form.avatar ? toFullUrl('users/avatar/' + $form.avatar) : '',
+                imageUrl: $form.avatar ? toFullUrl('users/avatar/' + $form.avatar) + '?s=200' : '',
                 editMode: !!$form._id,
                 form: $form,
                 rules: {

@@ -1,18 +1,60 @@
-$super:
+$accounts:
   _meta:
-    i18n:
-      cn: 超级管理员
-      en: Super Admin
-$owner:
+    platform: true
+    name: Accounts (Platform)
+  view: 
+    name: View
+  edit: 
+    name: Edit
+$groups:
   _meta:
-    i18n:
-      cn: 所有者
-      en: Owner
+    platform: true
+    name: User Groups (Platform)
+  view: 
+    name: View
+  edit: 
+    name: Edit
+$users:
+  _meta:
+    platform: true
+    name: Users (Platform)
+  view: 
+    name: View
+  edit: 
+    name: Edit
+$roles:
+  _meta:
+    platform: true
+    name: Roles (Platform)
+  view: 
+    name: View
+  edit: 
+    name: Edit
 accounts:
   _meta:
-    i18n:
-      cn: 账户
-      en: Accounts
-  $include: _vcmd
-
-
+    name: Accounts
+  view: 
+    name: View
+  edit: 
+    name: Edit
+groups:
+  _meta:
+    name: Groups
+  view: 
+    name: View
+  edit: 
+    name: Edit
+users:
+  _meta:
+    name: Users
+  view: 
+    name: View
+  edit: 
+    name: Edit
+roles:
+  _meta:
+    name: Roles
+  view: 
+    name: View
+  edit: 
+    name: Edit

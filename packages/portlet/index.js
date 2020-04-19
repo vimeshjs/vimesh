@@ -32,6 +32,8 @@ function PortletServer(config) {
     this.sharedResourcesCaches = {}
     this.allMenusByZone = {}
     this.mergedI18nItems = {}
+    this.allPermissions = {}
+    this.beforeAll = []
     this.menusReady = false
     this.i18nReady = false
     this.startedAt = new Date()

@@ -18,7 +18,7 @@ portlet:
       cacheDir: '{{root}}/mnt/cache'
   passport:
     jwt:
-      expiration: 1h
+      expiration: 24h
   selfUrl: localhost:18002
   discovery:
     url: localhost:18000

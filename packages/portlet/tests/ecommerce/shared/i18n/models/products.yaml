@@ -1,0 +1,15 @@
+id: 编号
+name: 小区
+name_required: 小区为必填项 
+address: 地址
+area: 街道
+county: 区
+town: 街道
+village: 居委会
+area_required: 街道为必选项
+rooms: 户数
+account: 企业账号
+user_id: 管理员
+search: 搜索
+ph-select-area: 请选择搜索区域
+ph-select-community: 请输入小区名

@@ -1,21 +1,28 @@
 
 const _ = require('lodash')
 const { formatDate } = require('@vimesh/utils')
-const { getJwtSecret } = require('./_lib/utils')
+const { getJwtSecret, getPermissions } = require('./_lib/utils')
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const passportJWT = require('passport-jwt');
 const JWTStrategy = passportJWT.Strategy;
-
-function setup({ app, config }) {
-    const jwtSecret = getJwtSecret(config)
+let portletServer
+function setup(server) {
+    const jwtSecret = getJwtSecret(server.config)
+    portletServer = server
 
     passport.use(new LocalStrategy({
         usernameField: 'login',
         passwordField: 'password',
     }, function (username, password, callback) {
         $mock.users.authenticate(username, password).then(user => {
-            callback(null, _.pick(user, '_id', 'email', 'name', 'mobile'))
+            let payload = {
+                id: user._id,
+                name: user.name,
+                avatar: user.avatar,
+                account: user.account_id
+            }
+            callback(null, payload)
         }).catch(ex => {
             $logger.error('Fails to login ', ex)
             callback('Fails to login ')
@@ -41,10 +48,12 @@ const jwt = passport.authenticate('jwt', {
 
 function auth(req, res, next) {
     res.locals.$user = req.user
-    console.log('Auth : ', req.path, req.user)
-    next()
+    getPermissions(req.user.id, portletServer.allPermissions).then(perms => {
+        res.locals.$permissions = perms
+        next()
+    })
 }
 module.exports = {
     setup,
-    before: [jwt, auth]
+    beforeAll: [jwt, auth]
 }

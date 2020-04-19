@@ -1,6 +1,2 @@
 logger:
   level: warn
-portlet:
-  layout: admin
-  peers:
-    common: '{{env.PEER_COMMON_URL}}'

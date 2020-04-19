@@ -1,0 +1,15 @@
+logger:
+  console: {}
+portlet:
+  port: 18003
+  mock: true
+  debug: true
+  compress: true
+  logRoutes: true
+  logRequests: true
+  selfUrl: localhost:18003
+  discovery:
+    url: localhost:18000
+  remoteApis:
+    auth: 
+      url: http://localhost:18002/@account/
