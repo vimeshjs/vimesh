@@ -106,6 +106,15 @@ function es5(options) {
     return `${result.code}`
 }
 
+function allow(perm, options) {
+    if (!options) {
+        $logger.error('Permission must be provided in allow helper!')
+        return
+    }
+    let permsOfCurrentUser = options.data.root.$permissions || {}
+    let content = options.fn(this)
+    return permsOfCurrentUser[perm] ? content : ''
+}
 
 const cssSource = fs.createReadStream(path.join(__dirname, '/tailwind@1.2.0.min.css.gz'))
 const cssUnzip = zlib.createGunzip()
@@ -259,6 +268,7 @@ function fontAwesomeIcon(name, options) {
 module.exports = {
     T,
     es5,
+    allow,
     fontAwesomeIcon,
     faIcon: fontAwesomeIcon,
     contentFor,
