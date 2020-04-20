@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/mongodb",
-  "version": "0.9.21",
+  "version": "0.9.28",
   "description": "Vimesh MongoDB",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
