@@ -2,5 +2,10 @@ products:
   _meta:
     icon: el-icon-office-building
     sort: 10
-    permission: products.view
     title: Products
+  list:
+    _meta:
+      sort: 10
+      title: List Products
+      permission: products.view
+      url: products
