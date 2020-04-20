@@ -393,8 +393,10 @@ function createDao(schema, name, affix) {
                 if (_.keys(cond).length == 0) {
                     $logger.warn('Filter must be specific when "set" a document')
                 }
-                let update = { $set: _.omit(item, '_id', '$when$', '$insert$') }
+                let update = { $set: _.omit(item, '_id', '$when$', '$insert$', '$unset') }
                 if (item['$insert$']) update.$setOnInsert = item['$insert$']
+                if (item['$unset']) update.$unset = item['$unset']
+                if (_.keys(update.$set).length == 0) delete update.$set
                 return {
                     updateOne: {
                         filter: cond,

@@ -7,17 +7,6 @@ function generateEncryptedPassword(password, salt) {
 }
 
 module.exports = {
-	$setup: function ({ Users }) {
-		let adminId = 'admin'
-		this.get(adminId).then((user) => {
-			if (!user) {
-				$logger.warn('Admin does not exist, create admin:admin')
-				this.set(adminId, {
-					"password": generateEncryptedPassword(adminId, adminId),
-				})
-			}
-		})
-	},
 	findAll: ({ Users }, cond) => {
 		return Users.find(cond).toArray()
 	},

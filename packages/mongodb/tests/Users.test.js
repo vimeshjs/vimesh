@@ -18,10 +18,16 @@ test('create user', function() {
     })
 })
 test('set user email', function() {
-    return $dao.Users.set('u001', {email:'u001.modified@email.com'}).then(function() {
+    return $dao.Users.set('u001', {email:'u001.modified@email.com', name:'test 001'}).then(function() {
         return $dao.Users.get('u001')
-    }).then(function(r) {
+    }).then(r =>{
         expect(r.email).toBe('u001.modified@email.com')
+        return $dao.Users.set('u001', {$unset : {email : 1}})
+    }).then(r=> {
+        return $dao.Users.get('u001')
+    }).then(r => {
+        expect(r.email).toBeUndefined()
+        expect(r.name).toBe('test 001')
     })
 })
 test('get permissions', function(){
