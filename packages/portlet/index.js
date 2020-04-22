@@ -115,26 +115,23 @@ function PortletServer(config) {
 
     setupRedirects(this)
 
-    app.use(function (req, res, next) {
+    app.use(this.beforeAll, function (req, res, next) {
         $logger.error("404 (" + req.url + ") ");
         if (req.xhr) {
             res.status(404).json(formatError('404'))
         } else {
-            viewEngine('404', formatError('404'), (err, html) => {
-                if (err) return req.next(err);
-                res.status(404).end(html)
-            })
+            res.status(404)
+            res.show('404', {})
         }
     })
 
-    app.use(function (err, req, res, next) {
+    app.use(this.beforeAll, function (err, req, res, next) {
         $logger.error("500 (" + req.url + ")", err)
         if (req.xhr) {
             res.status(err.status || 500).json(formatError(err))
         } else {
-            viewEngine('500', formatError('500'), (err, html) => {
-                res.status(err && err.status || 500).end(html)
-            })
+            res.status(err && err.status || 500)
+            res.show('500', {})
         }
     })
 

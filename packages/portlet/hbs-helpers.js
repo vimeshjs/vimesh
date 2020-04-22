@@ -6,6 +6,7 @@ const fs = require('fs')
 const zlib = require('zlib')
 const path = require('path')
 const css = require('css')
+const { evaluatePermissionFormular } = require('./utils')
 const { getSortedMenus, getActiveMenu, visitMenus } = require('./menus')
 const { pipeStreams, WritableBufferStream } = require('@vimesh/utils')
 
@@ -112,8 +113,9 @@ function allow(perm, options) {
         return
     }
     let permsOfCurrentUser = options.data.root.$permissions || {}
+    let allowed = evaluatePermissionFormular(perm, permsOfCurrentUser, options.data.root._allPermissions)
     let content = options.fn(this)
-    return permsOfCurrentUser[perm] ? content : ''
+    return allowed ? content : ''
 }
 
 const cssSource = fs.createReadStream(path.join(__dirname, '/tailwind@1.2.0.min.css.gz'))

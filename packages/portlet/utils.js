@@ -18,7 +18,25 @@ function formatOK(msg, code) {
     return json
 }
 
+function evaluatePermissionFormular(formular, ownedPermissions, allPermissions){
+    if (!ownedPermissions) return false
+    _.each(_.omit(allPermissions, '_meta'), (ps, rsc) => {
+        _.each(_.omit(ps, '_meta'), (p, k) => {
+            let key = `${rsc}.${k}`
+            let result = ownedPermissions[key] ? 'true' : 'false'
+            formular = formular.split(key).join(result)
+        })
+    })
+    try{
+        return eval(formular)
+    }catch(ex){
+        $logger.error('Fails to evaluate permission formular. ', ex)
+        return false
+    }
+}
+
 module.exports = {
     formatOK,
-    formatError
+    formatError,
+    evaluatePermissionFormular
 }

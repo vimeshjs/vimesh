@@ -5,7 +5,7 @@ const fs = require('graceful-fs')
 const mkdirp = require('mkdirp')
 const formidable = require('formidable')
 const { retryPromise } = require('@vimesh/utils')
-const { formatError, formatOK } = require('./utils')
+const { formatError, formatOK, evaluatePermissionFormular } = require('./utils')
 const HTTP_METHODS = ['all', 'get', 'post', 'put', 'delete', 'patch', 'config', 'head']
 function convertParameters(params, config) {
     try {
@@ -23,16 +23,20 @@ function convertParameters(params, config) {
     }
 }
 function bodyParserMiddleware(req, res, next) {
-    let context = this
-    let options = {multiples: true}
-    if (context.uploadDir) options.uploadDir = context.uploadDir
-    let form = formidable(options)
-    form.parse(req, (err, fields, files) => {
-        if (err) return next(err)
-        req.body = fields
-        req.files = files
+    if ("POST" == req.method || "PUT" == req.method){
+        let context = this
+        let options = { multiples: true }
+        if (context.uploadDir) options.uploadDir = context.uploadDir
+        let form = formidable(options)
+        form.parse(req, (err, fields, files) => {
+            if (err) return next(err)
+            req.body = fields
+            req.files = files
+            next()
+        })
+    } else {
         next()
-    })
+    }
 }
 function setupMiddleware(req, res, next) {
     let context = this
@@ -60,6 +64,16 @@ function setupMiddleware(req, res, next) {
         }
         res.error = function (err, code) {
             res.status(500).json(formatError(err, code))
+        }
+        res.allow = function (perm, cond) {
+            let allowed = evaluatePermissionFormular(perm, res.locals.$permissions, res.locals._allPermissions)
+            return allowed && (cond === undefined || cond)
+        }
+        res.ensure = function (perm, cond) {
+            if (!res.allow(perm, cond)) {
+                $logger.error(`Access Forbidden (${JSON.stringify(req.user)}) @ ${req.path} `)
+                throw Error('Access Forbidden!')
+            }
         }
         res.i18n = function (names) {
             if (_.isString(names)) names = _.map(names.split(';'), r => r.trim())
@@ -91,7 +105,7 @@ function setupMiddleware(req, res, next) {
             }
             //res.render(viewPath, data) --> It will check the view file in the disk, while our view may be in another peer server
             viewEngine(viewPath, _.extend(res.locals, data), (err, html) => {
-                if (err) return req.next(err);                
+                if (err) return req.next(err);
                 res.send(html)
             })
         }
@@ -116,7 +130,7 @@ function scanRoutes(portletServer, current) {
 
     if (fs.existsSync(path.join(current.dir, '_.js'))) {
         let methods = require(path.join(current.dir, '_.js'))
-        if (methods.beforeAll){
+        if (methods.beforeAll) {
             before = _.concat(before, methods.beforeAll)
             portletServer.beforeAll = _.concat(portletServer.beforeAll, methods.beforeAll)
         }
@@ -166,7 +180,7 @@ function scanRoutes(portletServer, current) {
                 methods.setup(portletServer)
             }
             methods = _.pick(methods, HTTP_METHODS)
-            if (_.keys(methods).length === 0){
+            if (_.keys(methods).length === 0) {
                 $logger.warn(`${fullPath} has no HTTP handlers`)
             }
             _.each(methods, (m, k) => {
@@ -202,7 +216,7 @@ function scanRoutes(portletServer, current) {
                 if (bpContext.uploadDir) mkdirp(bpContext.uploadDir)
                 let allHandlers = _.concat(
                     _.bind(bodyParserMiddleware, bpContext),
-                    _.bind(setupMiddleware, mcontext),                    
+                    _.bind(setupMiddleware, mcontext),
                     mbefore,
                     mcontext.handler,
                     mafter)
