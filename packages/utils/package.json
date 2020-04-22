@@ -11,7 +11,7 @@
     "crc": "^3.8.0",
     "glob": "^7.1.6",
     "graceful-fs": "^4.2.3",
-    "handlebars": "^4.7.3",
+    "handlebars": "^4.7.6",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
