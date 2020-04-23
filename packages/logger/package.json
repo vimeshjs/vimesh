@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/logger",
-  "version": "0.9.20",
+  "version": "0.9.31",
   "description": "Vimesh logger",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
