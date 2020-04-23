@@ -5,9 +5,11 @@ const { getJwtSecret } = require('./_lib/utils')
 const passport = require('passport');
 const passportJWT = require('passport-jwt');
 const JWTStrategy = passportJWT.Strategy;
+let authApi = null
 
-function setup({ app, config }) {
-    const jwtSecret = getJwtSecret(config)
+function setup(portletServer) {
+    authApi = portletServer.remoteApis.auth
+    const jwtSecret = getJwtSecret(portletServer.config)
 
     passport.use(new JWTStrategy({
         jwtFromRequest: req => req.cookies.jwt || req.query.jwt || req.headers.jwt,
@@ -23,14 +25,21 @@ function setup({ app, config }) {
 
 const jwt = passport.authenticate('jwt', {
     session: false,
-    failureRedirect: '/@account/login'
+    failureRedirect: '/login'
 })
 
 function auth(req, res, next) {
     res.locals.$user = req.user
-    next()
+    authApi.get('users/perms',
+        {
+            headers: { 'jwt': req.cookies.jwt || req.query.jwt || req.headers.jwt }
+        }).then(r => {
+            let perms = r.data
+            res.locals.$permissions = perms
+            next()
+        })
 }
 module.exports = {
     setup,
-    before: [jwt, auth]
+    beforeAll: [jwt, auth]
 }

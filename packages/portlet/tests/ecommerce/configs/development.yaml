@@ -1,4 +1,5 @@
 logger:
+  level: debug
   console: {}
 portlet:
   port: 18003

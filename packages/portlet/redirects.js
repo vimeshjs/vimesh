@@ -9,9 +9,16 @@ function setupRedirects(portletServer) {
         url = url.trim()
         let menu = null
         if (url.startsWith('menu://')) {
+            let fallback = null
+            let pos = url.indexOf('|')
+            if (pos != -1){
+                fallback = url.substring(pos + 1).trim()
+                url = url.substring(0, pos).trim()
+            }
             let parts = url.substring('menu://'.length).split('/')
-            menu = { zone: parts[0], index: parts.join('.') }
+            menu = { zone: parts[0], index: parts.join('.'), fallback }
         }
+        $logger.info(`Redirection: ${path} -> ${url} `)
         function doRedirect(req, res, next) {
             if (menu) {
                 let menusInZone = portletServer.allMenusByZone[menu.zone]
@@ -27,16 +34,24 @@ function setupRedirects(portletServer) {
                     menuItem = getMenuByIndex(menus, menu.index)
                 }
                 if (menuItem) {
-                    $logger.debug(`Redirecting ${path} -> ${url} -> ${menuItem.url}`)
+                    $logger.info(`Redirecting ${path} -> ${url} -> ${menuItem.url} (user: ${JSON.stringify(req.user)}, permissions: ${JSON.stringify(res.locals.$permissions)})`)
                     res.redirect(menuItem.url)
                 } else {
-                    next()
+                    $logger.error(`Fails to get real url for ${url} (user: ${JSON.stringify(req.user)}, permissions: ${JSON.stringify(res.locals.$permissions)})`)
+                    if (menu.fallback)
+                        res.redirect(menu.fallback)
+                    else
+                        next()
                 }
             } else {
+                $logger.info(`Redirecting ${path} -> ${url}`)
                 res.redirect(url)
             }
         }
-        app.get(path, portletServer.beforeAll, doRedirect)
+        if (menu)
+            app.get(path, portletServer.beforeAll, doRedirect)
+        else 
+            app.get(path, doRedirect)
     })
 }
 

@@ -23,7 +23,7 @@ function setup({ app, config }) {
 
 const jwt = passport.authenticate('jwt', {
     session: false,
-    failureRedirect: 'login'
+    failureRedirect: '/login'
 })
 
 function auth(req, res, next) {

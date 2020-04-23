@@ -30,7 +30,7 @@ function setup(server) {
     }))
 
     passport.use(new JWTStrategy({
-        jwtFromRequest: req => req.cookies.jwt,
+        jwtFromRequest: req => req.cookies.jwt || req.query.jwt || req.headers.jwt,
         secretOrKey: jwtSecret,
     }, function (jwtPayload, callback) {
         if (Date.now() > jwtPayload.expires) {
@@ -43,7 +43,7 @@ function setup(server) {
 
 const jwt = passport.authenticate('jwt', {
     session: false,
-    failureRedirect: '/@account/login'
+    failureRedirect: '/login'
 })
 
 function auth(req, res, next) {

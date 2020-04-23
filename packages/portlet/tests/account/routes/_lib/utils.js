@@ -21,11 +21,6 @@ function getPermissions(id, allPermissions){
                     })
                     return perms
                 } else {
-                    _.each(allPermissions, (ps, rsc) => {
-                        if (ps._meta && !ps._meta.platform) {
-                            _.each(_.keys(_.omit(ps, '_meta')), p => perms[`${rsc}.${p}`] = true)        
-                        }
-                    })
                     return perms
                 }
             }

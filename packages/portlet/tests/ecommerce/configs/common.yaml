@@ -5,6 +5,6 @@ portlet:
   dependsOn:
     - common
   redirects:
-    '/': 'menu://main'
+    '/': 'menu://main | /login'
     '/login': '/@account/login'
     '/logout': '/@account/logout'

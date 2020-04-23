@@ -1,6 +1,4 @@
 timezone: Asia/Shanghai
-logger:
-  console: {}
 portlet:
   version: 1.0.1
   name: account

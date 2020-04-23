@@ -1,5 +1,6 @@
 logger:
   level: debug
+  console: {}
 portlet:
   port: 18002
   mock: true
