@@ -12,6 +12,6 @@
     "moment": "^2.24.0",
     "mongodb": "^3.5.6",
     "mongodb-extjson": "^3.0.3",
-    "snappy": "^6.3.3"
+    "snappy": "^6.2.3"
   }
 }
