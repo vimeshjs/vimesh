@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/cache",
-  "version": "0.9.20",
+  "version": "0.9.32",
   "description": "Vimesh cache management",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
