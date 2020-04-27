@@ -81,7 +81,7 @@ test('Cache Two', () => {
     })
 })
 
-test('Cache Enumberate', () => {
+test('Cache enumberate all entities', () => {
     let cache3 = createMemoryCache({
         maxAge: '1h',
         enumInterval : '10m',
