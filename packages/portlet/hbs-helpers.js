@@ -246,17 +246,26 @@ function tailwindBlock(options) {
 }
 
 const { icon } = require('@fortawesome/fontawesome-svg-core')
-const allIcons = _.merge(
-    {},
-    require('@fortawesome/free-solid-svg-icons'),
-    require('@fortawesome/free-regular-svg-icons'),
-    require('@fortawesome/free-solid-svg-icons')
-)
+const solidIcons = require('@fortawesome/free-solid-svg-icons')
+const regularIcons = require('@fortawesome/free-regular-svg-icons')
+const brandsIcons = require('@fortawesome/free-brands-svg-icons')
+const allIcons = _.merge({}, solidIcons, regularIcons, brandsIcons)
 function fontAwesomeIcon(name, options) {
     if (!_.isString(name)) return
+    let icons = allIcons
+    if (_.startsWith(name, 'fas-')){
+        name = name.substring(4)
+        icons = solidIcons
+    } else if (_.startsWith(name, 'far-')){
+        name = name.substring(4)
+        icons = regularIcons
+    } else if (_.startsWith(name, 'fab-')){
+        name = name.substring(4)
+        icons = brandsIcons
+    }
     let iconName = _.camelCase(_.startsWith(name, 'fa-') ? name : 'fa-' + name)
-    if (allIcons[iconName]) {
-        let svg = icon(allIcons[iconName]).html[0]
+    if (icons[iconName]) {
+        let svg = icon(icons[iconName]).html[0]
         let size = options.hash.size
         let klass = options.hash.class
         if (!size && !klass) size = 16
