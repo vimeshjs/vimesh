@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option java_package = "org.vimesh.common.proto.base";
+option java_outer_classname = "BaseParamProto";
+
+message PageRequest{
+    int32 page_no = 1;
+    int32 page_size = 2;
+}
+
+message Result  {
+    ResponseCode code = 1;
+    string msg = 2;
+}
+
+message PageResponse{
+  int64 total_count = 1;
+  int32 page_no = 2;
+  int32 page_size = 3;
+}
+
+enum ResponseCode {
+    DEFAULT = 0;
+    FAIL = 500;
+    SUCCESS = 200;
+}

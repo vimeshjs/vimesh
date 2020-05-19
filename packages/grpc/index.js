@@ -12,7 +12,7 @@ function setupGrpcService(options) {
         throw new Error(`gRPC server config path "${options.path}" does not exist!`)
 
     const server = new grpc.Server();
-
+    const protoOptions = { includeDirs: [`${__dirname}/proto`, options.path], keepCase: true, longs: Number }
     _.each(glob.sync(options.path + "/**"), function (f) {
         let ext = path.extname(f)
         let name = path.basename(f)
@@ -21,9 +21,10 @@ function setupGrpcService(options) {
         }
         if (fs.statSync(f).isFile() &&
             name.substring(0, 1) != '_') {
-            if (ext === '.proto') {
-                let js = f.substring(0, f.length - ext.length) + '.js'
-                const protoDefinition = protoLoader.loadSync(f);
+            if (ext === '.js') {
+                let js = f
+                let proto = path.relative(options.path, f.substring(0, f.length - ext.length) + '.proto')
+                const protoDefinition = protoLoader.loadSync(proto, protoOptions);
                 const packageDefinition = grpc.loadPackageDefinition(protoDefinition)
                 if (!fs.existsSync(js)) {
                     $logger.warn(`There are no gRPC implementation for ${f}`)
@@ -32,8 +33,9 @@ function setupGrpcService(options) {
                 if (options.context) {
                     _.each(_.keys(imp), k => imp[k] = _.bind(imp[k], options.context))
                 }
-                _.each(packageDefinition[_.keys(packageDefinition)[0]], (v, k) => {
+                _.each(packageDefinition, (v, k) => {
                     if (v.service) {
+                        $logger.info(`Add gRPC service ${k}`)
                         if (options.promisify === false) {
                             server.addService(v.service, imp)
                         } else {
@@ -64,24 +66,42 @@ function setupGrpcService(options) {
 }
 
 function createGrpcClient(options) {
-
-    if (!fs.existsSync(options.path) || !fs.statSync(options.path).isFile())
-        throw new Error(`gRPC client proto path "${options.path}" does not exist!`)
+    if (!fs.existsSync(options.path) || !fs.statSync(options.path).isDirectory())
+        throw new Error(`gRPC client config path "${options.path}" does not exist!`)
+    let proto = path.join(options.path, options.proto)
+    console.log(proto, options)
+    if (!fs.existsSync(proto) || !fs.statSync(proto).isFile())
+        throw new Error(`gRPC client proto file "${options.proto}" does not exist!`)
+    const protoOptions = { includeDirs: [`${__dirname}/proto`, options.path], keepCase: true, longs: Number }
     let client = null
-    const protoDefinition = protoLoader.loadSync(options.path)
+    const protoDefinition = protoLoader.loadSync(options.proto, protoOptions)
     const packageDefinition = grpc.loadPackageDefinition(protoDefinition)
-    _.each(packageDefinition[_.keys(packageDefinition)[0]], (v, k) => {
+    _.each(packageDefinition, (v, k) => {
         if (v.service) {
             $logger.info(`Create gRPC client for service ${k}`)
-            client = new v(options.url, options.credentials || grpc.credentials.createInsecure())            
+            client = new v(options.url, options.credentials || grpc.credentials.createInsecure())
         }
     })
     return client
+}
+
+function toTimestamp(dt) {
+    let tms = _.isDate(dt) ? dt.valueOf() : +dt
+    return {
+        seconds: tms / 1000,
+        nanos: (tms % 1000) * 1e6
+    }
+}
+
+function fromTimestamp(ts) {
+    return new Date(ts.seconds * 1000 + Math.round(ts.nanos / 1e6))
 }
 module.exports = {
     Metadata: grpc.Metadata,
     GrpcError: boom.default,
     GrpcStatus: boom.Status,
     setupGrpcService,
-    createGrpcClient
+    createGrpcClient,
+    toTimestamp,
+    fromTimestamp
 }

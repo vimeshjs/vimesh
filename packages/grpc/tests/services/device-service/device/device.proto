@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+import "base/baseparam.proto";
+import "base/user.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+
+
+option java_package = "org.vimesh.common.proto.device";
+option java_outer_classname = "DeviceRequestProto";
+
+
+service DevicesService {
+    rpc queryDevicesAll (QueryDevicesCriteria) returns (PageDevicesResult );
+    rpc queryCriteria(QueryCriteria) returns(QueryResult);
+}
+
+message QueryCriteria {
+    string name = 1;
+    TypeName type_name = 2;
+}
+
+message QueryResult {
+    repeated string value = 1;
+}
+
+enum TypeName {
+    NAME = 0;
+    MODEL = 1;
+    UNIQUE_CODE = 2;
+    SW_VERSION = 3;
+}
+
+message QueryDevicesCriteria {
+     PageRequest request = 1;
+     string name = 2;
+     string model = 3;
+     string unique_code = 4;
+     string sw_version = 5;
+     string project_id = 6;
+     UserInfo user = 7;
+     google.protobuf.Timestamp start_create_time = 8;
+     google.protobuf.Timestamp end_create_time = 9;
+     google.protobuf.Timestamp start_version_update_time = 10;
+     google.protobuf.Timestamp end_version_update_time = 11;
+}
+
+message PageDevicesResult {
+    repeated Devices devices = 1;
+    PageResponse pageResponse = 2;
+    Result result = 3;
+}
+
+message Devices {
+    int64 id = 1;
+    string name = 2;
+    string model = 3;
+    string ua_brand = 4;
+    string ua_model = 5;
+    string unique_code = 6;
+    string sw_version = 7;
+    string creator = 8;
+    google.protobuf.Timestamp create_time = 9;
+    google.protobuf.Timestamp  update_time = 10;
+
+}
+
+

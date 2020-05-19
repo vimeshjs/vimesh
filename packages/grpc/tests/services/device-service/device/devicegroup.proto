@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+import "base/baseparam.proto";
+import "base/user.proto";
+import "google/protobuf/timestamp.proto";
+
+
+option java_package = "org.vimesh.common.proto.device";
+option java_outer_classname = "DeviceGroupProto";
+
+service DeviceGroupService {
+    //New device group
+    rpc createDeviceGroup(DeviceGroupInfoRequest) returns(Result){} ;
+    //Paging query device group
+    rpc queryDeviceGroupAll(QueryDeviceGroupsCriteria) returns(PageDeviceGroupsResult){} ;
+    rpc deleteDeviceGroup(DeleteDeviceGroupsCriteria) returns(Result) {} ;
+}
+
+message DeleteDeviceGroupsCriteria {
+    int64 id = 1;
+}
+
+message QueryDeviceGroupsCriteria {
+    int64 project_id = 1;
+    string name = 2;
+    string creator = 3;
+    google.protobuf.Timestamp start_time = 4;
+    google.protobuf.Timestamp end_time = 5;
+    PageRequest pageRequest = 6;
+}
+
+message PageDeviceGroupsResult {
+    repeated DeviceGroups deviceGroups = 1;
+    PageResponse pageResponse = 2;
+    Result result = 3;
+}
+
+message DeviceGroups {
+    int64 id = 1;
+    string name = 2;
+    int32 device_amount = 3;
+    string creator = 4;
+    google.protobuf.Timestamp create_time = 5;
+}
+
+message DeviceGroupInfoRequest {
+    int64 project_id = 1;
+    string name = 2;
+    int32 device_mount = 3;
+    string creator = 4;
+    UserInfo userInfo = 5;
+    google.protobuf.Timestamp update_time = 6;
+}
+
+message PageDeviceGroupRequest {
+    PageRequest param = 1;
+    string query = 2;
+
+}
+
+
+
+
+

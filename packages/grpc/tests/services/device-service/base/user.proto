@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+option java_package = "org.vimesh.common.proto.base";
+option java_outer_classname = "BaseUserProto";
+
+
+message UserInfo{
+    int64 tenant_id = 1;//租户id
+    int64 customer_id = 2;//用户id
+}
+
+
