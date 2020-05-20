@@ -7,7 +7,7 @@ var readline = require("readline");
 setupLogger()
 
 let client = createGrpcClient({
-    path: __dirname + '/services/chat/chat.proto',
+    path: __dirname + '/services/chat',
     url: 'localhost:2000',
     promisify : false
 })
@@ -20,11 +20,11 @@ var rl = readline.createInterface({
 let username;
 
 function startChat() {
-    let channel = client.join({ user: username })
+    let channel = client.Chat.join({ user: username })
     channel.on("data", onData);
 
     rl.on("line", function (text) {
-        client.send({ user: username, text: text }, r =>{
+        client.Chat.send({ user: username, text: text }, r =>{
             console.log(r)
         })
     });

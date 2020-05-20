@@ -1,5 +1,4 @@
 syntax = "proto3";
-package discovery;
 
 service KeyValueService {
   rpc get(GetRequest) returns (GetResponse) {}

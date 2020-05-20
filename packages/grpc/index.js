@@ -7,6 +7,16 @@ const protoLoader = require('@grpc/proto-loader')
 const grpc = require('@grpc/grpc-js')
 const boom = require('grpc-boom')
 
+function visitService(definition, namespace, callback) {
+    if (!definition || definition.format) return
+    _.each(definition, (v, k) => {
+        if (v.service && typeof v === 'function') {
+            callback(k, v, namespace)
+        } else {
+            visitService(v, (namespace ? namespace + '.' : '') + k, callback)
+        }
+    })
+}
 function setupGrpcService(options) {
     if (!fs.existsSync(options.path) || !fs.statSync(options.path).isDirectory())
         throw new Error(`gRPC server config path "${options.path}" does not exist!`)
@@ -33,24 +43,22 @@ function setupGrpcService(options) {
                 if (options.context) {
                     _.each(_.keys(imp), k => imp[k] = _.bind(imp[k], options.context))
                 }
-                _.each(packageDefinition, (v, k) => {
-                    if (v.service) {
-                        $logger.info(`Add gRPC service ${k}`)
-                        if (options.promisify === false) {
-                            server.addService(v.service, imp)
-                        } else {
-                            server.addService(v.service, _.mapValues(imp, promiseFunc => {
-                                return (call, callback) => {
-                                    try {
-                                        let promise = promiseFunc(call, callback)
-                                        if (_.isFunction(promise && promise.then))
-                                            promise.then(r => callback(null, r)).catch(ex => callback(ex))
-                                    } catch (ex) {
-                                        callback(ex)
-                                    }
+                visitService(packageDefinition, '', function (k, v, namespace) {
+                    $logger.info(`Add gRPC service ${k} (${namespace})`)
+                    if (options.promisify === false) {
+                        server.addService(v.service, imp)
+                    } else {
+                        server.addService(v.service, _.mapValues(imp, promiseFunc => {
+                            return (call, callback) => {
+                                try {
+                                    let promise = promiseFunc(call, callback)
+                                    if (_.isFunction(promise && promise.then))
+                                        promise.then(r => callback(null, r)).catch(ex => callback(ex))
+                                } catch (ex) {
+                                    callback(ex)
                                 }
-                            }))
-                        }
+                            }
+                        }))
                     }
                 })
             }
@@ -76,15 +84,15 @@ function createGrpcClient(options) {
         if (ext) {
             name = name.substring(0, name.length - ext.length)
         }
-        if (ext === '.proto' && fs.statSync(f).isFile() &&  name.substring(0, 1) != '_') {
-            let proto = path.relative(options.path, f)                  
+        if (ext === '.proto' && fs.statSync(f).isFile() && name.substring(0, 1) != '_') {
+            let proto = path.relative(options.path, f)
             const protoDefinition = protoLoader.loadSync(proto, protoOptions)
             const packageDefinition = grpc.loadPackageDefinition(protoDefinition)
-            _.each(packageDefinition, (v, k) => {
-                if (v.service) {
-                    $logger.info(`Create gRPC client for service ${k}`)
-                    client[k] = new v(options.url, options.credentials || grpc.credentials.createInsecure())
-                }
+            visitService(packageDefinition, '', function (k, v, namespace) {
+                $logger.info(`Create gRPC client for service ${k} (${(options.includePackage ? '+' : '-') + namespace})`)
+                let service = new v(options.url, options.credentials || grpc.credentials.createInsecure())
+                let key = (options.includePackage && namespace ? namespace + '.' : '') + k
+                _.set(client, key, service)
             })
         }
     })

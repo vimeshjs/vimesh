@@ -21,14 +21,14 @@ function setupDiscoveryService(options) {
 
 function createKeyValueClient(options) {
     let client = createGrpcClient({
-        path: __dirname + '/grpc/kv.proto',
+        path: __dirname + '/grpc',
         url: options.url
     })
     return {
         get(key) {
             return new Promise((resolve, reject) => {
                 key = _.trim(key)
-                client.get({ key }, (err, r) => {
+                client.KeyValueService.get({ key }, (err, r) => {
                     if (err) return reject(err)
                     let data = r.data
                     _.each(data, (v, k) => {
@@ -48,7 +48,7 @@ function createKeyValueClient(options) {
                 value = JSON.stringify(value)
                 let data = { key, value }
                 if (options && options.duration) data.duration = options.duration
-                client.set(data, (err, r) => {
+                client.KeyValueService.set(data, (err, r) => {
                     if (err) return reject(err)
                     resolve(r)
                 })
@@ -56,14 +56,14 @@ function createKeyValueClient(options) {
         },
         keys(prefix) {
             return new Promise((resolve, reject) => {
-                client.keys({ key: prefix }, (err, r) => {
+                client.KeyValueService.keys({ key: prefix }, (err, r) => {
                     err ? reject(err) : resolve(r.keys)
                 })
             })
         },
         del(key) {
             return new Promise((resolve, reject) => {
-                client.del({ key }, (err, r) => {
+                client.KeyValueService.del({ key }, (err, r) => {
                     err ? reject(err) : resolve(r)
                 })
             })

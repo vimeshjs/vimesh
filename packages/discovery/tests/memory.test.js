@@ -60,6 +60,6 @@ test('set with duration', () => {
 test('get after server shutdown', () => {
     server.forceShutdown()
     return kvClient.get({ key: 'name' }).catch(ex => {
-        expect(ex.code).toBe(GrpcStatus.UNAVAILABLE)
+        expect(ex.code).toBe(GrpcStatus.INTERNAL)
     })
 })
