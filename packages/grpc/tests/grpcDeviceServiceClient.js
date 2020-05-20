@@ -6,11 +6,10 @@ setupLogger()
 
 let client = createGrpcClient({
     path: __dirname + '/services/device-service',
-    proto: 'device/device.proto',
     url: 'localhost:2000'
 })
 
-client.queryDevicesAll({
+client.DevicesService.queryDevicesAll({
     request: {
         page_no: 2,
         page_size: 10
