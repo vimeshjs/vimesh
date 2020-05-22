@@ -4,6 +4,7 @@ const { setupGrpcService } = require('..')
 
 setupLogger()
 module.exports = setupGrpcService({
-    path : __dirname + '/services/device-service',
+    path: __dirname + '/services/device-service/device',
+    imports: [__dirname + '/services/device-service'],
     port : 2000
 })

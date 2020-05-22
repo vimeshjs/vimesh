@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+import "base/types.proto";
+
+service UserService {
+  rpc login(LoginRequest) returns (LoginResponse) {}
+}

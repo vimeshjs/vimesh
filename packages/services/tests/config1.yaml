@@ -1,0 +1,11 @@
+services:
+  authService:
+    settings:
+      users:
+        - username: admin
+          password: admin
+        - username: jacky
+          password: pass1
+        - username: tommy
+          password: pass2
+    implementation: auth-service

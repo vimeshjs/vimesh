@@ -21,8 +21,16 @@ function setupGrpcService(options) {
     if (!fs.existsSync(options.path) || !fs.statSync(options.path).isDirectory())
         throw new Error(`gRPC server config path "${options.path}" does not exist!`)
 
+    let includeDirs = [`${__dirname}/proto`, options.path]
+    if (options.imports) {
+        if (_.isString(options.imports))
+            includeDirs.push(options.imports)
+        else if (_.isArray(options.imports))
+            includeDirs = _.concat(includeDirs, options.imports)
+    }
+    
     const server = new grpc.Server();
-    const protoOptions = { includeDirs: [`${__dirname}/proto`, options.path], keepCase: true, longs: Number }
+    const protoOptions = { includeDirs, keepCase: true, longs: Number }
     _.each(glob.sync(options.path + "/**"), function (f) {
         let ext = path.extname(f)
         let name = path.basename(f)
@@ -76,8 +84,28 @@ function setupGrpcService(options) {
 function createGrpcClient(options) {
     if (!fs.existsSync(options.path) || !fs.statSync(options.path).isDirectory())
         throw new Error(`gRPC client config path "${options.path}" does not exist!`)
-    const protoOptions = { includeDirs: [`${__dirname}/proto`, options.path], keepCase: true, longs: Number }
-    let client = {}
+    let includeDirs = [`${__dirname}/proto`, options.path]
+    if (options.imports) {
+        if (_.isString(options.imports))
+            includeDirs.push(options.imports)
+        else if (_.isArray(options.imports))
+            includeDirs = _.concat(includeDirs, options.imports)
+    }
+    const protoOptions = { includeDirs, keepCase: true, longs: Number }
+    let client = {
+        __factories__: {}
+    }
+    client.reconnect = function (key) {
+        if (key === undefined) {
+            _.each(client.__factories__, (factory, k) => {
+                $logger.warn(`Reconnecting gRPC service ${k}`)
+                factory()
+            })
+        } else if (client.__factories__[key]) {
+            $logger.warn(`Reconnecting gRPC service ${key}`)
+            client.__factories__[key]()
+        }
+    }
     _.each(glob.sync(options.path + "/**"), function (f) {
         let ext = path.extname(f)
         let name = path.basename(f)
@@ -90,9 +118,13 @@ function createGrpcClient(options) {
             const packageDefinition = grpc.loadPackageDefinition(protoDefinition)
             visitService(packageDefinition, '', function (k, v, namespace) {
                 $logger.info(`Create gRPC client for service ${k} (${(options.includePackage ? '+' : '-') + namespace})`)
-                let service = new v(options.url, options.credentials || grpc.credentials.createInsecure())
                 let key = (options.includePackage && namespace ? namespace + '.' : '') + k
-                _.set(client, key, service)
+                let factory = function () {
+                    let service = new v(options.url, options.credentials || grpc.credentials.createInsecure())
+                    _.set(client, key, service)
+                }
+                client.__factories__[key] = factory
+                factory()
             })
         }
     })

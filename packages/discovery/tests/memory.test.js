@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const { duration } = require('@vimesh/utils')
+const { duration, timeout } = require('@vimesh/utils')
 const sinon = require('sinon')
 
 const clock = sinon.useFakeTimers({
@@ -59,7 +59,17 @@ test('set with duration', () => {
 
 test('get after server shutdown', () => {
     server.forceShutdown()
-    return kvClient.get({ key: 'name' }).catch(ex => {
-        expect(ex.code).toBe(GrpcStatus.INTERNAL)
+    return timeout('1s').then(r => {
+        return kvClient.get('name').catch(ex => {
+            expect(ex.code).toBe(GrpcStatus.UNAVAILABLE)
+            server = setupDiscoveryService({ port: 2000 })
+            return timeout('1s')
+        }).then(r => {
+            return kvClient.set("name", 'jacky')
+        }).then(r => {
+            return kvClient.get('name')
+        }).then(r => {
+            expect(r).toBe('jacky')
+        })
     })
 })

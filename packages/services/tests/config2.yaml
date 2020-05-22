@@ -1,0 +1,9 @@
+services:
+  authService:
+    settings:
+      url: localhost:5000
+    implementation: auth-service-remote
+  userManagement:
+    settings:
+      port: 5000
+    implementation: user-management-in-memory

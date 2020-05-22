@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const { setupGrpcService, createGrpcClient } = require('@vimesh/grpc')
+const { setupGrpcService, createGrpcClient, GrpcStatus } = require('@vimesh/grpc')
 const { MemoryKeyValueStore } = require('./kv/memory')
 const { MongodbKeyValueStore } = require('./kv/mongodb')
 
@@ -24,12 +24,18 @@ function createKeyValueClient(options) {
         path: __dirname + '/grpc',
         url: options.url
     })
+    function retry(reject, err){
+        if (err && err.code === GrpcStatus.UNAVAILABLE){
+            client.reconnect()
+        }
+        reject(err)
+    }
     return {
         get(key) {
             return new Promise((resolve, reject) => {
                 key = _.trim(key)
                 client.KeyValueService.get({ key }, (err, r) => {
-                    if (err) return reject(err)
+                    if (err) return retry(reject, err)
                     let data = r.data
                     _.each(data, (v, k) => {
                         try {
@@ -49,7 +55,7 @@ function createKeyValueClient(options) {
                 let data = { key, value }
                 if (options && options.duration) data.duration = options.duration
                 client.KeyValueService.set(data, (err, r) => {
-                    if (err) return reject(err)
+                    if (err) return retry(reject, err)
                     resolve(r)
                 })
             })
@@ -57,14 +63,14 @@ function createKeyValueClient(options) {
         keys(prefix) {
             return new Promise((resolve, reject) => {
                 client.KeyValueService.keys({ key: prefix }, (err, r) => {
-                    err ? reject(err) : resolve(r.keys)
+                    err ? retry(reject, err) : resolve(r.keys)
                 })
             })
         },
         del(key) {
             return new Promise((resolve, reject) => {
                 client.KeyValueService.del({ key }, (err, r) => {
-                    err ? reject(err) : resolve(r)
+                    err ? retry(reject, err) : resolve(r)
                 })
             })
         }

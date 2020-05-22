@@ -1,19 +1,5 @@
 const _ = require('lodash')
 const { fromTimestamp} = require('@vimesh/grpc')
-let devices = [
-    {
-        id: 1,
-        name: 'prod one'
-    }, {
-        id: 2,
-        name: 'prod two'
-    }, {
-        id: 3,
-        name: 'prod three'
-    }
-]
-
-//rpc queryDevicesAll (QueryDevicesCriteria) returns (PageDevicesResult );
 
 const ResponseCode = {
     DEFAULT : 0,
@@ -37,11 +23,8 @@ function queryDevicesAll(call) {
     })
 }
 
-//rpc queryCriteria(QueryCriteria) returns(QueryResult);
 function queryCriteria(call) {
-    let id = +call.request.id
-    let p = products.find(p => p.id === id)
-    return p ? Promise.resolve(p) : Promise.reject(`Product "${id}" does not exist`)
+    return Promise.resolve()
 }
 module.exports = {
     queryDevicesAll,
