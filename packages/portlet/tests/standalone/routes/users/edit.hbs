@@ -1,0 +1,106 @@
+<div class="flex">
+    <div class="">
+        <el-upload class="avatar-uploader" action="/users/avatar" :show-file-list="false"
+            :on-success="handleAvatarSuccess">
+            <img v-if="imageUrl" :src="imageUrl" class="avatar">
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+        </el-upload>
+    </div>
+    <div class="flex-auto">
+        <el-form :model="form" ref="form" :rules="rules" label-width="100px" style="width: 460px;">
+
+            <el-form-item :label="T('id')" prop="_id" v-if="!editMode">
+                <el-input v-model="form._id"></el-input>
+            </el-form-item>
+            <el-form-item :label="T('name')" prop="name">
+                <el-input v-model="form.name"></el-input>
+            </el-form-item>
+            <el-form-item :label="T('email')" prop="email">
+                <el-input type='email' v-model="form.email"></el-input>
+            </el-form-item>
+            <el-form-item :label="T('mobile')" prop="mobile">
+                <el-input v-model="form.mobile"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="submitForm()">\{{T('submit')}}</el-button>
+                <el-button @click="resetForm()">\{{T('reset')}}</el-button>
+            </el-form-item>
+        </el-form>
+    </div>
+</div>
+{{#contentFor 'styles'}}
+<style>
+    .avatar-uploader .el-upload {
+        border: 1px dashed #d9d9d9;
+        border-radius: 6px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .avatar-uploader .el-upload:hover {
+        border-color: #409EFF;
+    }
+
+    .avatar-uploader-icon {
+        font-size: 28px;
+        color: #8c939d;
+        width: 178px;
+        height: 178px;
+        line-height: 178px;
+        text-align: center;
+    }
+
+    .avatar {
+        width: 178px;
+        height: 178px;
+        display: block;
+    }
+</style>
+{{/contentFor}}
+<script>
+    setupI18n({{{ json i18n }}})
+    let $form = {{{ json form }}}
+    $mixins.push({
+        data() {
+            return {
+                imageUrl: $form.avatar ? toFullUrl('users/avatar/' + $form.avatar) + '?s=200' : '',
+                editMode: !!$form._id,
+                form: $form,
+                rules: {
+                    _id: [
+                        { required: true, message: T('err_required').replace(/@prop@/i, T('id')) }
+                    ],
+                    name: [
+                        { required: true, message: T('err_name_required') }
+                    ]
+                }
+            }
+        },
+        methods: {
+            submitForm() {
+                let self = this
+                this.$refs.form.validate((valid) => {
+                    if (valid) {
+                        axios.post(toFullUrl('users/edit'), { form: self.form, editMode: self.editMode }).then(function (r) {
+                            self.$message.success(r.data.message)
+                            goto('users')
+                        }).catch(function (r) {
+                            console.log(r)
+                            self.$message.error(r.response && r.response.data.message)
+                        })
+                    } else {
+                        return false;
+                    }
+                });
+            },
+            resetForm() {
+                this.$refs.form.resetFields();
+            },
+            handleAvatarSuccess(res, file) {
+                if (res.token) this.form.avatarToken = res.token
+                this.imageUrl = URL.createObjectURL(file.raw);
+            }
+        }
+    })
+</script>

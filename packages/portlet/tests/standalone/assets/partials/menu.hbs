@@ -1,0 +1,21 @@
+    
+
+<el-menu 
+    :default-active='mainMenus.activeMenu' 
+    :unique-opened="false"
+    >
+    <nested-menu-item v-for="item in mainMenus.menus" :key="item.index" :item="item" />
+</el-menu>
+{{#contentFor 'scripts'}}
+
+{{> nested-menu-item }}
+<script type="application/javascript">
+    $mixins.push({
+        data: function () {
+            return {
+                mainMenus : {{{menusByZone 'main' embedIcon=true }}} 
+            }
+        }
+    })
+</script>
+{{/contentFor}}

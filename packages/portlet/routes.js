@@ -47,7 +47,7 @@ function setupMiddleware(req, res, next) {
     let action = context.action
     let viewEngine = context.viewEngine
     retryPromise(() => {
-        let ready = portletServer.menusReady && portletServer.i18nReady
+        let ready = portletServer.standalone || portletServer.menusReady && portletServer.i18nReady
         if (!ready) $logger.warn(`Server is not ready (menu: ${portletServer.menusReady}, i18n:${portletServer.i18nReady})!`)
         return ready ? Promise.resolve() : Promise.reject(Error())
     }).then(() => {
@@ -149,7 +149,7 @@ function scanRoutes(portletServer, current) {
         if (methods.layout) layout = methods.layout
         if (methods.pipelines) pipelines = _.merge(pipelines, methods.pipelines)
         if (methods.setup) {
-            $logger.info(`Setup ${portlet ? '/@' + portlet : ''}${current.urlPath}`)
+            $logger.info(`Setup ${portlet && !portletServer.standalone ? '/@' + portlet : ''}${current.urlPath}`)
             methods.setup(portletServer)
         }
     }
@@ -176,7 +176,7 @@ function scanRoutes(portletServer, current) {
         } else if (ext === '.js') {
             let methods = require(fullPath)
             if (methods.setup) {
-                $logger.info(`Setup ${portlet ? '/@' + portlet : ''}${current.urlPath}`)
+                $logger.info(`Setup ${portlet && !portletServer.standalone ? '/@' + portlet : ''}${current.urlPath}`)
                 methods.setup(portletServer)
             }
             methods = _.pick(methods, HTTP_METHODS)
@@ -221,7 +221,7 @@ function scanRoutes(portletServer, current) {
                     mcontext.handler,
                     mafter)
                 allHandlers = _.map(allHandlers, h => _.isFunction(h) ? h : pipelines[h])
-                let realUrlPath = `${portlet ? '/@' + portlet : ''}${current.urlPath}/${action === 'index' ? '' : action}`.replace(/\[/g, ':').replace(/\]/g, '')
+                let realUrlPath = `${portlet && !portletServer.standalone ? '/@' + portlet : ''}${current.urlPath}/${action === 'index' ? '' : action}`.replace(/\[/g, ':').replace(/\]/g, '')
                 if (portletServer.config.logRoutes) $logger.info(`ROUTE ${k.toUpperCase()} ${realUrlPath}`)
                 app[k](realUrlPath, ...allHandlers)
             })

@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+    <title>{{$portlet}} - {{title}}</title>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/element-ui.theme-chalk@2.13.0.css">
+    <script src="/vue@2.6.11.min.js"></script>
+    <script src="/element-ui@2.13.0.min.js"></script>
+    <script src="/axios@0.19.2.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+        }
+
+        [v-cloak] {
+            display: none !important;
+        }
+    </style>
+    {{{twBlock}}}
+    {{{block 'styles'}}}
+    {{{block 'scripts@head'}}}
+    <script type="text/javascript">
+        $mixins = []
+        $portlet = {{{ json $portlet }}}
+        $i18n = {}
+        function toQuery(params) {
+            if (!params) return ''
+            var parts = []
+            Object.entries(params).forEach(function ([key, val], index) {
+                parts.push(key + '=' + encodeURIComponent(val))
+            })
+            return parts.join('&')
+        }
+        function toFullUrl(url, params) {
+            if (params)
+                url = url + (url.indexOf('?') == -1 ? '?' : '') + toQuery(params)
+            if (url.indexOf('://') == -1) {
+                if (url[0] !== '/') url = '/' + url
+            }
+            return url
+        }
+        function goto(url) {
+            location.href = toFullUrl(url)
+        }
+        function goback() {
+            if ('referrer' in document) {
+                location.replace(document.referrer);
+            } else {
+                window.history.back();
+            }
+        }
+        function setupI18n(i18n){
+            $i18n = i18n
+        }
+        function T(item) { 
+            return $i18n && $i18n[item] || item 
+        }
+    </script>
+</head>
+
+<body>
+    <div id='app' v-cloak>
+       {{{body}}}
+    </div>
+    {{{block 'scripts'}}}
+    <script type="text/javascript">
+        new Vue({
+            mixins: $mixins,
+            el: '#app'
+        })
+    </script>
+</body>
+
+</html>

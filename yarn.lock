@@ -4391,10 +4391,10 @@ smart-buffer@^4.1.0:
   resolved "https://registry.npm.taobao.org/smart-buffer/download/smart-buffer-4.1.0.tgz#91605c25d91652f4661ea69ccf45f1b331ca21ba"
   integrity sha1-kWBcJdkWUvRmHqacz0XxszHKIbo=
 
-snappy@^6.3.3:
-  version "6.3.3"
-  resolved "https://registry.npm.taobao.org/snappy/download/snappy-6.3.3.tgz#37977306d883bace3726b1e6a2456564cc48a20e"
-  integrity sha1-N5dzBtiDus43JrHmokVlZMxIog4=
+snappy@^6.2.3:
+  version "6.3.4"
+  resolved "https://registry.npmjs.org/snappy/-/snappy-6.3.4.tgz#59a9223d81391b769927528183e210f60fc7fac1"
+  integrity sha512-DcpD17vdvHk0jUIZ3wkhoxyLiMjM7ZuOc3M5h2qpiZdTLbRorUJdOtB166m+lkoffByg2dkX0CGffYP2PTLoGw==
   dependencies:
     bindings "^1.3.1"
     nan "^2.14.1"

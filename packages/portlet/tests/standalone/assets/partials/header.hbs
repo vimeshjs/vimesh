@@ -1,0 +1,51 @@
+<el-header>
+    <img src='/logo-64x64.png' width="40px" class="align-middle">
+    <span class="text-xl align-middle">{{T 'common.project'}}</span>
+    <el-dropdown class="align-middle float-right">
+        <span class="el-dropdown-link">
+            {{$user.name}}<i class="el-icon-arrow-down el-icon--right"></i>
+        </span>
+        <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item v-for="item in avatarMenus.menus" @click.native="onAvatarMenuClick(item)"
+                :key='item.index'>
+                \{{item.title}}
+            </el-dropdown-item>
+        </el-dropdown-menu>
+    </el-dropdown>
+</el-header>
+{{#contentFor 'styles'}}
+<style>
+    .el-header {
+        line-height: 60px;
+        {{twApply 'text-gray-800 bg-white border-b border-solid border-t-0 border-l-0 border-r-0 border-gray-400'}}
+    }
+
+    .el-dropdown-link {
+        cursor: pointer;
+         {{twApply 'text-blue-500'}}
+    }
+
+    .el-icon-arrow-down {
+        font-size: 12px;
+    }
+</style>
+{{/contentFor}}
+
+{{#contentFor 'scripts'}}
+
+<script type="application/javascript">
+    var $avatarMenus = {{{ menusByZone 'avatar' }}}
+    $mixins.push({
+        data: function () {
+            return {
+                avatarMenus: $avatarMenus
+            }
+        },
+        methods: {
+            onAvatarMenuClick(item) {
+                goto(item.url)
+            }
+        }
+    })
+</script>
+{{/contentFor}}

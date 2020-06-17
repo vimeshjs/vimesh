@@ -1,0 +1,19 @@
+{{!< default }}
+{{#contentFor 'styles'}}
+<style>
+    .el-aside {
+        color: #333;
+    }
+</style>
+{{/contentFor}}
+<el-container>
+    {{> header }}
+    <el-container>
+        <el-aside width="240px">
+            {{> menu }}
+        </el-aside>
+        <el-main>
+            {{{body}}}
+        </el-main>
+    </el-container>
+</el-container>

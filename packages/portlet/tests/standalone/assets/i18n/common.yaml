@@ -1,0 +1,19 @@
+ok: OK
+cancel: Cancel
+yes: Yes
+no: No
+new: New
+delete: Delete
+err_delete: Failed to delete
+ok_delete: Successed to delete
+are_you_sure: Are you sure?
+edit: Edit
+submit: Submit
+err_submit: Failed to submit !
+ok_submit: Successed to submit !
+reset: Reset
+actions: Actions
+comfirm: Comfirmation
+err_required: '@prop@ is required'
+
+project: Vimesh Portlet Tests

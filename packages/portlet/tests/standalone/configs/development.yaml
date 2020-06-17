@@ -1,0 +1,21 @@
+logger:
+  level: debug
+portlet:
+  port: 28001
+  mock: true
+  debug: true
+  compress: true
+  logRoutes: true
+  logRequests: true
+  uploadDir: '{{root}}/mnt/uploads'
+  storages:
+    avatar: 
+      type: local
+      options:
+        root: '{{root}}/mnt/storage'
+      bucket: 'main'
+      prefix: 'avatar/'
+      cacheDir: '{{root}}/mnt/cache'
+  passport:
+    jwt:
+      expiration: 24h

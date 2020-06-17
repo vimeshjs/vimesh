@@ -1,0 +1,60 @@
+$accounts:
+  _meta:
+    platform: true
+    name: Accounts (Platform)
+  view: 
+    name: View
+  edit: 
+    name: Edit
+$groups:
+  _meta:
+    platform: true
+    name: User Groups (Platform)
+  view: 
+    name: View
+  edit: 
+    name: Edit
+$users:
+  _meta:
+    platform: true
+    name: Users (Platform)
+  view: 
+    name: View
+  edit: 
+    name: Edit
+$roles:
+  _meta:
+    platform: true
+    name: Roles (Platform)
+  view: 
+    name: View
+  edit: 
+    name: Edit
+accounts:
+  _meta:
+    name: Accounts
+  view: 
+    name: View
+  edit: 
+    name: Edit
+groups:
+  _meta:
+    name: Groups
+  view: 
+    name: View
+  edit: 
+    name: Edit
+users:
+  _meta:
+    name: Users
+  view: 
+    name: View
+  edit: 
+    name: Edit
+roles:
+  _meta:
+    name: Roles
+  view: 
+    name: View
+  edit: 
+    name: Edit

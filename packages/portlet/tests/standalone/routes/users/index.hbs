@@ -1,0 +1,81 @@
+<template>
+
+  <el-button type="primary" @click="createNewUser"><i class="el-icon-plus"></i> \{{T('new')}}</el-button>
+  <el-table :data="users.data" style="width: 100%">
+    <el-table-column prop="_id" :label="T('id')" width="100">
+    </el-table-column>
+    <el-table-column prop="name" :label="T('name')">
+    </el-table-column>
+    <el-table-column prop="email" :label="T('email')">
+    </el-table-column>
+    <el-table-column prop="mobile" :label="T('mobile')">
+    </el-table-column>
+    <el-table-column :label="T('actions')" width="160">
+      <template slot-scope="scope">
+        <el-button @click="edit(scope.row)" type="primary" size="small" plain>\{{T('edit')}}</el-button>
+        <el-button @click="recycle(scope.row)" type="danger" size="small" plain>\{{T('delete')}}</el-button>
+      </template>
+    </el-table-column>
+  </el-table>
+  <div class="block">
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :page-sizes="pageSizes"
+      :current-page.sync="users.pageIndex" :page-size="users.pageSize" layout=" prev, pager, next" :total="users.count">
+    </el-pagination>
+  </div>
+</template>
+
+<script>
+  setupI18n({{{ json i18n }}})
+  //{{#es5 }}
+  $mixins.push({
+    data() {
+      return {
+        users: { data: [], count: 0, pageIndex: 1, pageSize: 10 },
+        pageSizes: [10, 20, 50, 100]
+      }
+    },
+    created() {
+      this.fetchUserList()
+    },
+    methods: {
+      edit(data) {
+        goto(toFullUrl('users/edit', { id: data._id }))
+      },
+      recycle(data) {
+        this.$confirm(T('are_you_sure'), T('comfirm'), {
+          confirmButtonText: T('ok'),
+          cancelButtonText: T('cancel'),
+          type: 'warning'
+        }).then(() => {
+          axios.delete(toFullUrl('users', { id: data._id })).then(r => {
+            this.$message.success(r.data.message)
+            this.fetchUserList()
+          }).catch(r => {
+            this.$message.error(r.data.message)
+          })
+        }).catch(() => {
+        })
+      },
+      createNewUser() {
+        goto('users/edit')
+      },
+      fetchUserList() {
+        let params = { pageIndex: this.users.pageIndex, pageSize: this.users.pageSize }
+        axios.get(toFullUrl('users/list', params)).then(r => {
+          this.users.data = r.data.data
+          this.users.count = r.data.count
+        })
+      },
+      handleSizeChange(val) {
+        this.users.pageIndex = 1
+        this.users.pageSize = val
+        this.fetchUserList()
+      },
+      handleCurrentChange(val) {
+        this.users.pageIndex = val
+        this.fetchUserList()
+      }
+    },
+  })
+  //{{/es5}}
+</script>

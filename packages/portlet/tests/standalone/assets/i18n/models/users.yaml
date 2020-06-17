@@ -1,0 +1,7 @@
+id: Login
+name: Name
+err_name_required: You must enter a name!
+email: Email
+password: Password
+mobile: Mobile
+company: Company

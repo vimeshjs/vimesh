@@ -8,7 +8,7 @@ const compression = require('compression')
 const { setupRoutes } = require('./routes')
 const { setupRemoteApis } = require('./remote-apis')
 const { setupProxy } = require('./proxy')
-const { setupSharedResources } = require('./shared-resources')
+const { setupAssets } = require('./assets')
 const { createViewEngine } = require('./view-engine')
 const { formatError } = require('./utils')
 const { createKeyValueClient } = require('@vimesh/discovery')
@@ -21,15 +21,20 @@ function PortletServer(config) {
     let app = this.app = express()
     let rootDir = config.rootDir || process.cwd()
     let routesDir = this.routesDir = path.join(rootDir, config.routesDir || 'routes')
-    let sharedDir = this.sharedDir = path.join(rootDir, config.sharedDir || 'shared')
-    this.layoutsDir = path.join(sharedDir, 'layouts')
-    this.partialsDir = path.join(sharedDir, 'partials')
-    this.viewsDir = path.join(sharedDir, 'views')
-    this.pipelinesDir = path.join(sharedDir, 'pipelines')
+    let assetsDir = this.assetsDir = path.join(rootDir, config.assetsDir || 'assets')
+    if (!fs.existsSync(assetsDir)){
+        let sharedDir = path.join(rootDir, config.sharedDir || 'shared')
+        if (fs.existsSync(sharedDir))
+            assetsDir = this.assetsDir = sharedDir
+    }
+    this.layoutsDir = path.join(assetsDir, 'layouts')
+    this.partialsDir = path.join(assetsDir, 'partials')
+    this.viewsDir = path.join(assetsDir, 'views')
+    this.pipelinesDir = path.join(assetsDir, 'pipelines')
     let extName = this.extName = '.hbs'
 
     this.config = config
-    this.sharedResourcesCaches = {}
+    this.assetCaches = {}
     this.allMenusByZone = {}
     this.mergedI18nItems = {}
     this.allPermissions = {}
@@ -57,6 +62,7 @@ function PortletServer(config) {
     }
     let discoveryUrl = _.get(config, 'discovery.url')
     this.kvClient = null
+    this.standalone = !discoveryUrl
     if (discoveryUrl) {
         this.kvClient = createKeyValueClient({ url: discoveryUrl })
         this.selfUrl = config.selfUrl
@@ -83,7 +89,7 @@ function PortletServer(config) {
 
     app.set('views', routesDir)
 
-    const viewEngine = this.viewEngine = createViewEngine(this)
+    this.viewEngine = createViewEngine(this)
     app.engine(extName, this.viewEngine)
     app.set('view engine', extName)
 
@@ -106,11 +112,11 @@ function PortletServer(config) {
     setupRemoteApis(this)
     setupRoutes(this)
 
-    app.use(`/@${portlet}`, express.static(config.publicDir || 'public', {
+    app.use(this.standalone ? '' : `/@${portlet}`, express.static(config.publicDir || 'public', {
         maxAge: '1d'
     }))
 
-    setupSharedResources(this)
+    setupAssets(this)
     setupProxy(this)
 
     setupRedirects(this)
@@ -141,7 +147,7 @@ function PortletServer(config) {
 
     app.listen(port, () => {
         $logger.info(`Portlet ${portlet}(version: ${this.version}) starts on port ${port} with node.js ${process.version}`)
-        $logger.info(`Url http://localhost:${port}/@${portlet}/`)
+        $logger.info(`Url http://localhost:${port}/${this.standalone ? '' : `@${portlet}/`}`)
     })
 
 }

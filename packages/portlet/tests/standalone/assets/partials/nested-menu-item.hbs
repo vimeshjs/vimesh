@@ -1,0 +1,28 @@
+<style>
+    .main-menu-item {
+        width: 16px;
+        height: 16px;
+        vertical-align: middle;
+        margin: 0 8px 5px 5px;
+        text-align: center;
+    }
+</style>
+<script type="text/x-template" id="template-nested-menu-item">
+    <div v-if="!item.hidden">
+    <template v-if="!item.submenus">
+        <el-menu-item :index="item.index" @click="if (item.url) location.href=item.url" >
+           <i v-if='item.svg' v-html='item.svg'></i> <i v-else :class="item.icon" ></i> \{{item.title}}
+        </el-menu-item>
+    </template>
+    <el-submenu v-else  :index="item.index" >
+      <template slot="title" > <i  :class="item.icon"></i> \{{item.title}}  </template>
+      <nested-menu-item v-for="child in item.submenus" :item="child" />
+    </el-submenu>
+  </div>
+</script>
+<script>
+    Vue.component('nested-menu-item', {
+        props: ['item'],
+        template: "#template-nested-menu-item"
+    })
+</script>

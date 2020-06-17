@@ -1,0 +1,6 @@
+logout:
+  _meta:
+    url: /logout
+    sort: 1000
+    title: Logout
+

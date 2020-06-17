@@ -1,0 +1,57 @@
+{{!< default }}
+<div class="flex justify-center content-center h-screen mt-24">
+    <div>
+        <img src='/logo-128x128.png'>
+    </div>
+    <el-form :model="form" status-icon :rules="rules" ref="form" label-width="100px" class="">
+        <el-form-item :label="T('user')" prop="login">
+            <el-input :placeholder="T('hint_user')" v-model="form.login" class="w-64"></el-input>
+        </el-form-item>
+        <el-form-item :label="T('password')" prop="password">
+            <el-input :placeholder="T('hint_password')" type="password" @keyup.enter.native='login()'
+                v-model="form.password" class="w-64"></el-input>
+        </el-form-item>
+        <el-form-item class="text-center">
+            <el-button type="primary" @click="login()">\{{T('login')}}</el-button><br>
+        </el-form-item>
+    </el-form>
+
+</div>
+
+<script>
+    setupI18n({{{ json i18n }}})
+    $mixins.push({
+        data() {
+            return {
+                form: { login: 'admin', password: 'admin' },
+                rules: {
+                    login: [
+                        { required: true, message: T('err_required').replace(/@prop@/i, T('id')) }
+                    ],
+                    password: [
+                        { required: true, message: T('err_required').replace(/@prop@/i, T('password')) }
+                    ]
+                }
+            }
+        },
+        methods: {
+            login() {
+                this.$refs.form.validate((valid) => {
+                    if (valid) {
+                        axios.post(toFullUrl('login'), this.form).then(r => {
+                            goto('/')
+                        }).catch(r => {
+                            if (r.response)
+                                this.$message.error(r.response.data.message)
+                        })
+                    } else {
+                        return false;
+                    }
+                });
+            },
+            register() {
+                this.$refs.form.resetFields();
+            }
+        }
+    })
+</script>

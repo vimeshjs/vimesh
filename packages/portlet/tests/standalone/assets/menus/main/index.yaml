@@ -1,0 +1,43 @@
+settings:
+  _meta:
+    sort: 1000
+    icon: el-icon-setting
+    title:
+      cn: 配置
+      en: Settings
+  accounts:
+    _meta:
+      url: /accounts
+      icon: el-icon-office-building
+      sort: 10
+      permission: $accounts.view
+      title:
+        cn: 账户
+        en: Accounts
+  groups:
+    _meta:
+      url: /groups
+      icon: el-icon-s-flag
+      sort: 20
+      permission: $groups.view
+      title:
+        cn: 用户组
+        en: Groups
+  users:
+    _meta:
+      url: /users
+      icon: fa-user-circle
+      sort: 30
+      permission: $users.view
+      title:
+        cn: 用户
+        en: Users
+  roles:
+    _meta:
+      url: /roles
+      icon: el-icon-s-order
+      sort: 40
+      permission: $roles.view
+      title:
+        cn: 角色
+        en: Roles

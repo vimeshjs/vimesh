@@ -1,0 +1,8 @@
+user: User
+hint_user: Username/Mobile/Email
+password: Password
+hint_password: Your password
+login: Login
+register: Register
+ok_login: Successed to login
+err_login: Failed to login!

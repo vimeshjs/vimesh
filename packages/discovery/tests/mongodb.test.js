@@ -7,6 +7,7 @@ const clock = sinon.useFakeTimers({
     shouldAdvanceTime: true
 })
 
+const COUNT = 10000
 const { setupLogger } = require('@vimesh/logger')
 const { GrpcStatus } = require('@vimesh/grpc')
 const { setupMongoDB } = require('@vimesh/mongodb')
@@ -66,7 +67,7 @@ test('set with duration', () => {
         .then(r => {
             return kvClient.get('name').then(r => {
                 expect(r).toBe('tommy')
-                clock.tick(duration('11s'))
+                clock.tick(duration('20s'))
             })
         }).then(r => {
             return kvClient.get('name').then(r => {
@@ -75,9 +76,35 @@ test('set with duration', () => {
         })
 })
 
+test('many set', () => {
+    let tasks = []
+    for (let i = 0; i < COUNT; i++) {
+        tasks.push(kvClient.set(`many/users/u${i}`, { email: `u${i}@gmail.com` }))
+    }
+    return Promise.all(
+        tasks
+    ).then(rs => {
+        expect(rs[0]).toBeTruthy()
+    })
+}, 1000 * 60)
+test('many get', () => {
+    let tasks = []
+    for (let i = 0; i < COUNT; i++) {
+        tasks.push(kvClient.get(`many/users/u${i}`))
+    }
+    return Promise.all(
+        tasks
+    ).then(rs => {
+        expect(rs[0].email).toBe(`u0@gmail.com`)
+        expect(rs[COUNT - 1].email).toBe(`u${COUNT - 1}@gmail.com`)
+    })
+}, 1000 * 60)
+
+
 test('get after server shutdown', () => {
     server.forceShutdown()
     return kvClient.get({ key: 'name' }).catch(ex => {
         expect(ex.code).toBe(GrpcStatus.INTERNAL)
     })
 })
+

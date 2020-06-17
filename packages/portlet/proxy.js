@@ -2,6 +2,8 @@
 const httpProxy = require('http-proxy')
 const { createMemoryCache } = require('@vimesh/cache')
 function setupProxy(portletServer) {
+    if (portletServer.standalone) return 
+
     const portlet = portletServer.portlet
     const app = portletServer.app
     const kvClient = portletServer.kvClient

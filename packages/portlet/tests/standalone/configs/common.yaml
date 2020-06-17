@@ -1,0 +1,10 @@
+timezone: Asia/Shanghai
+logger:
+  console:
+portlet:
+  version: 1.0.1
+  name: standalone
+  layout: main
+  redirects:
+    '/': 'menu://main'
+    '/users' : 'menu://main/settings/users'
