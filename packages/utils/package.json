@@ -15,7 +15,8 @@
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
-    "moment-timezone": "^0.5.28"
+    "moment-timezone": "^0.5.28",
+    "uuid": "^8.2.0"
   },
   "gitHead": "1a438d0e1ea716aefdebef53a010904417a4d426"
 }

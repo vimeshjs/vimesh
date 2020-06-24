@@ -34,10 +34,15 @@ function pretty(strOrJson) {
     return JSON.stringify(strOrJson, null, 2)
 }
 
+function toTemplate(str) {
+    return new Function("data", "with (data){return `" + str + "`}");
+}
+
 module.exports = {
     retry: retryPromise,
     retryPromise,
     timeout,
     next,
-    pretty
+    pretty,
+    toTemplate
 }

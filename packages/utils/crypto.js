@@ -1,6 +1,7 @@
 const _ = require('lodash')
 const crypto = require('crypto')
 const crc = require('crc')
+const { v4: uuidv4 } = require('uuid')
 
 function getCRC16(str) {
     return crc.crc16ccitt(str)
@@ -37,11 +38,15 @@ function getMD5(content) {
         return crypto.createHash('md5').update(_.isString(content) ? content : content + "", 'utf8').digest('hex');
 }
 
+function getUUID(options){
+    return uuidv4()
+}
 module.exports = {
     getCRC16,
     getCRC32,
     fromBase64,
     toBase64,
     xor,
-    getMD5
+    getMD5,
+    getUUID
 }

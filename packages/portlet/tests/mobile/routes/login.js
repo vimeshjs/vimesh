@@ -13,6 +13,8 @@ function post(req, res, next) {
         const token = r.data.token
         res.cookie('jwt', token, { httpOnly: true })
         res.ok(res.i18n('pages.login.ok_login'))
+    }).catch(ex => {
+        res.error(res.i18n('pages.login.err_login'))
     })
 }
 

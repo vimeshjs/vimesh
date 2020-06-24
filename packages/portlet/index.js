@@ -17,7 +17,7 @@ const { createStorage, createScopedStorage, createCacheForScopedStorage } = requ
 
 function PortletServer(config) {
     let portlet = this.portlet = config.name
-    let port = config.port || (10000 + getCRC16(portlet) % 10000)
+    let port = this.port = config.port || (10000 + getCRC16(portlet) % 10000)
     let app = this.app = express()
     let rootDir = config.rootDir || process.cwd()
     let routesDir = this.routesDir = path.join(rootDir, config.routesDir || 'routes')

@@ -5,8 +5,10 @@ const { getJwtSecret } = require('./_lib/utils')
 const passport = require('passport');
 const passportJWT = require('passport-jwt');
 const JWTStrategy = passportJWT.Strategy;
+let authApi = null
 
-function setup({ app, config }) {
+function setup({ remoteApis, config }) {
+    authApi = remoteApis.auth
     const jwtSecret = getJwtSecret(config)
 
     passport.use(new JWTStrategy({
@@ -27,8 +29,12 @@ const jwt = passport.authenticate('jwt', {
 })
 
 function auth(req, res, next) {
-    console.log('Auth : ', req.path, req.user)
-    next()
+    res.locals.$user = req.user
+    authApi.get('users/perms', { req }).then(r => {
+        let perms = r.data
+        res.locals.$permissions = perms
+        next()
+    })
 }
 module.exports = {
     setup,

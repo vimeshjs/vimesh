@@ -45,6 +45,7 @@
     {{{block 'scripts@head'}}}
     <script type="text/javascript">
         $mixins = []
+        $i18n = {}
         function toQuery(params) {
             if (!params) return ''
             var parts = []
@@ -58,6 +59,12 @@
         }
         function goto(url) {
             location.href = url
+        }
+        function setupI18n(i18n){
+            $i18n = i18n
+        }
+        function T(item) { 
+            return $i18n && $i18n[item] || item 
         }
     </script>
 </head>

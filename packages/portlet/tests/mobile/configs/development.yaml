@@ -15,4 +15,11 @@ portlet:
     url: localhost:18000
   remoteApis:
     auth: 
+      headers:
+        jwt: '${ cookies.jwt || query.jwt || headers.jwt }'
       url: http://localhost:18002/@account/
+    user: 
+      headers:
+        jwt: '${ cookies.jwt || query.jwt || headers.jwt }'
+      url: http://localhost:18002/@account/
+    

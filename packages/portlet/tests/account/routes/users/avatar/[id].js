@@ -4,7 +4,7 @@ let cacheAvatar
 function setup({ storages }) {
     cacheAvatar = storages.avatar.cache
 }
-function get(req, res) {
+function get(req, res, next) {
     let filePath = req.params.id
     cacheAvatar.get(getFullUrl(filePath, req.query)).then(stat => {
         if (!stat || !stat.localFilePath) return next()

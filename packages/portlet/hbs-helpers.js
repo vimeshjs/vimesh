@@ -6,9 +6,10 @@ const fs = require('fs')
 const zlib = require('zlib')
 const path = require('path')
 const css = require('css')
+const axios = require('axios')
 const { evaluatePermissionFormular } = require('./utils')
 const { getSortedMenus, getActiveMenu, visitMenus } = require('./menus')
-const { pipeStreams, WritableBufferStream } = require('@vimesh/utils')
+const { pipeStreams, WritableBufferStream, getUUID, toTemplate } = require('@vimesh/utils')
 
 const obfuscateOptions = {
     compact: true,
@@ -41,20 +42,18 @@ const obfuscateOptions = {
     transformObjectKeys: false,
     unicodeEscapeSequence: false
 }
-function injectBlocks(context, html) {
-    _.each(context._blocks, (block, name) => {
-        html = html.replace(`<!-- *****BLOCK ${name}***** -->`, block.join('\n'))
-    })
-    return html
+function injectBlocks(name, placeholder, html, context) {
+    return html.replace(placeholder, (context._blocks[name] || []).join('\n'))
 }
 function block(name, options) {
     if (!options.data.root._blocks) options.data.root._blocks = {}
     if (!options.data.root._blocks[name]) options.data.root._blocks[name] = []
-    options.data.root._helperPostProcessor.push({
+    let placeholder = `<!-- *****BLOCK ${name}***** -->`
+    options.data.root._postProcessors.push({
         order: 10,
-        processor: injectBlocks
+        processor: _.partial(injectBlocks, name, placeholder)
     })
-    return `<!-- *****BLOCK ${name}***** -->`
+    return placeholder
 }
 function contentFor(name, options) {
     if (!options) {
@@ -199,7 +198,7 @@ function tailwindApply(usedClasses, options) {
 
 const CLASS_NAMES = /class\s*=\s*['\"](?<class>[^'\"]*)['\"]/g
 const TAILWIND_PLACEHOLDER = '/* TAILWINDCSS AUTO INJECTION PLACEHOLDER */'
-function injectTailwindStyles(context, html) {
+function injectTailwindStyles(html, context) {
     if (context._tailwindAllClasses && context._tailwindStylesList) {
         let missedClasses = {}
         let match
@@ -238,8 +237,8 @@ function tailwindBlock(options) {
             return css.stringify(tailwindStylesList[index])
         }).join('\n')
     }
-    options.data.root._helperPostProcessor.push({
-        order: 1000,
+    options.data.root._postProcessors.push({
+        order: 10000,
         processor: injectTailwindStyles
     })
     return ['<style>', TAILWIND_PLACEHOLDER, cssContent, '</style>'].join('\n')
@@ -253,13 +252,13 @@ const allIcons = _.merge({}, solidIcons, regularIcons, brandsIcons)
 function fontAwesomeIcon(name, options) {
     if (!_.isString(name)) return
     let icons = allIcons
-    if (_.startsWith(name, 'fas-')){
+    if (_.startsWith(name, 'fas-')) {
         name = name.substring(4)
         icons = solidIcons
-    } else if (_.startsWith(name, 'far-')){
+    } else if (_.startsWith(name, 'far-')) {
         name = name.substring(4)
         icons = regularIcons
-    } else if (_.startsWith(name, 'fab-')){
+    } else if (_.startsWith(name, 'fab-')) {
         name = name.substring(4)
         icons = brandsIcons
     }
@@ -276,6 +275,59 @@ function fontAwesomeIcon(name, options) {
         $logger.warn(`Icon ${name} does not exist!`)
     }
 }
+
+function injectFetchedContent(url, options, html) {
+    url = _.trim(url)
+    if (!url) return html
+    let id = options.id
+    let placeholder = options.placeholder
+    let format = options.format || options.as
+    if (_.startsWith(url, 'http://') || _.startsWith(url, 'https://')) {
+        return axios.get(url).then(r => {
+            return html.replace(placeholder, _.isString(r.data) ? r.data : JSON.stringify(r.data))
+        })
+    } else {
+        let pos = url.indexOf('://')
+        if (pos != -1) {
+            let key = url.substring(0, pos)
+            let path = url.substring(pos + 3)
+            if (options.remoteApis[key]) {
+                let data = { req: options.req, params: options.params }
+                let fullPath = toTemplate(path)(data)
+                $logger.debug(`Fetch ${url} with ${JSON.stringify(data)}\n----->\nRemote API "${key + '" : ' + fullPath}`)
+                return options.remoteApis[key].get(path, { req: options.req }).then(r => {
+                    return html.replace(placeholder, _.isString(r.data) ? r.data : JSON.stringify(r.data))
+                })
+            } else {
+                $logger.error(`Remote API "${key}" does not exist!`)
+                return html
+            }
+        } else {
+            let data = { req: options.req, params: options.params }            
+            let fullUrl = toTemplate(`http://localhost:${options.port}${url[0] == '/' ? '' : '/'}${url}`)(data)
+            $logger.debug(`Fetch ${url} with ${JSON.stringify(data)}\n----->\nFull URL : ${fullUrl}`)
+            return axios.get(fullUrl).then(r => {
+                return html.replace(placeholder, _.isString(r.data) ? r.data : JSON.stringify(r.data))
+            })
+        }
+    }
+}
+function fetch(url, options) {
+    let id = getUUID()
+    let placeholder = `<!-- *****FETCH ${id}***** -->`
+    options.data.root._postProcessors.push({
+        order: 10,
+        processor: _.partial(injectFetchedContent, url,
+            _.extend({
+                id, placeholder,
+                req: options.data.root._req,
+                port: options.data.root._port,
+                remoteApis: options.data.root._remoteApis
+            }, { params: options.hash }))
+    })
+    return placeholder
+}
+
 module.exports = {
     T,
     es5,
@@ -294,5 +346,6 @@ module.exports = {
     menusByZone,
     menus: menusByZone,
     block,
-    json
+    json,
+    fetch
 }

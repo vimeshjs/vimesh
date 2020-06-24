@@ -1,6 +1,6 @@
 
 const _ = require('lodash')
-const css = require('css')
+const Promise = require('bluebird')
 const path = require('path')
 const beautify = require('js-beautify')
 const minify = require('html-minifier')
@@ -126,7 +126,15 @@ HbsViewEngine.prototype.render = function (filename, context, callback) {
             view: view
         })
     }).then(html => {
-        _.each(_.sortBy(context._helperPostProcessor, p => p.sort), p => html = p.processor(context, html))
+        let sortedProcessors = _.sortBy(context._postProcessors, p => p.order)
+        return Promise.each(sortedProcessors, p => {
+            let result = p.processor(html, context)
+            if (result.then) 
+                return result.then(r => html = r)
+            else 
+                html = result
+        }).then(r => html)
+    }).then(html => {
         if (this.pretty) {
             html = beautify.html(html)
         } else {

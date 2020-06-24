@@ -56,9 +56,12 @@ function setupMiddleware(req, res, next) {
         res.locals._i18nItems = portletServer.mergedI18nItems || {}
         res.locals._menusByZone = portletServer.allMenusByZone
         res.locals.$portlet = portlet
-        res.locals._helperPostProcessor = []
+        res.locals._port = portletServer.port
+        res.locals._postProcessors = []
         res.locals._allPermissions = portletServer.allPermissions
         res.locals.layout = _.isFunction(mlayout) ? mlayout(req) : mlayout
+        res.locals._req = _.pick(req, 'params', 'query', 'body', 'headers', 'cookies')
+        res.locals._remoteApis = portletServer.remoteApis
         res.ok = function (msg, code) {
             res.json(formatOK(msg, code))
         }
@@ -146,8 +149,10 @@ function scanRoutes(portletServer, current) {
             else
                 after = _.concat(methods.after, after)
         }
-        if (methods.layout) layout = methods.layout
-        if (methods.pipelines) pipelines = _.merge(pipelines, methods.pipelines)
+        if (methods.layout !== undefined) 
+            layout = methods.layout
+        if (methods.pipelines)
+            pipelines = _.merge(pipelines, methods.pipelines)
         if (methods.setup) {
             $logger.info(`Setup ${portlet && !portletServer.standalone ? '/@' + portlet : ''}${current.urlPath}`)
             methods.setup(portletServer)
@@ -205,7 +210,8 @@ function scanRoutes(portletServer, current) {
                         else
                             mafter = _.concat(m.after, mafter)
                     }
-                    if (m.layout) mcontext.mlayout = m.layout
+                    if (m.layout !== undefined) 
+                        mcontext.layout = m.layout
                     mcontext.handler = m.handler
                     mcontext.inputs = m.inputs
                 } else {
