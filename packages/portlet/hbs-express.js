@@ -128,17 +128,25 @@ HbsViewEngine.prototype.render = function (filename, context, callback) {
     }).then(html => {
         let sortedProcessors = _.sortBy(context._postProcessors, p => p.order)
         return Promise.each(sortedProcessors, p => {
-            let result = p.processor(html, context)
-            if (result.then) 
-                return result.then(r => html = r)
-            else 
-                html = result
+            if (!p.placeholder) {
+                return $logger.error(`Post processor placeholder could not be empty (${p})`)
+            }
+            let result = p.processor(p.params || {}, context, html)
+            if (result.then)
+                return result.then(r =>
+                    html = html.replace(p.placeholder, r)
+                ).catch(ex =>
+                    $logger.error(ex)
+                )
+            else {
+                html = html.replace(p.placeholder, result)
+            }
         }).then(r => html)
     }).then(html => {
         if (this.pretty) {
             html = beautify.html(html)
         } else {
-            if (this.htmlMinify){
+            if (this.htmlMinify) {
                 html = minify.minify(html, {
                     minifyCSS: true,
                     minifyJS: true,

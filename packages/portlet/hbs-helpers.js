@@ -42,8 +42,8 @@ const obfuscateOptions = {
     transformObjectKeys: false,
     unicodeEscapeSequence: false
 }
-function injectBlocks(name, placeholder, html, context) {
-    return html.replace(placeholder, (context._blocks[name] || []).join('\n'))
+function injectBlocks(params, context) {
+    return (context._blocks[params.name] || []).join('\n')
 }
 function block(name, options) {
     if (!options.data.root._blocks) options.data.root._blocks = {}
@@ -51,7 +51,9 @@ function block(name, options) {
     let placeholder = `<!-- *****BLOCK ${name}***** -->`
     options.data.root._postProcessors.push({
         order: 10,
-        processor: _.partial(injectBlocks, name, placeholder)
+        placeholder,
+        params: { name },
+        processor: injectBlocks
     })
     return placeholder
 }
@@ -198,7 +200,7 @@ function tailwindApply(usedClasses, options) {
 
 const CLASS_NAMES = /class\s*=\s*['\"](?<class>[^'\"]*)['\"]/g
 const TAILWIND_PLACEHOLDER = '/* TAILWINDCSS AUTO INJECTION PLACEHOLDER */'
-function injectTailwindStyles(html, context) {
+function injectTailwindStyles(params, context, html) {
     if (context._tailwindAllClasses && context._tailwindStylesList) {
         let missedClasses = {}
         let match
@@ -217,16 +219,14 @@ function injectTailwindStyles(html, context) {
             let cssContent = _.map(_.sortBy(_.keys(ruleIdMap), i => +i), index => {
                 return css.stringify(context._tailwindStylesList[index])
             }).join('\n')
-            html = html.replace(TAILWIND_PLACEHOLDER, [
+            return [
                 '/* --- Tailwind CSS Auto Injected Styles --- */',
                 cssContent,
                 '/* ------------------------------------- */'
-            ].join('\n'))
-        } else {
-            html = html.replace(TAILWIND_PLACEHOLDER, '')
+            ].join('\n')
         }
     }
-    return html
+    return ''
 }
 function tailwindBlock(options) {
     if (!options.data.root._tailwindAllClasses) options.data.root._tailwindAllClasses = tailwindStylesMap
@@ -239,6 +239,7 @@ function tailwindBlock(options) {
     }
     options.data.root._postProcessors.push({
         order: 10000,
+        placeholder: TAILWIND_PLACEHOLDER,
         processor: injectTailwindStyles
     })
     return ['<style>', TAILWIND_PLACEHOLDER, cssContent, '</style>'].join('\n')
@@ -276,38 +277,36 @@ function fontAwesomeIcon(name, options) {
     }
 }
 
-function injectFetchedContent(url, options, html) {
-    url = _.trim(url)
-    if (!url) return html
-    let id = options.id
-    let placeholder = options.placeholder
-    let format = options.format || options.as
+function injectFetchedContent(params, context) {
+    let url = _.trim(params.url)
+    if (!url) return ''
+    const remoteApis = context._remoteApis
+    const req = context._req
+    const data = { req, params }
     if (_.startsWith(url, 'http://') || _.startsWith(url, 'https://')) {
         return axios.get(url).then(r => {
-            return html.replace(placeholder, _.isString(r.data) ? r.data : JSON.stringify(r.data))
+            return _.isString(r.data) ? r.data : JSON.stringify(r.data)
         })
     } else {
         let pos = url.indexOf('://')
         if (pos != -1) {
             let key = url.substring(0, pos)
             let path = url.substring(pos + 3)
-            if (options.remoteApis[key]) {
-                let data = { req: options.req, params: options.params }
+            if (remoteApis[key]) {
                 let fullPath = toTemplate(path)(data)
                 $logger.debug(`Fetch ${url} with ${JSON.stringify(data)}\n----->\nRemote API "${key + '" : ' + fullPath}`)
-                return options.remoteApis[key].get(path, { req: options.req }).then(r => {
-                    return html.replace(placeholder, _.isString(r.data) ? r.data : JSON.stringify(r.data))
+                return remoteApis[key].get(path, { req }).then(r => {
+                    return _.isString(r.data) ? r.data : JSON.stringify(r.data)
                 })
             } else {
                 $logger.error(`Remote API "${key}" does not exist!`)
-                return html
+                return ''
             }
         } else {
-            let data = { req: options.req, params: options.params }            
-            let fullUrl = toTemplate(`http://localhost:${options.port}${url[0] == '/' ? '' : '/'}${url}`)(data)
+            let fullUrl = toTemplate(`http://localhost:${context._port}${url[0] == '/' ? '' : '/'}${url}`)(data)
             $logger.debug(`Fetch ${url} with ${JSON.stringify(data)}\n----->\nFull URL : ${fullUrl}`)
             return axios.get(fullUrl).then(r => {
-                return html.replace(placeholder, _.isString(r.data) ? r.data : JSON.stringify(r.data))
+                return _.isString(r.data) ? r.data : JSON.stringify(r.data)
             })
         }
     }
@@ -317,13 +316,9 @@ function fetch(url, options) {
     let placeholder = `<!-- *****FETCH ${id}***** -->`
     options.data.root._postProcessors.push({
         order: 10,
-        processor: _.partial(injectFetchedContent, url,
-            _.extend({
-                id, placeholder,
-                req: options.data.root._req,
-                port: options.data.root._port,
-                remoteApis: options.data.root._remoteApis
-            }, { params: options.hash }))
+        placeholder,
+        params: _.extend({ id, url }, options.hash),
+        processor: injectFetchedContent
     })
     return placeholder
 }
