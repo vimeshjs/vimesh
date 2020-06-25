@@ -87,6 +87,16 @@ function mergeAssets(portletServer) {
             cachePermissions.enumerate(true).then(rs => {
                 portletServer.allPermissions = _.merge({}, ..._.map(_.values(rs), item => item.content))
             })
+
+            let cacheExtensions = portletServer.assetCaches['extensions']
+            cacheExtensions.enumerate(true).then(rs => {
+                portletServer.allExtensionsByZone = {}
+                _.each(rs, (r, key) => {
+                    let pos = key.indexOf('/')
+                    let zone = pos == -1 ? key : key.substring(0, pos)
+                    portletServer.allExtensionsByZone[zone] = _.merge(portletServer.allExtensionsByZone[zone], r.content)
+                })
+            })
         } else {
             let kvClient = portletServer.kvClient
             kvClient.get('menus/*').then(rs => {
@@ -122,6 +132,18 @@ function mergeAssets(portletServer) {
             }).catch(ex => {
                 $logger.error('Fails to receive permissions.', ex)
             })
+
+            kvClient.get('extensions/*').then(rs => {
+                portletServer.allExtensionsByZone = {}
+                _.each(rs, (r, key) => {
+                    key = key.substring(key.indexOf('/', key.indexOf('@')) + 1)
+                    let pos = key.indexOf('/')
+                    let zone = pos == -1 ? key : key.substring(0, pos)
+                    portletServer.allExtensionsByZone[zone] = _.merge(portletServer.allExtensionsByZone[zone], r)
+                })
+            }).catch(ex => {
+                $logger.error('Fails to receive merged extensions.', ex)
+            })
         }
     }, duration('3s'))
 }
@@ -151,6 +173,7 @@ function setupAssets(portletServer) {
     createAssetsCache(portletServer, 'menus', '.yaml')
     createAssetsCache(portletServer, 'i18n', '.yaml')
     createAssetsCache(portletServer, 'permissions', '.yaml')
+    createAssetsCache(portletServer, 'extensions', '.yaml')
 
     mergeAssets(portletServer)
 

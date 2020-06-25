@@ -2,9 +2,9 @@ logger:
   level: debug
 discovery:
   port: 18000
-  #type: mongodb
-  #database: main
-  type: memory
+  type: mongodb
+  database: main
+  #type: memory
 mongodb:
   databases:
     main:

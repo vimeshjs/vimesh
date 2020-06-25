@@ -55,6 +55,7 @@ function setupMiddleware(req, res, next) {
         res.locals.$language = portletServer.config.language
         res.locals._i18nItems = portletServer.mergedI18nItems || {}
         res.locals._menusByZone = portletServer.allMenusByZone
+        res.locals._extensionsByZone = portletServer.allExtensionsByZone
         res.locals.$portlet = portlet
         res.locals._port = portletServer.port
         res.locals._postProcessors = []

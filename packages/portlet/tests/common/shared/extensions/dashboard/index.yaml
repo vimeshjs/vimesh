@@ -1,0 +1,5 @@
+logo:
+  _meta:
+    title: Widget One
+    order: 20
+    url: /@common/widget1

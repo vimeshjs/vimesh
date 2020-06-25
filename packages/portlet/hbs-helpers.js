@@ -9,6 +9,7 @@ const css = require('css')
 const axios = require('axios')
 const { evaluatePermissionFormular } = require('./utils')
 const { getSortedMenus, getActiveMenu, visitMenus } = require('./menus')
+const { getSortedExtensions } = require('./extensions')
 const { pipeStreams, WritableBufferStream, getUUID, toTemplate } = require('@vimesh/utils')
 
 const obfuscateOptions = {
@@ -90,6 +91,13 @@ function menusByZone(name, options) {
     }
     let am = getActiveMenu(menus, options.data.root.$path)
     return JSON.stringify({ activeMenu: am && am.index, menus })
+}
+
+function extensionsByZone(name, options) {
+    let permissions = options.data.root.$permissions || {}
+    let extensionsInZone = options.data.root._extensionsByZone && options.data.root._extensionsByZone[name]
+    let extensions = getSortedExtensions(name, extensionsInZone, permissions)
+    return JSON.stringify(extensions)
 }
 
 function T(name, options) {
@@ -342,5 +350,7 @@ module.exports = {
     menus: menusByZone,
     block,
     json,
-    fetch
+    fetch,
+    extensionsByZone,
+    extensions: extensionsByZone
 }

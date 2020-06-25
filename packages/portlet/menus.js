@@ -12,7 +12,7 @@ function getSortedMenus(lang, index, menus, permissions) {
             $logger.warn(`Menu config (${JSON.stringify(m)}) has no _meta definition.`)
         return !!m._meta
     })
-    menus = _.sortBy(menus, m => _.get(m, '_meta.sort') || 1)
+    menus = _.sortBy(menus, m => _.get(m, '_meta.sort') || _.get(m, '_meta.order') || 1)
     return _.filter(_.map(menus, m => {
         let mindex = `${index}.${m._name}`
         let submenus = getSortedMenus(lang, mindex, _.omit(m, '_name', '_meta'), permissions)
