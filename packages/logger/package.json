@@ -9,8 +9,8 @@
   "dependencies": {
     "lodash": "^4.17.15",
     "mkdirp": "^1.0.4",
-    "winston": "^3.2.1",
-    "winston-daily-rotate-file": "^4.4.2",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.0",
     "winston-mongodb": "^5.0.1"
   }
 }

@@ -7,6 +7,9 @@
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
+    "@vimesh/grpc": "^0.10.0",
+    "@vimesh/logger": "^0.10.0",
+    "@vimesh/utils": "^0.10.0",
     "lodash": "^4.17.15"
   }
 }
