@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/services",
-  "version": "0.9.38",
+  "version": "0.10.0",
   "description": "Vimesh services implemented via Restful, gRPC, GraphQL",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",

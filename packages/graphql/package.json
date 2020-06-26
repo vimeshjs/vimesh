@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/graphql",
-  "version": "0.9.31",
+  "version": "0.10.0",
   "description": "Vimesh GraphQL server and client",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
