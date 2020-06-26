@@ -16,6 +16,7 @@ function createAssetsCache(portletServer, type, extName) {
     if (!extName) extName = portletServer.extName
     if (!portletServer.assetCaches[type]) {
         portletServer.assetCaches[type] = createMemoryCache({
+            enumInterval: portletServer.config.debug ? '3s' : null,
             maxAge: portletServer.config.debug ? '3s' : '1m',
             updateAgeOnGet: false,
             onEnumerate: () => {
@@ -63,7 +64,7 @@ function createAssetsCache(portletServer, type, extName) {
 function mergeAssets(portletServer) {
     setInterval(() => {
         _.each(portletServer.assetCaches, cache => cache.enumerate(true))
-        if (portletServer.standalone){
+        if (portletServer.standalone) {
             let cacheMenus = portletServer.assetCaches['menus']
             cacheMenus.enumerate(true).then(rs => {
                 portletServer.allMenusByZone = {}
@@ -112,7 +113,7 @@ function mergeAssets(portletServer) {
             }).catch(ex => {
                 $logger.error('Fails to receive merged menus.', ex)
             })
-    
+
             kvClient.get('i18n/*').then(rs => {
                 portletServer.mergedI18nItems = {}
                 _.each(rs, (r, key) => {
@@ -126,7 +127,7 @@ function mergeAssets(portletServer) {
             }).catch(ex => {
                 $logger.error('Fails to receive i18n items.', ex)
             })
-    
+
             kvClient.get('permissions/*').then(rs => {
                 portletServer.allPermissions = _.merge({}, ..._.values(rs))
             }).catch(ex => {

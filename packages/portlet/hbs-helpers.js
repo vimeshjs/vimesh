@@ -90,14 +90,25 @@ function menusByZone(name, options) {
         })
     }
     let am = getActiveMenu(menus, options.data.root.$path)
-    return JSON.stringify({ activeMenu: am && am.index, menus })
+    let result = { activeMenu: am && am.index, menus }
+    let variable = options.hash.assignTo
+    if (variable) {
+        this[variable] = result
+    } else {
+        return JSON.stringify(result)
+    }
 }
 
 function extensionsByZone(name, options) {
     let permissions = options.data.root.$permissions || {}
     let extensionsInZone = options.data.root._extensionsByZone && options.data.root._extensionsByZone[name]
     let extensions = getSortedExtensions(name, extensionsInZone, permissions)
-    return JSON.stringify(extensions)
+    let variable = options.hash.assignTo
+    if (variable) {
+        this[variable] = extensions
+    } else {
+        return JSON.stringify(extensions)
+    }
 }
 
 function T(name, options) {
@@ -331,6 +342,21 @@ function fetch(url, options) {
     return placeholder
 }
 
+function template(tpl, options) {
+    let meta = {}
+    _.each(options.data, (v, k) => meta[`$${k}`] = v)
+    let data = _.extend({}, options.hash, meta)
+    with (data) {
+        try {
+            let result = _.bind(toTemplate(tpl), this)(data)
+            return result
+        } catch (ex) {
+            $logger.error(ex + ' ', ex)
+            return ex + ''
+        }
+    }
+}
+
 module.exports = {
     T,
     es5,
@@ -352,5 +378,6 @@ module.exports = {
     json,
     fetch,
     extensionsByZone,
-    extensions: extensionsByZone
+    extensions: extensionsByZone,
+    template
 }

@@ -1,0 +1,5 @@
+order:
+  _meta:
+    title: Order Report
+    order: 30
+    url: /@ecommerce/widgets/order-report?jwt=${req.cookies.jwt}

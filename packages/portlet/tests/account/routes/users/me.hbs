@@ -1,5 +1,5 @@
 {{!< widget }}
 <div>
-    <img src='/@account/users/avatar/{{avatar}}' width="24px">
+    <img src='{{template "${avatar ? '/@account/users/avatar/' + avatar : '/@common/logo-64x64.png'}" avatar=avatar}}' width="24px">
     {{name}}
 </div>

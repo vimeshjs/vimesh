@@ -3,4 +3,4 @@ me:
     title: My Profile
     order: 10
     permission: $users.view
-    url: /@account/users/me?jwt=${req.cookies.jwt}
+    url: /@account/users/me
