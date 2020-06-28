@@ -1,6 +1,7 @@
 
 const _ = require('lodash')
 const util = require("util")
+const { encodeMeta, decodeMeta } = require('./meta')
 const minio = require('minio')
 const { Storage } = require('./storage')
 const { isStream, getMD5 } = require('@vimesh/utils')
@@ -40,7 +41,7 @@ MinioStorage.prototype.putObject = function (bucket, filePath, data, options) {
     if (!options) options = {}
     if (!options.meta) options.meta = {}
     if (!isStream(data)) options.meta.md5 = getMD5(data)
-    return Promise.resolve(this.client.putObject(bucket, filePath, data, null, (options && options.meta)));
+    return Promise.resolve(this.client.putObject(bucket, filePath, data, null, encodeMeta(options && options.meta)));
 }
 
 MinioStorage.prototype.getObject = function (bucket, filePath) {
@@ -57,7 +58,7 @@ MinioStorage.prototype.deleteObject = function (bucket, filePath) {
 
 MinioStorage.prototype.statObject = function (bucket, filePath) {
     return this.client.statObject(bucket, filePath).then(s => {
-        return { path: filePath, size: s.size, modifiedAt: s.lastModified, meta: s.metaData }
+        return { path: filePath, size: s.size, modifiedAt: s.lastModified, meta: decodeMeta(s.metaData) }
     })
 }
 
