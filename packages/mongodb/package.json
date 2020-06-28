@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/mongodb",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "Vimesh MongoDB",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
@@ -8,7 +8,7 @@
   "license": "MIT",
   "dependencies": {
     "@vimesh/logger": "^0.10.1",
-    "@vimesh/utils": "^0.10.1",
+    "@vimesh/utils": "^0.10.2",
     "bluebird": "^3.7.2",
     "lodash": "^4.17.15",
     "moment": "^2.27.0",
