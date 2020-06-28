@@ -13,6 +13,7 @@ const { createViewEngine } = require('./view-engine')
 const { formatError } = require('./utils')
 const { createKeyValueClient } = require('@vimesh/discovery')
 const { setupRedirects } = require('./redirects')
+const { setupHealthCheck } = require('./health')
 const { createStorage, createScopedStorage, createCacheForScopedStorage } = require('@vimesh/storage')
 
 function PortletServer(config) {
@@ -121,6 +122,8 @@ function PortletServer(config) {
     setupProxy(this)
 
     setupRedirects(this)
+    
+    setupHealthCheck(this)
 
     app.use(this.beforeAll, function (req, res, next) {
         $logger.error("404 (" + req.url + ") ");

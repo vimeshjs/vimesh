@@ -1,3 +1,4 @@
+const os = require('os')
 const _ = require('lodash')
 const { trim } = require('./lang')
 
@@ -33,7 +34,29 @@ function getClientIP(req) {
     return ip;
 }
 
+function getIpList() {
+    const list = []
+    const ilist = []
+    const interfaces = os.networkInterfaces()
+    for (let iface in interfaces) {
+        for (let i in interfaces[iface]) {
+            const f = interfaces[iface][i]
+            if (f.family === "IPv4") {
+                if (f.internal) {
+                    ilist.push(f.address)
+                    break
+                } else {
+                    list.push(f.address)
+                    break
+                }
+            }
+        }
+    }
+    return list.length > 0 ? list : ilist
+}
+
 module.exports = {
     getFullUrl,
-    getClientIP
+    getClientIP,
+    getIpList
 }

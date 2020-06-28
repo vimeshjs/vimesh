@@ -10,3 +10,4 @@ portlet:
   selfUrl: localhost:18001
   discovery:
     url: localhost:18000
+  health: _status
