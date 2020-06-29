@@ -17,17 +17,17 @@ portlet:
       bucket: 'main'
       prefix: 'avatar/'
       cacheDir: '{{root}}/mnt/cache'
-    avatar-minio: 
-      type: minio
-      options:
-        endPoint: 127.0.0.1
-        port: 9000
-        useSSL: false
-        accessKey: minioadmin
-        secretKey: minioadmin
-      bucket: 'account'
-      prefix: 'avatar/'
-      cacheDir: '{{root}}/mnt/cache'
+    # avatar-minio: 
+    #   type: minio
+    #   options:
+    #     endPoint: 127.0.0.1
+    #     port: 9000
+    #     useSSL: false
+    #     accessKey: minioadmin
+    #     secretKey: minioadmin
+    #   bucket: 'account'
+    #   prefix: 'avatar/'
+    #   cacheDir: '{{root}}/mnt/cache'
   passport:
     jwt:
       expiration: 24h

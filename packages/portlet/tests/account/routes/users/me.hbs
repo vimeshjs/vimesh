@@ -1,5 +1,17 @@
 {{!< widget }}
 <div>
+    <select>
+        <option v-for="(item,index) in options" :value="item" v-html="item"></option>
+    </select>
     <img src='{{template "${avatar ? '/@account/users/avatar/' + avatar : '/@common/logo-64x64.png'}" avatar=avatar}}' width="24px">
     {{name}}
+
 </div>
+<script>
+    var $options = {{{json options}}}
+    $mixins.push({
+        data(){
+            return {options : $options}
+        }
+    })
+</script>
