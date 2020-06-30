@@ -14,6 +14,7 @@ const { formatError } = require('./utils')
 const { createKeyValueClient } = require('@vimesh/discovery')
 const { setupRedirects } = require('./redirects')
 const { setupHealthCheck } = require('./health')
+const { setupComponents } = require('./components')
 const { createStorage, createScopedStorage, createCacheForScopedStorage } = require('@vimesh/storage')
 
 function PortletServer(config) {
@@ -23,7 +24,7 @@ function PortletServer(config) {
     let rootDir = config.rootDir || process.cwd()
     let routesDir = this.routesDir = path.join(rootDir, config.routesDir || 'routes')
     let assetsDir = this.assetsDir = path.join(rootDir, config.assetsDir || 'assets')
-    if (!fs.existsSync(assetsDir)){
+    if (!fs.existsSync(assetsDir)) {
         let sharedDir = path.join(rootDir, config.sharedDir || 'shared')
         if (fs.existsSync(sharedDir))
             assetsDir = this.assetsDir = sharedDir
@@ -31,7 +32,7 @@ function PortletServer(config) {
     this.layoutsDir = path.join(assetsDir, 'layouts')
     this.partialsDir = path.join(assetsDir, 'partials')
     this.viewsDir = path.join(assetsDir, 'views')
-    this.pipelinesDir = path.join(assetsDir, 'pipelines')
+    this.componentsDir = path.join(assetsDir, 'components')
     let extName = this.extName = '.hbs'
 
     this.config = config
@@ -74,6 +75,7 @@ function PortletServer(config) {
             }, duration('3s'))
         }
     }
+    this.urlPrefix = this.standalone ? '' : `/@${portlet}`
     this.storages = {}
     _.each(config.storages, (sconfig, name) => {
         let storage = createStorage(sconfig)
@@ -114,15 +116,16 @@ function PortletServer(config) {
     setupRemoteApis(this)
     setupRoutes(this)
 
-    app.use(this.standalone ? '' : `/@${portlet}`, express.static(config.publicDir || 'public', {
+    app.use(this.urlPrefix, express.static(config.publicDir || 'public', {
         maxAge: '1d'
     }))
 
+    setupComponents(this)
     setupAssets(this)
     setupProxy(this)
 
     setupRedirects(this)
-    
+
     setupHealthCheck(this)
 
     app.use(this.beforeAll, function (req, res, next) {

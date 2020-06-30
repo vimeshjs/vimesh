@@ -123,7 +123,6 @@ function setupMiddleware(req, res, next) {
 }
 function scanRoutes(portletServer, current) {
     const app = portletServer.app
-    let pipelines = _.clone(current.pipelines || {})
     let layout = current.layout
     let before = _.clone(current.before || [])
     let after = _.clone(current.after || [])
@@ -152,10 +151,8 @@ function scanRoutes(portletServer, current) {
         }
         if (methods.layout !== undefined) 
             layout = methods.layout
-        if (methods.pipelines)
-            pipelines = _.merge(pipelines, methods.pipelines)
         if (methods.setup) {
-            $logger.info(`Setup ${portlet && !portletServer.standalone ? '/@' + portlet : ''}${current.urlPath}`)
+            $logger.info(`Setup ${portletServer.urlPrefix}${current.urlPath}`)
             methods.setup(portletServer)
         }
     }
@@ -171,7 +168,6 @@ function scanRoutes(portletServer, current) {
                 parent: current,
                 urlPath: childUrlPath,
                 dir: fullPath,
-                pipelines,
                 before,
                 after,
                 layout,
@@ -182,7 +178,7 @@ function scanRoutes(portletServer, current) {
         } else if (ext === '.js') {
             let methods = require(fullPath)
             if (methods.setup) {
-                $logger.info(`Setup ${portlet && !portletServer.standalone ? '/@' + portlet : ''}${current.urlPath}`)
+                $logger.info(`Setup ${portletServer.urlPrefix}${current.urlPath}`)
                 methods.setup(portletServer)
             }
             methods = _.pick(methods, HTTP_METHODS)
@@ -227,8 +223,7 @@ function scanRoutes(portletServer, current) {
                     mbefore,
                     mcontext.handler,
                     mafter)
-                allHandlers = _.map(allHandlers, h => _.isFunction(h) ? h : pipelines[h])
-                let realUrlPath = `${portlet && !portletServer.standalone ? '/@' + portlet : ''}${current.urlPath}/${action === 'index' ? '' : action}`.replace(/\[/g, ':').replace(/\]/g, '')
+                let realUrlPath = `${portletServer.urlPrefix}${current.urlPath}/${action === 'index' ? '' : action}`.replace(/\[/g, ':').replace(/\]/g, '')
                 if (portletServer.config.logRoutes) $logger.info(`ROUTE ${k.toUpperCase()} ${realUrlPath}`)
                 app[k](realUrlPath, ...allHandlers)
             })
@@ -238,28 +233,16 @@ function scanRoutes(portletServer, current) {
 function setupRoutes(portletServer) {
     let config = portletServer.config
     let routesDir = portletServer.routesDir
-    let pipelinesDir = portletServer.pipelinesDir
     let portlet = portletServer.portlet
     let viewEngine = portletServer.viewEngine
     let root = {
         parent: null,
         urlPath: '',
         dir: routesDir,
-        pipelines: {},
         before: [],
         after: [],
         layout: config.layout,
         routes: []
-    }
-
-    if (fs.existsSync(pipelinesDir)) {
-        _.each(fs.readdirSync(pipelinesDir), f => {
-            let ext = path.extname(f)
-            if (ext === '.js') {
-                let methods = require(path.join(pipelinesDir, f))
-                root.pipelines = _.merge(root.pipelines, methods)
-            }
-        })
     }
 
 

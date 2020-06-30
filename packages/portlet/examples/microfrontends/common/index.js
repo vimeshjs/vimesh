@@ -1,6 +1,6 @@
 const { loadConfigs } = require('@vimesh/utils')
 const { setupLogger } = require('@vimesh/logger')
-const { setupPortletServer } = require('../..')
+const { setupPortletServer } = require('@vimesh/portlet')
 let context = {
     configsDir: __dirname + '/configs',
     root : __dirname,

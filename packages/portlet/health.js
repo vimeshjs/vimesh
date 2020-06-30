@@ -3,7 +3,7 @@ const { getHealthStatus, getClientIP } = require('@vimesh/utils')
 function setupHealthCheck(portletServer) {
     let path = portletServer.config.health
     if (path) {
-        let prefix = portletServer.standalone ? '' : `/@${portletServer.portlet}`
+        let prefix = portletServer.urlPrefix
         portletServer.app.use(`${prefix}/${path}`, (req, res) => {
             let client = {
                 ip: getClientIP(req),

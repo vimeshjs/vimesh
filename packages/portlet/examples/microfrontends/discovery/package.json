@@ -1,0 +1,15 @@
+{
+  "name": "discovery",
+  "description": "Discovery Service",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Jacky ZHANG",
+  "dependencies": {
+    "@vimesh/discovery": "file:../../../../discovery",
+    "@vimesh/mongodb": "file:../../../../mongodb"
+  },
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development nodemon index.js --ignore mnt/",
+    "test": "jest tests/**/*.test.js --runInBand --forceExit"
+  }
+}

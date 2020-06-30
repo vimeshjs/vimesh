@@ -19,7 +19,7 @@
     "bufferutil": "^4.0.1",
     "cross-fetch": "^3.0.5",
     "glob": "^7.1.6",
-    "graphql": "^15.1.0",
+    "graphql": "^14.2.1",
     "graphql-iso-date": "^3.6.1",
     "graphql-type-json": "^0.3.2",
     "lodash": "^4.17.15",
