@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/portlet",
-  "version": "0.10.2",
+  "version": "0.10.3",
   "description": "Vimesh micro-frontend framework",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
@@ -18,7 +18,7 @@
     "@rollup/plugin-node-resolve": "^7.0.0",
     "@vimesh/cache": "^0.10.2",
     "@vimesh/discovery": "^0.10.2",
-    "@vimesh/graphql": "^0.10.2",
+    "@vimesh/graphql": "^0.10.3",
     "@vimesh/grpc": "^0.10.1",
     "@vimesh/logger": "^0.10.1",
     "@vimesh/storage": "^0.10.2",
