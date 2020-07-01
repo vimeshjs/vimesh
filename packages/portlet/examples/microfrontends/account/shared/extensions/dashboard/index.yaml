@@ -1,6 +1,0 @@
-me:
-  _meta:
-    title: My Profile
-    order: 10
-    permission: $users.view
-    url: /@account/users/me

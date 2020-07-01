@@ -1,4 +1,0 @@
-logger:
-  level: warn
-portlet:
-  layout: admin

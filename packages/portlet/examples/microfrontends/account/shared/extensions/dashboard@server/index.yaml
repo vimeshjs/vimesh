@@ -1,6 +1,0 @@
-me:
-  _meta:
-    title: My Profile @ Server
-    order: 10
-    permission: $users.view
-    url: /@account/users/me?jwt=${req.cookies.jwt}

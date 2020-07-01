@@ -1,4 +1,0 @@
-logger:
-  level: warn
-discovery:
-  port: {{env.PORT}}

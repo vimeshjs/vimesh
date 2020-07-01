@@ -19,11 +19,12 @@ function configVue(options) {
             commonjs(),
             vue({
                 compileTemplate: true,
-                css: true
+                css: true,
+                needMap: options.debug
             }),
-            buble(),
+            buble()
         ]
-    };
+    }
     if (!options.debug) {
         rollupOptions.plugins.push(terser({
             compress: {
@@ -33,7 +34,6 @@ function configVue(options) {
             }
         }))
     }
-
     rollupOptions.output = {
         file: options.output,
         name: options.name,
@@ -41,7 +41,8 @@ function configVue(options) {
         sourcemap: options.debug,
         globals: options.globals || {}
     }
-    return rollupOptions
+
+    return _.merge(rollupOptions, options.extraOptions)
 }
 const COMPONENT_EXT_NAMES = ['.vue']
 const ROLLUP_CONFIGS = {
@@ -67,11 +68,13 @@ function createComponentCache(portletServer) {
                 }
             })
             if (file && config) {
+                let yf = path.join(portletServer.componentsDir, keyPath + '.yaml')
                 let options = config({
                     name: keyPath.replace('/', '.'),
                     input: file,
                     output: path.join(process.cwd(), 'mnt/dist', key),
-                    debug: portletServer.config.debug
+                    debug: portletServer.config.debug,
+                    extraOptions: fs.existsSync(yf) ? loadYaml(yf) : {}
                 })
 
                 return rollup.rollup(options).then(bundle => {
@@ -90,8 +93,13 @@ function setupComponents(portletServer) {
     let urlPath = `${portletServer.urlPrefix}/_`
     portletServer.app.get(`${urlPath}/*`, function (req, res, next) {
         let filePath = path.relative(`${urlPath}/`, req.path)
+        let map = false
+        if (_.endsWith(filePath, '.js.map')){
+            map = true
+            filePath = filePath.substring(0, filePath.length - '.map'.length)
+        }
         cache.get(filePath).then(generatedFilePath => {
-            res.sendFile(generatedFilePath)
+            res.sendFile(map ? generatedFilePath + '.map' : generatedFilePath)
         })
     })
 }
