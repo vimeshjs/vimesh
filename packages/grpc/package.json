@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/grpc",
-  "version": "0.10.1",
+  "version": "0.10.4",
   "description": "Vimesh gRPC server and client",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
