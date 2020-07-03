@@ -27,6 +27,7 @@ message Product {
   int32 id = 1;
   string name = 2;
   string price = 3;
+  bool hot = 4;
 }
 
 message newProduct {

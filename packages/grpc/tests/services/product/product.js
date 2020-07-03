@@ -3,10 +3,12 @@ const {GrpcError} = require('../../..')
 let products = [
     {
         id: 1,
-        name: 'prod one'
+        name: 'prod one',
+        hot: true
     }, {
         id: 2,
-        name: 'prod two'
+        name: 'prod two',
+        hot: false
     }, {
         id: 3,
         name: 'prod three'

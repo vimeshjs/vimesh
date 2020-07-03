@@ -3,12 +3,12 @@ const _ = require('lodash')
 function getSortedMenus(lang, index, menus, permissions) {
     menus = _.filter(_.map(_.entries(menus), ar => _.extend({ _name: ar[0] }, ar[1])), m => {
         let perm = _.get(m, '_meta.permission')
-        if (perm){
-            if (_.isString(perm) && (!permissions || !permissions[perm])){
+        if (perm) {
+            if (_.isString(perm) && (!permissions || !permissions[perm])) {
                 return false
             }
         }
-        if (!m._meta) 
+        if (!m._meta)
             $logger.warn(`Menu config (${JSON.stringify(m)}) has no _meta definition.`)
         return !!m._meta
     })
@@ -16,16 +16,14 @@ function getSortedMenus(lang, index, menus, permissions) {
     return _.filter(_.map(menus, m => {
         let mindex = `${index}.${m._name}`
         let submenus = getSortedMenus(lang, mindex, _.omit(m, '_name', '_meta'), permissions)
-        let url = _.get(m, '_meta.url')
         let title = _.get(m, '_meta.title')
-        let icon = _.get(m, '_meta.icon')
         if (_.isObject(title)) {
             let i18n = title
             let ls = _.keys(i18n)
             title = i18n[lang] || ls.length > 0 && i18n[ls[0]]
         }
         if (!title) title = m._name
-        let menu = { index: mindex, title, url, icon }
+        let menu = _.extend({ index: mindex, title }, _.omit(m._meta, 'permission', 'title'))
         if (submenus.length > 0) menu.submenus = submenus
         return menu
     }), m => m.url || m.submenus && m.submenus.length > 0)
@@ -52,7 +50,7 @@ function getFirstMenu(menus) {
     let firstMenu = null
     _.each(menus, m => {
         if (!firstMenu && m.url) {
-            firstMenu = m        
+            firstMenu = m
         }
         if (firstMenu) return
         if (m.submenus) {
@@ -68,7 +66,7 @@ function getMenuByIndex(menus, index) {
     let menu = null
     _.each(menus, m => {
         if (!menu && m.index === index) {
-            menu = m        
+            menu = m
         }
         if (menu) return
         if (m.submenus) {

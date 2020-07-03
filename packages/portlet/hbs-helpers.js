@@ -334,7 +334,7 @@ function fetch(url, options) {
     let id = getUUID()
     let placeholder = `<!-- *****FETCH ${id}***** -->`
     options.data.root._postProcessors.push({
-        order: 10,
+        order: 100,
         placeholder,
         params: _.extend({ id, url }, options.hash),
         processor: injectFetchedContent
