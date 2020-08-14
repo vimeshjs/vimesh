@@ -1,0 +1,57 @@
+stages:
+  - $group: 
+      _id: 
+        sch: "$sch_id"
+        cmp: "$cmp_id"
+        vm: "$vmid"
+      init: 
+        $sum:
+          $cond: 
+            - $eq: 
+              - $status
+              - init
+            - 1
+            - 0
+      running: 
+        $sum:
+          $cond: 
+            - $eq: 
+              - $status
+              - running
+            - 1
+            - 0
+      success: 
+        $sum:
+          $cond: 
+            - $eq: 
+              - $status
+              - success
+            - 1
+            - 0
+      timeout: 
+        $sum:
+          $cond: 
+            - $eq: 
+              - $status
+              - timeout
+            - 1
+            - 0
+      failure: 
+        $sum:
+          $cond: 
+            - $eq: 
+              - $status
+              - failure
+            - 1
+            - 0
+      cancelled: 
+        $sum:
+          $cond: 
+            - $eq: 
+              - $status
+              - cancelled
+            - 1
+            - 0
+source: UpdateStatusBySessionV2
+timestamp: _at
+affix: false

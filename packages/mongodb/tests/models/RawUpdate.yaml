@@ -1,0 +1,12 @@
+properties:
+  _id: ObjectId         # 编号
+  did: ObjectId         # 事件名
+  _at: date             # 创建时间
+  s_at: number          # 发送时间
+  data: object          # 附加数据
+$mapping:
+  collection: raw.update
+  indexes:
+    - keys:
+        _at: 1
+  # autoconvert: true

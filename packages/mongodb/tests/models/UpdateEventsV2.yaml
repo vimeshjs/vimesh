@@ -1,0 +1,19 @@
+properties:
+  _id: string           # 编号 = RawUpdate._id - ECU Index
+  usid: ObjectId        # 更新Session ID
+  vmid: number          # 车型ID
+  vin: string           # 车辆VIN码
+  emid: number          # ECU Model标号
+  sch_id: ObjectId      # 升级任务ID
+  cmp_id: ObjectId      # 升级策略ID
+  pkg_id: ObjectId      # 升级包ID
+  ecu: string           # ECU 名
+  state: number         # 状态
+  _at: date             # 创建时间
+  s_at: number          # 客户端发送事件
+$mapping:
+  collection: update.events.v2
+  autoconvert: true
+  indexes:
+    - keys:
+        _at: 1

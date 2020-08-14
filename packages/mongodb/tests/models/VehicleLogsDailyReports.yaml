@@ -1,0 +1,13 @@
+properties:
+  _id: 
+    dd: number          # vm-dd
+    vm: number          # 车型ID
+    l: string           # 日志级别, error, warn, info, debug
+  count: number         # 日志数量
+$mapping:
+  collection: vehicle.logs.daily.reports
+  indexes:
+    - keys:
+        _id.dd: -1
+        _id.vm: 1
+        _id.l: 1

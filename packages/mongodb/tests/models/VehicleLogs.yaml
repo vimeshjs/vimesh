@@ -1,0 +1,18 @@
+properties:
+  _id: ObjectId         # 编号
+  vin: string           # 车辆VIN码
+  _at: date             # 创建时间
+  level: string         # 日志级别, error, warn, info, debug
+  tag: string           # 日志标签
+  message: string       # 日志消息
+  data: object          # 附加数据
+$mapping:
+  collection: vehicle.logs
+  # autoconvert: true
+  indexes:
+    - keys:
+        vin: 1
+        _at: 1
+        s_at: 1
+  affix:
+    format: YYYYMMDD

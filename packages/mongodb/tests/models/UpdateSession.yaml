@@ -1,0 +1,10 @@
+properties:
+  _id: ObjectId         # 编号
+  vmid: number          # 车型ID
+  schedule: object         # 升级任务
+  _at: date             # 创建时间
+  params: object          # 请求参数
+  resp: object          # 响应
+$mapping:
+  collection: update.session
+  autoconvert: true

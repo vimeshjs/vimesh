@@ -1,0 +1,3 @@
+$include : _UpdateStatusBySessionReports
+timeslot: day
+target: UpdateStatusBySessionDailyReportsV2

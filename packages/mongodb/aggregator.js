@@ -1,10 +1,10 @@
 const _ = require('lodash')
-const moment = require('moment')
-const formatDate = require('@vimesh/utils')
+const moment = require('moment-timezone')
+const { formatDate } = require('@vimesh/utils')
 
-const MAX_DAYS = 10
+$aggregator.MAX_DAYS = 10
 
-$aggregator.createReportInTimeslot = function(options){
+$aggregator.createReportInTimeslot = function (options) {
     const TIMEZONE = options.timezone || 'UTC'
     let dt = moment(options.date).tz(TIMEZONE)
     let ts = options.timeslot
@@ -12,21 +12,21 @@ $aggregator.createReportInTimeslot = function(options){
     let stages = options.stages
     let source = _.isString(options.source) ? $dao[options.source] : options.source
     let target = _.isString(options.target) ? $dao[options.target] : options.target
-    let dtype 
+    let dtype
     let dformat
-    switch(ts){
-        case 'hour':    dtype = 'dh'; dformat = 'YYYYMMDDHH'; break
-        case 'day':     dtype = 'dd'; dformat = 'YYYYMMDD'; break
-        case 'week':    dtype = 'dw'; dformat = 'YYYYWW'; break
-        case 'month':   dtype = 'dm'; dformat = 'YYYYMM'; break
+    switch (ts) {
+        case 'hour': dtype = 'dh'; dformat = 'YYYYMMDDHH'; break
+        case 'day': dtype = 'dd'; dformat = 'YYYYMMDD'; break
+        case 'week': dtype = 'dw'; dformat = 'YYYYWW'; break
+        case 'month': dtype = 'dm'; dformat = 'YYYYMM'; break
         default:
             return Promise.reject('Wrong timeslot value!')
     }
     let st = moment(dt).startOf(ts === 'week' ? 'isoWeek' : ts)
     let en = moment(dt).endOf(ts === 'week' ? 'isoWeek' : ts)
     let range = {}
-    range[tmfield] = {$gte : st.toDate(), $lte : en.toDate()}
-    let fullStages = _.concat([{$match : range}], stages)
+    range[tmfield] = { $gte: st.toDate(), $lte: en.toDate() }
+    let fullStages = _.concat([{ $match: range }], stages)
     let d = +dt.format(dformat)
     return source.aggregate(fullStages).then(rs => {
         let all = _.map(rs.data, item => {
@@ -38,12 +38,12 @@ $aggregator.createReportInTimeslot = function(options){
         return target ? target.set(all) : all
     })
 }
-function createOneDayReportTask(dao, dt, tmfield, stages){
+function createOneDayReportTask(dao, dt, tmfield, stages) {
     let st = moment(dt).startOf('day')
     let en = moment(dt).endOf('day')
     let range = {}
-    range[tmfield] = {$gte : st.toDate(), $lte : en.toDate()}
-    let fullStages = _.concat([{$match : range}], stages)
+    range[tmfield] = { $gte: st.toDate(), $lte: en.toDate() }
+    let fullStages = _.concat([{ $match: range }], stages)
     let dd = +dt.format('YYYYMMDD')
     return dao.aggregate(fullStages).then(rs => {
         return _.map(rs.data, item => {
@@ -63,40 +63,40 @@ $aggregator.buildDailyReports = function (options) {
     let next = null
     return target.select({ size: 1, sort: { "_id.dd": -1 } }).then(r => {
         let cond = {}
-        cond[tmfield] = {$exists : true}
+        cond[tmfield] = { $exists: true }
         if (r.data.length == 1) {
             last = moment(r.data[0]._id.dd + '').tz(TIMEZONE, true)
             next = moment(last).add(1, 'days').startOf('day')
-            cond[tmfield] = {$gte : next.toDate()}
+            cond[tmfield] = { $gte: next.toDate() }
         }
         let ssort = {}
         ssort[tmfield] = 1
-        return source.select({ cond, size : 1, sort: ssort})
+        return source.select({ cond, size: 1, sort: ssort })
     }).then(r => {
         if (r.data.length == 1) {
             first = moment(r.data[0][tmfield]).tz(TIMEZONE)
-        } 
+        }
         let dates = []
-        let daysToNow = 0 
-        if (last){
+        let daysToNow = 0
+        if (last) {
             daysToNow = Math.max(0, moment.duration(moment().diff(last)).as('days'))
             if (daysToNow < 1) dates.push(moment(last).subtract(1, 'days'))
             dates.push(last)
-            if (first){
-                _.each(_.range(0, Math.min(MAX_DAYS, Math.ceil(daysToNow))), function(r){
+            if (first) {
+                _.each(_.range(0, Math.min($aggregator.MAX_DAYS, Math.ceil(daysToNow))), function (r) {
                     dates.push(moment(first).add(r, 'days'))
                 })
             }
-        } else if (first){
+        } else if (first) {
             daysToNow = Math.max(0, moment.duration(moment().diff(first)).as('days'))
-            _.each(_.range(0, Math.min(MAX_DAYS, Math.ceil(daysToNow))), function(r){
+            _.each(_.range(0, Math.min($aggregator.MAX_DAYS, Math.ceil(daysToNow))), function (r) {
                 dates.push(moment(first).add(r, 'days'))
             })
         } else {
             return Promise.resolve()
         }
         $logger.info(`Build daily reports for ${options.source} into ${options.target} for ${_.map(dates, dt => formatDate(dt, 'YYYYMMDD'))})`)
-         
+
         return Promise.all(_.map(dates, dt => createOneDayReportTask(source, dt, tmfield, stages))).then(rs => {
             target.set(_.flatten(rs))
         })

@@ -1,0 +1,9 @@
+name: Transform UpdateEvents to UpdateStatusBySessionV2
+source:
+  model: UpdateEventsV2
+  timestamp: _at
+target:
+  model: UpdateStatusBySessionV2
+  timestamp: _at
+overlap: 1m
+type: update

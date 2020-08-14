@@ -1,0 +1,30 @@
+properties:
+  _id: ObjectId             # 编号
+  vmid: number              # 车型ID
+  vin: string               # VIN码
+  ecus: object              # ecus
+  place_production: string  # 生产区域
+  place_license: string     # 上牌区域
+  place_sales: string       # 销售区域
+  place_current: string     # 当前区域
+  created_at: date          # 创建时间
+  activated_at: date        # 激活时间
+  last_at: date             # 最后联网时间
+  inspective: boolean       # 是否开启检测
+  operator: string          # 操作员
+  operate_at: date          # 最后操作时间
+  push_id: string           # 推送序列号
+  push_type: string         # 推送类型
+  client_log: boolean       # 是否开启客户端日志
+  batch_number: string      # 生产批次
+  ulid: string              # 客户端日志ID
+$mapping:
+  collection: vehicles
+  autoconvert: true
+  indexes:
+    - keys:
+        vin: 1
+      options:
+        unique: true
+    - keys:
+        activated_at: 1

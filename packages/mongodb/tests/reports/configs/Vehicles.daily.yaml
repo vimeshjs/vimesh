@@ -1,0 +1,12 @@
+stages:
+  - $group: 
+      _id: 
+        bn: "$batch_number" 
+        vm: "$vmid"
+      count: 
+        $sum: 1     
+source: Vehicles
+timestamp: activated_at
+target: VehiclesDailyReportsV2
+type: daily
+affix: false

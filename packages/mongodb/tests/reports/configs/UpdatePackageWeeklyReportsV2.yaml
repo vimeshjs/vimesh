@@ -1,0 +1,3 @@
+$include : _UpdatePackageReportsV2
+timeslot: week
+target: UpdatePackageDailyReportsV2

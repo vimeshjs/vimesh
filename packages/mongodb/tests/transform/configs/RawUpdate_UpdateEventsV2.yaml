@@ -1,0 +1,11 @@
+name: Transform RawUpdate to UpdateEvents
+source:
+  model: RawUpdate
+  timestamp: _at
+  join:
+    - 'did > session : UpdateSession'
+target:
+  model: UpdateEventsV2
+  timestamp: _at
+overlap: 1m
+type: insert

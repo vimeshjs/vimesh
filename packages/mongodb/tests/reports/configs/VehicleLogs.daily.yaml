@@ -1,0 +1,17 @@
+stages:
+  - $lookup:
+      from: vehicles
+      localField: vin
+      foreignField: vin
+      as: vehicle
+  - $unwind: $vehicle
+  - $group: 
+      _id: 
+        l: "$level" 
+        vm: "$vehicle.vmid"
+      count: 
+        $sum: 1     
+source: VehicleLogs
+target: VehicleLogsDailyReports 
+type: daily
+affix: true

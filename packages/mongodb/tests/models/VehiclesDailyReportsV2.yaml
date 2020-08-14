@@ -1,0 +1,14 @@
+properties:
+  _id: 
+    dd: number          # 日期
+    bn: string          # 生产批次
+    vm: number          # 车型
+  count: number
+  
+$mapping:
+  collection: vehicles.daily.reports.v2
+  indexes:
+    - keys:
+        _id.dd: -1
+        _id.vm: 1
+        _id.bn: 1

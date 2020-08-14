@@ -1,0 +1,15 @@
+properties:
+  _id: 
+    dd: number        # 时间
+    sch_id: number    # Schedule ID
+    cmp_id: number    # Campaign ID
+    vmid: number      # 车型
+    bn: string        # 生产批次
+  init: number
+  running: number
+  cancelled: number
+  success: number
+  failure: number
+  timeout: number
+$mapping:
+  collection: update.status.by.session.daily.reports.v2

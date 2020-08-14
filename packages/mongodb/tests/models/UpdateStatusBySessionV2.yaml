@@ -1,0 +1,15 @@
+properties:
+  _id: ObjectId         # 编号 = usid
+  vmid: number          # 车型ID
+  vin: string           # 车辆VIN码
+  sch_id: ObjectId      # 升级任务ID
+  cmp_id: ObjectId      # 升级策略ID
+  pkg_id: ObjectId      # 升级包ID
+  ecu: string           # ECU 名
+  status: string        # 本次升级的最后状态
+  _at: date             # 创建时间
+  start_at: date
+  end_at: date
+$mapping:
+  collection: update.status.by.session.v2
+  autoconvert: true

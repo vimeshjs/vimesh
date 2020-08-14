@@ -1,0 +1,89 @@
+stages:
+  - $group: 
+      _id:
+        pid: "pkg_id"
+        vm: "vmid"
+      stat_4:
+        $sum:
+          $cond:
+            - $eq:
+                - $state
+                - 4
+            - 1
+            - 0
+      stat_6:
+        $sum:
+          $cond:
+            - $eq:
+                - $state
+                - 6
+            - 1
+            - 0
+      stat_7:
+        $sum:
+          $cond:
+            - $eq:
+                - $state
+                - 7
+            - 1
+            - 0
+      stat_8:
+        $sum:
+          $cond:
+            - $eq:
+                - $state
+                - 8
+            - 1
+            - 0
+      stat_9:
+        $sum:
+          $cond:
+            - $eq:
+                - $state
+                - 9
+            - 1
+            - 0
+      stat_10:
+        $sum:
+          $cond:
+            - $eq:
+                - $state
+                - 10
+            - 1
+            - 0
+      stat_11:
+        $sum:
+          $cond:
+            - $eq:
+                - $state
+                - 11
+            - 1
+            - 0
+      stat_12:
+        $sum:
+          $cond:
+            - $eq:
+                - $state
+                - 12
+            - 1
+            - 0
+      stat_13:
+        $sum:
+          $cond:
+            - $eq:
+                - $state
+                - 13
+            - 1
+            - 0
+      stat_14:
+        $sum:
+          $cond:
+            - $eq:
+                - $state
+                - 14
+            - 1
+            - 0
+source: UpdateEventV2
+timestamp: _at
+type: now
+affix: false

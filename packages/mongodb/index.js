@@ -140,5 +140,7 @@ function setupMongoDB(config, modelRoot, baseDb) {
 
 module.exports = {
     ...require('./utils'),
+    ...require('./report-engine'),
+    ...require('./transform-engine'),
     setupMongoDB
 }
