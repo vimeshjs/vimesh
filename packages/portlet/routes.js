@@ -22,12 +22,29 @@ function convertParameters(params, config) {
         $logger.error(`Fails to convert ${JSON.stringify(params)} with config ${JSON.stringify(config)}`)
     }
 }
+
+function filesize(size) {
+    if (!size) return 0
+    if (_.isString(size)) {
+        let unit = size.substring(size.length - 1)
+        let val = +size.substring(0, size.length - 1)
+        if ('g' === unit || 'G' === unit)
+            unit = 1024 * 1024 * 1024
+        else if ('m' === unit || 'M' === unit)
+            unit = 1024 * 1024
+        else if ('k' === unit || 'K' === unit)
+            unit = 1024
+        else
+            return +size
+        return val * unit
+    } else {
+        return +size
+    }
+}
+
 function bodyParserMiddleware(req, res, next) {
-    if ("POST" == req.method || "PUT" == req.method){
-        let context = this
-        let options = { multiples: true }
-        if (context.uploadDir) options.uploadDir = context.uploadDir
-        let form = formidable(options)
+    if ("POST" == req.method || "PUT" == req.method) {
+        let form = formidable(this)
         form.parse(req, (err, fields, files) => {
             if (err) return next(err)
             req.body = fields
@@ -121,6 +138,7 @@ function setupMiddleware(req, res, next) {
         next()
     })
 }
+let bindedBodyParserMiddleware = null
 function scanRoutes(portletServer, current) {
     const app = portletServer.app
     let layout = current.layout
@@ -130,6 +148,17 @@ function scanRoutes(portletServer, current) {
     let viewEngine = portletServer.viewEngine
 
     if (!current.dir || !fs.existsSync(current.dir) || current.dir[0] == '_') return
+
+    if (!bindedBodyParserMiddleware){
+        let options = { multiples: true }
+        options.uploadDir = portletServer.config.uploadDir || `${path.join(process.cwd(), 'mnt/uploads')}`
+        mkdirp(options.uploadDir)
+        $logger.info(`Upload directory : ${options.uploadDir}`)
+        let mfs = portletServer.config.uploadMaxFileSize || '100M'
+        options.maxFileSize = filesize(mfs)
+        $logger.info(`Upload maximum file size : ${mfs}`)        
+        bindedBodyParserMiddleware = _.bind(bodyParserMiddleware, options)
+    }
 
     if (fs.existsSync(path.join(current.dir, '_.js'))) {
         let methods = require(path.join(current.dir, '_.js'))
@@ -149,7 +178,7 @@ function scanRoutes(portletServer, current) {
             else
                 after = _.concat(methods.after, after)
         }
-        if (methods.layout !== undefined) 
+        if (methods.layout !== undefined)
             layout = methods.layout
         if (methods.setup) {
             $logger.info(`Setup ${portletServer.urlPrefix}${current.urlPath}`)
@@ -207,18 +236,16 @@ function scanRoutes(portletServer, current) {
                         else
                             mafter = _.concat(m.after, mafter)
                     }
-                    if (m.layout !== undefined) 
+                    if (m.layout !== undefined)
                         mcontext.layout = m.layout
                     mcontext.handler = m.handler
                     mcontext.inputs = m.inputs
                 } else {
                     $logger.error('Route handler must be a function or an object with {before:, handler:, after:}')
                     return
-                }
-                let bpContext = _.pick(portletServer.config, 'uploadDir')
-                if (bpContext.uploadDir) mkdirp(bpContext.uploadDir)
+                }     
                 let allHandlers = _.concat(
-                    _.bind(bodyParserMiddleware, bpContext),
+                    bindedBodyParserMiddleware,
                     _.bind(setupMiddleware, mcontext),
                     mbefore,
                     mcontext.handler,
