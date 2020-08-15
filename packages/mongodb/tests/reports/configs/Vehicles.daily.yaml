@@ -10,3 +10,4 @@ timestamp: activated_at
 target: VehiclesDailyReportsV2
 type: daily
 affix: false
+timezone: Asia/Shanghai

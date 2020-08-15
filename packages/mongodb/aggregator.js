@@ -14,6 +14,7 @@ $aggregator.createReportInTimeslot = function (options) {
     let target = _.isString(options.target) ? $dao[options.target] : options.target
     let dtype
     let dformat
+    $logger.info(`Create report in timeslot ${options.source} -> ${options.target} | timezone : ${TIMEZONE}`)
     switch (ts) {
         case 'hour': dtype = 'dh'; dformat = 'YYYYMMDDHH'; break
         case 'day': dtype = 'dd'; dformat = 'YYYYMMDD'; break
@@ -61,6 +62,7 @@ $aggregator.buildDailyReports = function (options) {
     let first = null
     let last = null
     let next = null
+    $logger.info(`Build daily reports ${options.source} -> ${options.target} | timezone : ${TIMEZONE}`)
     return target.select({ size: 1, sort: { "_id.dd": -1 } }).then(r => {
         let cond = {}
         cond[tmfield] = { $exists: true }
@@ -95,7 +97,7 @@ $aggregator.buildDailyReports = function (options) {
         } else {
             return Promise.resolve()
         }
-        $logger.info(`Build daily reports for ${options.source} into ${options.target} for ${_.map(dates, dt => formatDate(dt, 'YYYYMMDD'))})`)
+        $logger.info(`Build daily reports ${options.source} -> ${options.target} | date : ${_.map(dates, dt => formatDate(dt, 'YYYYMMDD'))})`)
 
         return Promise.all(_.map(dates, dt => createOneDayReportTask(source, dt, tmfield, stages))).then(rs => {
             target.set(_.flatten(rs))
