@@ -280,6 +280,8 @@ function createDao(schema, name, affix) {
                             idmap[item.val] = +item.val
                         } else if (ttype == 'string') {
                             idmap[item.val] = item.val.toString()
+                        } else {
+                            idmap[item.val] = item.val
                         }
                     }
                 })
