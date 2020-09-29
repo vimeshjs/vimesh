@@ -41,6 +41,7 @@
     "lodash": "^4.17.15",
     "morgan": "^1.10.0",
     "rollup": "^2.18.1",
+    "rollup-plugin-includepaths": "^0.2.4",
     "rollup-plugin-terser": "^6.1.0",
     "rollup-plugin-vue": "^5.1.6",
     "vue-template-compiler": "^2.6.11",

@@ -9,12 +9,16 @@ const fs = require('fs')
 const path = require('path')
 const { createMemoryCache } = require('@vimesh/cache')
 const { loadYaml } = require('@vimesh/utils')
+const includePaths = require('rollup-plugin-includepaths')
 
 function configVue(options) {
     const rollupOptions = {
         input: options.input,
         external: options.external || [],
         plugins: [
+            includePaths({
+                extensions: ['.js', '.json', '.html', '.vue', '.scss', '.sass', '.less', '.css', '.stylus', '.styl']
+            }),
             resolve(),
             commonjs(),
             vue({
@@ -22,7 +26,9 @@ function configVue(options) {
                 css: true,
                 needMap: options.debug
             }),
-            buble()
+            buble({
+                objectAssign: 'Object.assign'
+            })
         ]
     }
     if (!options.debug) {
@@ -94,7 +100,7 @@ function setupComponents(portletServer) {
     portletServer.app.get(`${urlPath}/*`, function (req, res, next) {
         let filePath = path.relative(`${urlPath}/`, req.path)
         let map = false
-        if (_.endsWith(filePath, '.js.map')){
+        if (_.endsWith(filePath, '.js.map')) {
             map = true
             filePath = filePath.substring(0, filePath.length - '.map'.length)
         }
