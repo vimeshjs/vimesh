@@ -76,7 +76,7 @@ function createComponentCache(portletServer) {
             if (file && config) {
                 let yf = path.join(portletServer.componentsDir, keyPath + '.yaml')
                 let options = config({
-                    name: keyPath.replace(path.sep, '.'),
+                    name: keyPath.split(path.sep).join('.'),
                     input: file,
                     output: path.join(process.cwd(), 'mnt/dist', key),
                     debug: portletServer.config.debug,
