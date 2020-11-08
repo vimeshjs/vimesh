@@ -244,8 +244,20 @@ S3Storage.prototype.getObject = function (bucket, filePath) {
 }
 
 S3Storage.prototype.getPartialObject = function (bucket, filePath, offset, size) {
-    //return this.client.getPartialObject(bucket, filePath, offset, size);
-    throw new Error('Not implemented!')
+    return new Promise((resolve, reject) => {
+        const methodOptions = {
+            Bucket: this.bucketPrefix + bucket,
+            Key: filePath
+        }
+        this.client.headObject(methodOptions, (err, resp) => {
+            if (err) {
+                return reject(err)
+            }
+            methodOptions.Range = `bytes=${offset}-${size ? offset + size - 1 : ''}`
+            const stream = this.client.getObject(methodOptions).createReadStream()
+            resolve(stream)
+        })
+    })
 }
 
 S3Storage.prototype.deleteObject = function (bucket, filePath) {
