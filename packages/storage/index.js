@@ -8,6 +8,7 @@ const { getFullLocalStat, compareLocalAndRemoteStat } = require('./storage')
 const { createLocalStorage } = require('./storage-local')
 const { createMinioStorage } = require('./storage-minio')
 const { createS3Storage } = require('./storage-s3')
+const { createGcpStorage } = require('./storage-gcp')
 const { getMD5 } = require('@vimesh/utils')
 const writeFileAsync = Promise.promisify(fs.writeFile)
 
@@ -15,7 +16,12 @@ function createStorage(config) {
     switch (config.type) {
         case 'local': return createLocalStorage(config)
         case 'minio': return createMinioStorage(config)
-        case 's3': return createS3Storage(config)
+        case 's3': 
+        case 'aws': 
+            return createS3Storage(config)
+        case 'gcp':
+        case 'google':
+            return createGcpStorage(config)
     }
     throw Error(`Storage type "${config.type}" is not supported`)
 }

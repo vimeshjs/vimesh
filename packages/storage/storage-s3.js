@@ -5,7 +5,7 @@ const { encodeMeta, decodeMeta } = require('./meta')
 const AWS = require('aws-sdk')
 const { Storage } = require('./storage')
 const { isStream, getMD5 } = require('@vimesh/utils')
-const { reject } = require('bluebird')
+
 function S3Storage(config) {
     Storage.call(this, config)
     let options = config.options
@@ -196,7 +196,8 @@ function PutObjectMethodOptions(options) {
             }
         }
     }
-
+    if (methodOptions.Metadata)
+        methodOptions.Metadata = encodeMeta(methodOptions.Metadata)
     return methodOptions
 }
 

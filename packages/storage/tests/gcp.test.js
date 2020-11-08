@@ -7,35 +7,36 @@ const Promise = require('bluebird')
 const { setupLogger } = require('@vimesh/logger')
 setupLogger()
 
-const PREFIX = 'vimesh.'
+const PREFIX = 'vimesh-'
 let storage = null
 beforeAll(() => {
     storage = createStorage({
-        type: 's3',
+        type: 'gcp',
         options: {
             bucketPrefix: PREFIX,
-            region: 'ap-southeast-1',
-            accessKey: 'AKIATGZ3IMMJIYMYHZOE',
-            secretKey: '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'
+            //projectId : "airnow-272002",
+            keyFilename: `${__dirname}/key-gcp.json`
         }
     })
     return storage.listObjects('bucket-001').then(fs => {
         return fs && Promise.each(fs, f => {
             return storage.deleteObject('bucket-001', f.path)
         })
-    }).catch(ex => { }).then(r => {
+    }).catch(ex => { console.log(ex) }).then(r => {
         return storage.listObjects('bucket-002').then(fs => {
             return fs && Promise.each(fs, f => {
                 return storage.deleteObject('bucket-002', f.path)
             })
         })
-    }).catch(ex => { }).then(r => {
+    }).catch(ex => { console.log(ex) }).then(r => {
         return Promise.all([
             storage.deleteBucket('bucket-001'),
             storage.deleteBucket('bucket-002')
         ])
-    }).catch(ex => { })
+    }).catch(ex => { console.log(ex) })
+
 }, 1000 * 60)
+
 
 test('create buckets', function () {
     return storage.createBucket('bucket-001', {}).then(() => {
@@ -90,12 +91,13 @@ test('list, delete, stat object', function () {
     })
 }, 1000 * 60)
 
+
 test('put stream', function () {
     let jscontent = null
     return storage.putObject('bucket-001', 'folder1/streamfile.js', fs.createReadStream(__dirname + '/local.test.js'), {
         meta: {
             'content-type': 'text/javascript',
-            'name': '测试文件'
+            '名称' : '测试文件'
         }
     }).then(r => {
         return storage.getObjectAsBuffer('bucket-001', 'folder1/streamfile.js').then(r => {
@@ -104,6 +106,7 @@ test('put stream', function () {
             return storage.statObject('bucket-001', 'folder1/streamfile.js')
         }).then(stat => {
             expect(stat.meta['content-type']).toBe('text/javascript')
+            expect(stat.meta['名称']).toBe('测试文件')
             return storage.getObjectAsFile('bucket-001', 'folder1/streamfile.js', `${__dirname}/tmp/downloaded.js`)
         }).then(r => {
             let buf = fs.readFileSync(`${__dirname}/tmp/downloaded.js`)
@@ -111,6 +114,7 @@ test('put stream', function () {
         })
     })
 }, 1000 * 60)
+
 
 test('copy ', function () {
     return storage.copyObject('bucket-001', 'folder1/b.txt', 'folder1/b-001.txt').then(r => {

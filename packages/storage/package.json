@@ -7,6 +7,7 @@
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
+    "@google-cloud/storage": "^5.4.0",
     "@vimesh/cache": "^0.10.2",
     "@vimesh/logger": "^0.10.1",
     "@vimesh/utils": "^0.10.2",
