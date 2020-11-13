@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/discovery",
-  "version": "0.10.4",
+  "version": "0.10.19",
   "description": "Vimesh share KV store, service discovery",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
@@ -9,7 +9,7 @@
   "dependencies": {
     "@vimesh/grpc": "^0.10.4",
     "@vimesh/logger": "^0.10.1",
-    "@vimesh/utils": "^0.10.2",
+    "@vimesh/utils": "^0.10.19",
     "lodash": "^4.17.15"
   }
 }
