@@ -1,4 +1,4 @@
-const {xor, fromBase64, toBase64, getCRC16, getCRC32, getMD5, getFileChecksum, getStreamChecksum} = require('..')
+const { xor, fromBase64, toBase64, fromUrlSafeBase64, toUrlSafeBase64, getCRC16, getCRC32, getMD5, getFileChecksum } = require('..')
 const _ = require('lodash')
 const fs = require('fs')
 test('xor', function () {
@@ -9,7 +9,7 @@ test('xor', function () {
     let c = toBase64(a)
     let d = fromBase64(c)
     let b = xor(d, key)
-    console.log(str, a, c, d,  b)
+    console.log(str, a, c, d, b)
     expect(d).toBe(a)
     expect(b).toBe(str)
 
@@ -20,7 +20,7 @@ test('xor', function () {
     c = toBase64(a)
     d = fromBase64(c)
     b = xor(d, key)
-    console.log(str, a, c, d,  b)
+    console.log(str, a, c, d, b)
     expect(d).toBe(a)
     expect(b).toBe(str)
 
@@ -30,18 +30,18 @@ test('xor', function () {
     c = toBase64(a)
     d = fromBase64(c)
     b = xor(d, key)
-    console.log(str, a, c, d,  b)
+    console.log(str, a, c, d, b)
     expect(d).toBe(a)
     expect(b).toBe(str)
-    
-        
+
+
     str = 'admin'
     key = 'admin'
     a = xor(str, key)
     c = toBase64(a)
     d = fromBase64(c)
     b = xor(d, key)
-    console.log(str, a, c, d,  b)
+    console.log(str, a, c, d, b)
     expect(d).toBe(a)
     expect(b).toBe(str)
 
@@ -62,4 +62,42 @@ test('md5', () => {
     return getFileChecksum(fn).then(fmd5 => {
         expect(fmd5).toBe(md5)
     })
+})
+
+test('url safe base64', function () {
+
+    let str = 'xjzhang'
+    let a = toBase64(str)
+    let b = fromBase64(a)
+
+    let c = toUrlSafeBase64(str)
+    let d = fromUrlSafeBase64(c)
+
+    console.log(a, b, c, d)
+    expect(b).toBe(str)
+    expect(d).toBe(str)
+
+
+    str = '你好'
+    a = toBase64(str)
+    b = fromBase64(a)
+
+    c = toUrlSafeBase64(str)
+    d = fromUrlSafeBase64(c)
+
+    console.log(a, b, c, d)
+    expect(b).toBe(str)
+    expect(d).toBe(str)
+
+    str = 'subjects?_d=1'
+    a = toBase64(str)
+    b = fromBase64(a)
+
+    c = toUrlSafeBase64(str)
+    d = fromUrlSafeBase64(c)
+
+    console.log(a, b, c, d)
+    expect(b).toBe(str)
+    expect(d).toBe(str)
+
 })

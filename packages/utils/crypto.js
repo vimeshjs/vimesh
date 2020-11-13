@@ -21,6 +21,18 @@ function toBase64(data) {
     return buff.toString('base64')
 }
 
+function toUrlSafeBase64(unencoded) {
+    var encoded = toBase64(unencoded)
+    return encoded.replace('+', '-').replace('/', '_').replace(/=+$/, '')
+}
+
+function fromUrlSafeBase64(encoded, enc = 'utf8') {
+    encoded = encoded.replace('-', '+').replace('_', '/')
+    while (encoded.length % 4)
+        encoded += '='
+    return fromBase64(encoded)
+}
+
 function xor(str, key) {
     key = key ? key.toString() : ''
     var output = ''
@@ -38,7 +50,7 @@ function getMD5(content) {
         return crypto.createHash('md5').update(_.isString(content) ? content : content + "", 'utf8').digest('hex');
 }
 
-function getUUID(options){
+function getUUID(options) {
     return uuidv4()
 }
 module.exports = {
@@ -46,6 +58,8 @@ module.exports = {
     getCRC32,
     fromBase64,
     toBase64,
+    toUrlSafeBase64,
+    fromUrlSafeBase64,
     xor,
     getMD5,
     getUUID
