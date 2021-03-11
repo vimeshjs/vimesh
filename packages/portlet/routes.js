@@ -43,7 +43,8 @@ function filesize(size) {
 }
 
 function bodyParserMiddleware(req, res, next) {
-    if ("POST" == req.method || "PUT" == req.method) {
+    if (("POST" == req.method || "PUT" == req.method) &&
+        (req.is('json') || req.is('multipart') || req.is('urlencoded'))){
         let form = formidable(this)
         form.parse(req, (err, fields, files) => {
             if (err) return next(err)
