@@ -21,7 +21,7 @@ test('load production configs', () => {
     let context = {
         root: '/vol',
         configsDir: __dirname + '/configs',
-        env: _.extend(process.env, { PORT: 6666, SELF_URL: 'https://vimesh.org:{{PORT}}' })
+        env: _.extend(process.env, { PORT: 6666, SELF_URL: 'https://vimesh.org:{{PORT}}', STORAGE_ROOT: '{{ROOT}}' })
     }
     let configs = loadConfigs(context, 'common', 'production')
     console.log(pretty(configs))
@@ -30,4 +30,6 @@ test('load production configs', () => {
     expect(configs.portlet.layout).toBe('admin')
     expect(configs.portlet.selfUrl).toBe('https://vimesh.org:6666')
     expect(configs.logger.level).toBe('warn')
+    expect(configs.portlet.uploadsDir).toBe(context.root + '/uploads')
+    
 })

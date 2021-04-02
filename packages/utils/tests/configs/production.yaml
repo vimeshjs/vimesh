@@ -2,3 +2,4 @@ logger:
   level: warn
 portlet:
   layout: admin
+  uploadsDir: '{{STORAGE_ROOT}}/uploads'

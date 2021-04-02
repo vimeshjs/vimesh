@@ -67,6 +67,7 @@ function loadConfigs(context, ...files) {
     const configsDir = context.configsDir || path.join(process.cwd(), 'configs')
     let configs = {}
     let vars = _.cloneDeep(context.env)
+    if (context.root && !vars.ROOT) vars.ROOT = context.root
     _.each(vars, (v, k) => {
         if (v && v.indexOf('{{') != -1) {
             try {
@@ -82,7 +83,6 @@ function loadConfigs(context, ...files) {
             }
         }
     })
-    if (context.root && !vars.ROOT) vars.ROOT = context.root
     vars.env = _.cloneDeep(vars) // make it compatible with previous version
     _.each(files, f => {
         try {
