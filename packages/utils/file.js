@@ -66,16 +66,34 @@ function loadConfigs(context, ...files) {
     const Handlebars = require("handlebars");
     const configsDir = context.configsDir || path.join(process.cwd(), 'configs')
     let configs = {}
+    let vars = _.cloneDeep(context.env)
+    _.each(vars, (v, k) => {
+        if (v && v.indexOf('{{') != -1) {
+            try {
+                const template = Handlebars.compile(v)
+                let cv = template(vars)
+                vars[k] = cv
+                //console.log(`Converted environment variable ${k}=${cv} (${v})`)
+            } catch (ex) {
+                if (global.$logger)
+                    $logger.error(`Fails to load environment variable ${k}`, ex)
+                else
+                    console.log(ex)
+            }
+        }
+    })
+    if (context.root && !vars.ROOT) vars.ROOT = context.root
+    vars.env = _.cloneDeep(vars) // make it compatible with previous version
     _.each(files, f => {
         try {
             let filePath = path.join(configsDir, f) + '.yaml'
             let yamlContent = fs.readFileSync(filePath).toString()
-            const template = Handlebars.compile(yamlContent);
-            let cf = yaml.load(template(context))
+            const template = Handlebars.compile(yamlContent)
+            let cf = yaml.load(template(vars))
             configs = _.merge(configs, cf)
         } catch (ex) {
             if (global.$logger)
-                $logger.error(`Fails to load ${f}`, ex)
+                $logger.error(`Fails to load config file ${f}`, ex)
             else
                 console.log(ex)
         }

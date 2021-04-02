@@ -3,6 +3,8 @@ logger:
   console:
     colorized: true
   file:
-    dir: '{{root}}/logs'
+    dir: '{{ROOT}}/logs'
 portlet:
   layout: main
+  port: {{env.PORT}}
+  selfUrl: {{SELF_URL}}
