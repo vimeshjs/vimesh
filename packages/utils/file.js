@@ -84,7 +84,7 @@ function loadConfigs(context, ...files) {
         }
     })
     vars.env = _.cloneDeep(vars) // make it compatible with previous version
-    vars.root = context.root
+    vars.root = context.root     // make it compatible with previous version
     _.each(files, f => {
         try {
             let filePath = path.join(configsDir, f) + '.yaml'
