@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/cache",
-  "version": "0.10.22",
+  "version": "0.10.23",
   "description": "Vimesh cache management",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
@@ -8,7 +8,7 @@
   "license": "MIT",
   "dependencies": {
     "@vimesh/logger": "^0.10.1",
-    "@vimesh/utils": "^0.10.22",
+    "@vimesh/utils": "^0.10.23",
     "bluebird": "^3.7.2",
     "json-stable-stringify": "^1.0.1",
     "lru-cache": "^5.1.1"
