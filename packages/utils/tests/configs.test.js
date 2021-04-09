@@ -31,5 +31,6 @@ test('load production configs', () => {
     expect(configs.portlet.selfUrl).toBe('https://vimesh.org:6666')
     expect(configs.logger.level).toBe('warn')
     expect(configs.portlet.uploadsDir).toBe(context.root + '/uploads')
+    expect(configs.portlet.oldDir).toBe(context.root + '/old')
     
 })

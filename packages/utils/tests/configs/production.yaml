@@ -3,3 +3,4 @@ logger:
 portlet:
   layout: admin
   uploadsDir: '{{STORAGE_ROOT}}/uploads'
+  oldDir: '{{root}}/old'
