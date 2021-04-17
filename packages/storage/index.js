@@ -9,6 +9,7 @@ const { createLocalStorage } = require('./storage-local')
 const { createMinioStorage } = require('./storage-minio')
 const { createS3Storage } = require('./storage-s3')
 const { createGcpStorage } = require('./storage-gcp')
+const { createAzureStorage } = require('./storage-azure')
 const { getMD5 } = require('@vimesh/utils')
 const writeFileAsync = Promise.promisify(fs.writeFile)
 
@@ -22,6 +23,8 @@ function createStorage(config) {
         case 'gcp':
         case 'google':
             return createGcpStorage(config)
+        case 'azure':
+            return createAzureStorage(config)
     }
     throw Error(`Storage type "${config.type}" is not supported`)
 }
