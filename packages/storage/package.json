@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/storage",
-  "version": "0.10.26",
+  "version": "0.10.27",
   "description": "Vimesh storage",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
@@ -8,7 +8,7 @@
   "license": "MIT",
   "dependencies": {
     "@google-cloud/storage": "^5.4.0",
-    "@vimesh/cache": "^0.10.25",
+    "@vimesh/cache": "^0.10.27",
     "@vimesh/logger": "^0.10.1",
     "@vimesh/utils": "^0.10.25",
     "aws-sdk": "^2.785.0",
