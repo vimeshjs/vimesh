@@ -80,7 +80,7 @@ MemoryCache.prototype.refreshValue = function (keyObj) {
     try {
         let r = this.onRefresh(keyObj)
         if (r !== undefined) {
-            if (_.isFunction(r.then)) {
+            if (_.isFunction(r && r.then)) {
                 return r.then(val => {
                     cache.set(key, val)
                     return val

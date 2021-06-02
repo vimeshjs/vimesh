@@ -64,7 +64,12 @@ function createComponentCache(portletServer) {
             let keyPath = keyExt ? key.substring(0, key.length - keyExt.length) : key
             let file = null
             let config = null
+            let debug = portletServer.config.debug
             let meta = null
+            if (path.extname(keyPath) === '.min'){
+                keyPath = keyPath.substring(0, keyPath.length - 4)
+                debug = false
+            }
             _.each(COMPONENT_EXT_NAMES, extName => {
                 if (file) return
                 let f = path.join(portletServer.componentsDir, keyPath + extName)
@@ -80,7 +85,7 @@ function createComponentCache(portletServer) {
                     name: keyPath.split(path.sep).join('.'),
                     input: file,
                     output: path.join(process.cwd(), 'mnt/dist', key),
-                    debug: portletServer.config.debug,
+                    debug,
                     extraOptions: fs.existsSync(yf) ? loadYaml(yf) : {}
                 })
 

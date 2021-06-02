@@ -426,7 +426,6 @@ module.exports = {
     fontAwesomeIcon,
     faIcon: fontAwesomeIcon,
     contentFor,
-    content: contentFor,
     tailwindUse,
     twUse: tailwindUse,
     tailwindApply,
@@ -435,11 +434,9 @@ module.exports = {
     twBlock: tailwindBlock,
     obfuscate,
     menusByZone,
-    menus: menusByZone,
     block,
     json,
     fetch,
     extensionsByZone,
-    extensions: extensionsByZone,
     template
 }
