@@ -1,0 +1,21 @@
+{
+  "name": "@vimesh/orm",
+  "description": "Vimesh ORM",
+  "version": "0.10.1",
+  "main": "index.js",
+  "repository": "https://github.com/vimeshjs/vimesh.git",
+  "author": "Jacky <jacky@vimesh.org>",
+  "license": "MIT",
+  "dependencies": {
+    "@vimesh/logger": "^0.10.1",
+    "@vimesh/utils": "^0.10.25",
+    "bluebird": "^3.7.2",
+    "lodash": "^4.17.15",
+    "moment": "^2.27.0",
+    "moment-timezone": "^0.5.31",
+    "sequelize": "^6.6.2"
+  },
+  "devDependencies": {
+    "sqlite3": "^5.0.2"
+  }
+}

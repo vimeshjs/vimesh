@@ -1,0 +1,22 @@
+properties:
+  id: string           # 用户ID，即用户名
+  name: string          # 姓名
+  no: int            # 员工编号
+  email: string         # Email
+  password: string      # 密码
+  phone: string         # 电话号码
+  mobile: string        # 手机号
+  birthday: date        # 生日
+  dashboard: string     # 工作台样式
+  sex: string           # m : 男, f: 女, null : unknown
+  blocked: boolean      # 是否被禁用
+  blocked_reason: string # 禁用原因
+$mapping:
+  collection: users
+  sync: true
+  recyclable: true
+  indexes:
+    - keys:
+        email: 1
+      options:
+        unique: true
