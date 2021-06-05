@@ -23,7 +23,7 @@
     "@vimesh/logger": "^0.10.1",
     "@vimesh/storage": "^0.10.27",
     "@vimesh/utils": "^0.10.25",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "bluebird": "^3.7.2",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
