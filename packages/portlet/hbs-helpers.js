@@ -141,9 +141,6 @@ function allow(perm, options) {
     return allowed ? content : ''
 }
 
-const cssSource = fs.createReadStream(path.join(__dirname, '/tailwind@1.2.0.min.css.gz'))
-const cssUnzip = zlib.createGunzip()
-const cssBufferStream = new WritableBufferStream()
 let tailwindStyles = null
 let tailwindStylesList = []
 let tailwindStylesMap = {}
@@ -176,8 +173,10 @@ function addRule(parent, rule, selector) {
     }
     tailwindStylesList.push(ss)
 }
-pipeStreams(cssSource, cssUnzip, cssBufferStream).then(() => {
-    tailwindStyles = css.parse(cssBufferStream.toBuffer().toString());
+
+function preloadTailwindCss() {
+    let cssTailwind = fs.readFileSync(path.join(__dirname, '/tailwind@1.2.0.min.css'))
+    tailwindStyles = css.parse(cssTailwind.toString())
     _.each(tailwindStyles.stylesheet.rules, (rule, i) => {
         if (rule.selectors) {
             _.each(rule.selectors, selector => addRule(null, rule, selector))
@@ -187,12 +186,15 @@ pipeStreams(cssSource, cssUnzip, cssBufferStream).then(() => {
             })
         }
     })
-})
+}
 
 function tailwindUse(usedClasses, options) {
     if (!options.data.root._tailwindStyles) options.data.root._tailwindStyles = {}
     if (!options.data.root._tailwindUsedClasses) options.data.root._tailwindUsedClasses = {}
-    if (!options.data.root._tailwindAllClasses) options.data.root._tailwindAllClasses = tailwindStylesMap
+    if (!options.data.root._tailwindAllClasses) {
+        if (!tailwindStyles) preloadTailwindCss()
+        options.data.root._tailwindAllClasses = tailwindStylesMap
+    }
     let items = _.map(usedClasses.split(/\s+/), s => {
         s = _.trim(s)
         if (s && !tailwindStylesMap[s]) {
@@ -251,7 +253,10 @@ function injectTailwindStyles(params, context, html) {
     return ''
 }
 function tailwindBlock(options) {
-    if (!options.data.root._tailwindAllClasses) options.data.root._tailwindAllClasses = tailwindStylesMap
+    if (!options.data.root._tailwindAllClasses) {
+        if (!tailwindStyles) preloadTailwindCss()
+        options.data.root._tailwindAllClasses = tailwindStylesMap
+    }
     if (!options.data.root._tailwindStylesList) options.data.root._tailwindStylesList = tailwindStylesList
     let cssContent = ''
     if (options.data.root._tailwindStyles) {
@@ -332,21 +337,21 @@ function extract(tag, html) {
     }
 }
 
-function processFetchedResult(params, fetchedResult){
+function processFetchedResult(params, fetchedResult) {
     let r = fetchedResult
     let html = _.isString(r.data) ? r.data : JSON.stringify(r.data)
     let result = []
-    if (params.stylePlaceholder){
+    if (params.stylePlaceholder) {
         r = extract('style', html)
         html = r.html
-        result.push({placeholder : params.stylePlaceholder, content : r.result})
+        result.push({ placeholder: params.stylePlaceholder, content: r.result })
     }
-    if (params.scriptPlaceholder){
+    if (params.scriptPlaceholder) {
         r = extract('script', html)
         html = r.html
-        result.push({placeholder : params.scriptPlaceholder, content : r.result})
+        result.push({ placeholder: params.scriptPlaceholder, content: r.result })
     }
-    result.push({placeholder : params.placeholder, content : html})
+    result.push({ placeholder: params.placeholder, content: html })
     return result
 }
 function injectFetchedContent(params, context) {

@@ -62,91 +62,89 @@ function createAssetsCache(portletServer, type, extName) {
 }
 
 function mergeAssets(portletServer) {
-    setInterval(() => {
-        _.each(portletServer.assetCaches, cache => cache.enumerate(true))
-        if (portletServer.standalone) {
-            let cacheMenus = portletServer.assetCaches['menus']
-            cacheMenus.enumerate(true).then(rs => {
-                portletServer.allMenusByZone = {}
-                _.each(rs, (r, key) => {
-                    let pos = key.indexOf('/')
-                    let zone = pos == -1 ? key : key.substring(0, pos)
-                    portletServer.allMenusByZone[zone] = _.merge(portletServer.allMenusByZone[zone], r.content)
-                })
+    _.each(portletServer.assetCaches, cache => cache.enumerate(true))
+    if (portletServer.standalone) {
+        let cacheMenus = portletServer.assetCaches['menus']
+        cacheMenus.enumerate(true).then(rs => {
+            portletServer.allMenusByZone = {}
+            _.each(rs, (r, key) => {
+                let pos = key.indexOf('/')
+                let zone = pos == -1 ? key : key.substring(0, pos)
+                portletServer.allMenusByZone[zone] = _.merge(portletServer.allMenusByZone[zone], r.content)
             })
+        })
 
-            let cacheI18n = portletServer.assetCaches['i18n']
-            cacheI18n.enumerate(true).then(rs => {
-                _.each(rs, (r, key) => {
-                    let data = {}
-                    data[key] = r.content
-                    mergeI18nItems(portletServer.mergedI18nItems, data)
-                })
+        let cacheI18n = portletServer.assetCaches['i18n']
+        cacheI18n.enumerate(true).then(rs => {
+            _.each(rs, (r, key) => {
+                let data = {}
+                data[key] = r.content
+                mergeI18nItems(portletServer.mergedI18nItems, data)
             })
+        })
 
-            let cachePermissions = portletServer.assetCaches['permissions']
-            cachePermissions.enumerate(true).then(rs => {
-                portletServer.allPermissions = _.merge({}, ..._.map(_.values(rs), item => item.content))
-            })
+        let cachePermissions = portletServer.assetCaches['permissions']
+        cachePermissions.enumerate(true).then(rs => {
+            portletServer.allPermissions = _.merge({}, ..._.map(_.values(rs), item => item.content))
+        })
 
-            let cacheExtensions = portletServer.assetCaches['extensions']
-            cacheExtensions.enumerate(true).then(rs => {
-                portletServer.allExtensionsByZone = {}
-                _.each(rs, (r, key) => {
-                    let pos = key.indexOf('/')
-                    let zone = pos == -1 ? key : key.substring(0, pos)
-                    portletServer.allExtensionsByZone[zone] = _.merge(portletServer.allExtensionsByZone[zone], r.content)
-                })
+        let cacheExtensions = portletServer.assetCaches['extensions']
+        cacheExtensions.enumerate(true).then(rs => {
+            portletServer.allExtensionsByZone = {}
+            _.each(rs, (r, key) => {
+                let pos = key.indexOf('/')
+                let zone = pos == -1 ? key : key.substring(0, pos)
+                portletServer.allExtensionsByZone[zone] = _.merge(portletServer.allExtensionsByZone[zone], r.content)
             })
-        } else {
-            let kvClient = portletServer.kvClient
-            kvClient.get('menus/*').then(rs => {
-                portletServer.allMenusByZone = {}
-                _.each(rs, (r, key) => {
-                    key = key.substring(key.indexOf('/', key.indexOf('@')) + 1)
-                    let pos = key.indexOf('/')
-                    let zone = pos == -1 ? key : key.substring(0, pos)
-                    portletServer.allMenusByZone[zone] = _.merge(portletServer.allMenusByZone[zone], r)
-                })
-            }).then(r => {
-                portletServer.menusReady = true
-            }).catch(ex => {
-                $logger.error('Fails to receive merged menus.', ex)
+        })
+    } else {
+        let kvClient = portletServer.kvClient
+        kvClient.get('menus/*').then(rs => {
+            portletServer.allMenusByZone = {}
+            _.each(rs, (r, key) => {
+                key = key.substring(key.indexOf('/', key.indexOf('@')) + 1)
+                let pos = key.indexOf('/')
+                let zone = pos == -1 ? key : key.substring(0, pos)
+                portletServer.allMenusByZone[zone] = _.merge(portletServer.allMenusByZone[zone], r)
             })
+        }).then(r => {
+            portletServer.menusReady = true
+        }).catch(ex => {
+            $logger.error('Fails to receive merged menus.', ex)
+        })
 
-            kvClient.get('i18n/*').then(rs => {
-                portletServer.mergedI18nItems = {}
-                _.each(rs, (r, key) => {
-                    key = key.substring(key.indexOf('/', key.indexOf('@')) + 1)
-                    let data = {}
-                    data[key] = r
-                    mergeI18nItems(portletServer.mergedI18nItems, data)
-                })
-            }).then(r => {
-                portletServer.i18nReady = true
-            }).catch(ex => {
-                $logger.error('Fails to receive i18n items.', ex)
+        kvClient.get('i18n/*').then(rs => {
+            portletServer.mergedI18nItems = {}
+            _.each(rs, (r, key) => {
+                key = key.substring(key.indexOf('/', key.indexOf('@')) + 1)
+                let data = {}
+                data[key] = r
+                mergeI18nItems(portletServer.mergedI18nItems, data)
             })
+        }).then(r => {
+            portletServer.i18nReady = true
+        }).catch(ex => {
+            $logger.error('Fails to receive i18n items.', ex)
+        })
 
-            kvClient.get('permissions/*').then(rs => {
-                portletServer.allPermissions = _.merge({}, ..._.values(rs))
-            }).catch(ex => {
-                $logger.error('Fails to receive permissions.', ex)
-            })
+        kvClient.get('permissions/*').then(rs => {
+            portletServer.allPermissions = _.merge({}, ..._.values(rs))
+        }).catch(ex => {
+            $logger.error('Fails to receive permissions.', ex)
+        })
 
-            kvClient.get('extensions/*').then(rs => {
-                portletServer.allExtensionsByZone = {}
-                _.each(rs, (r, key) => {
-                    key = key.substring(key.indexOf('/', key.indexOf('@')) + 1)
-                    let pos = key.indexOf('/')
-                    let zone = pos == -1 ? key : key.substring(0, pos)
-                    portletServer.allExtensionsByZone[zone] = _.merge(portletServer.allExtensionsByZone[zone], r)
-                })
-            }).catch(ex => {
-                $logger.error('Fails to receive merged extensions.', ex)
+        kvClient.get('extensions/*').then(rs => {
+            portletServer.allExtensionsByZone = {}
+            _.each(rs, (r, key) => {
+                key = key.substring(key.indexOf('/', key.indexOf('@')) + 1)
+                let pos = key.indexOf('/')
+                let zone = pos == -1 ? key : key.substring(0, pos)
+                portletServer.allExtensionsByZone[zone] = _.merge(portletServer.allExtensionsByZone[zone], r)
             })
-        }
-    }, duration('3s'))
+        }).catch(ex => {
+            $logger.error('Fails to receive merged extensions.', ex)
+        })
+    }
 }
 function mergeI18nItems(all, itemsToMerge) {
     _.each(itemsToMerge, (val, prefix) => {
@@ -178,6 +176,9 @@ function setupAssets(portletServer) {
 
     mergeAssets(portletServer)
 
+    setInterval(() => {
+        mergeAssets(portletServer)
+    }, duration('3s'))
 }
 module.exports = {
     setupAssets
