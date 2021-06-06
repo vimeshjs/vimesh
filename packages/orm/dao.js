@@ -201,6 +201,12 @@ function normalizeOptions(options) {
     return options
 }
 
+function toJson(obj) {
+    if (_.isArray(obj)) return _.map(obj, i => toJson(i))
+    if (obj && obj.toJSON) return obj.toJSON()
+    return obj
+}
+
 function createDao(schema, name, affix) {
     let mapping = schema.$mapping
     if (!mapping) {
@@ -376,7 +382,9 @@ function createDao(schema, name, affix) {
         return checkResults.length == 0
     })
     attachMethodToDao(dao, 'get', function ({ }, id, options) {
-        return model.findByPk(id, normalizeOptions(options))
+        return model.findByPk(id, normalizeOptions(options)).then(r => {
+            return toJson(r)
+        })
     })
     attachMethodToDao(dao, 'set', function ({ }, data, options) {
         return model.upsert(data, normalizeOptions(options))
@@ -433,7 +441,7 @@ function createDao(schema, name, affix) {
         if (sort) options.order = sort
         let returnCount = !!params.count
         return (returnCount ? model.findAndCountAll(options) : model.findAll(options)).then(result => {
-            return returnCount ? { data: result.rows, count: result.count } : { data: result }
+            return returnCount ? { data: toJson(result.rows), count: result.count } : { data: toJson(result) }
         })
     })
     if (!affix) {

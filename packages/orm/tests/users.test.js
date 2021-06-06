@@ -96,6 +96,7 @@ test('find users', async function () {
 
     let cond = { $or: [{ no: { $eq: 7 } }, { email: { $like: '8%' } }] }
     r = await Users.select({ cond, sort: [['no', 'DESC']] }, {debug: true})
+    //console.log(r.data)
     expect(r.data.length).toEqual(2)
     expect(r.data[0].no).toEqual(8)
     expect(r.data[1].no).toEqual(7)
