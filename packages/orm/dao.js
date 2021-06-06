@@ -2,7 +2,7 @@ const _ = require('lodash')
 const moment = require('moment')
 const { ObjectID } = require('mongodb')
 const Promise = require('bluebird')
-const { Sequelize, DataTypes } = require('sequelize')
+const { DataTypes, Op } = require('sequelize')
 const { formatDate, duration } = require('@vimesh/utils')
 
 function attachMethodToDao(dao, name, func) {
@@ -141,13 +141,66 @@ function checkAndConvert(name, checkResults, convert, path, props, obj) {
 
     })
 }
+
+
 const DTMAPPING = {
     'string': DataTypes.STRING,
+    'text': DataTypes.TEXT,
     'boolean': DataTypes.BOOLEAN,
     'int': DataTypes.INTEGER,
     'number': DataTypes.NUMBER,
-    'date': DataTypes.DATE
+    'date': DataTypes.DATE,
+    'decimal': DataTypes.DECIMAL
 }
+
+//https://sequelize.org/master/manual/model-querying-basics.html#operators
+const OPMAPPING = {
+    '$or': Op.or,
+    '$and': Op.and,
+    '$is': Op.is,
+    '$not': Op.not,
+    '$eq': Op.eq,
+    '$ne': Op.ne,
+
+    '$in': Op.in,
+    '$nin': Op.notIn,
+    '$like': Op.like,
+    '$nlike': Op.notLike,
+    '$lt': Op.lt,
+    '$lte': Op.lte,
+    '$gt': Op.gt,
+    '$gte': Op.gte,
+
+    '$between': Op.between,
+    '$nbetween': Op.notBetween
+}
+
+function buildWhere(cond) {
+    if (_.isArray(cond)) {
+        return _.map(cond, i => buildWhere(i))
+    }
+    if (!_.isPlainObject(cond))
+        return cond
+    let where = {}
+    _.each(cond, (v, k) => {
+        if (OPMAPPING[k]) {
+            where[OPMAPPING[k]] = buildWhere(v)
+        } else {
+            where[k] = buildWhere(v)
+        }
+    })
+    return where
+}
+
+function normalizeOptions(options) {
+    if (!options) return {}
+    if (options.debug) {
+        delete options.debug
+        options.logging = _.bind($logger.debug, $logger)
+    }
+    return options
+}
+
 function createDao(schema, name, affix) {
     let mapping = schema.$mapping
     if (!mapping) {
@@ -167,37 +220,28 @@ function createDao(schema, name, affix) {
     if (undefined === mapping.recyclable)
         mapping.recyclable = true
 
-    function buildModel(tableName) {
-        let definition = {}
-        _.each(schema.properties, (v, k) => {
-            definition[k] = {
-                type: DTMAPPING[v]
-            }
-        })
-        if (!primaryKey && definition['id']) {
-            primaryKey = 'id'
-            definition[primaryKey].primaryKey = true
-        }
-        return database.define(tableName, definition, {
-            tableName,
-            timestamps: !!mapping.timestamps,
-            paranoid: !!mapping.recyclable
-        });
-    }
-    function normalizeOptions(options) {
-        if (!options) return {}
-        if (options.debug) {
-            delete options.debug
-            options.logging = _.bind($logger.debug, $logger)
-        }
-        return options
-    }
+    let tableName = mapping.collection || mapping.table
     if (affix) {
         fullname = name + affix
-        model = buildModel(mapping.collection + affix)
-    } else {
-        model = buildModel(mapping.collection)
+        tableName = tableName + affix
     }
+
+    let definition = {}
+    _.each(schema.properties, (v, k) => {
+        definition[k] = {
+            type: DTMAPPING[v]
+        }
+    })
+    if (!primaryKey && definition['id']) {
+        primaryKey = 'id'
+        definition[primaryKey].primaryKey = true
+    }
+    model = database.define(tableName, definition, {
+        tableName,
+        timestamps: !!mapping.timestamps,
+        paranoid: !!mapping.recyclable
+    })
+
     if (mapping.sync) {
         $logger.warn(`Model ${fullname} is synchronizing its schema with database ${mapping.database} (options : ${JSON.stringify(mapping.sync)})`)
         if (_.isObject(mapping.sync))
@@ -209,11 +253,10 @@ function createDao(schema, name, affix) {
     if ($orm.dao[fullname]) return $orm.dao[fullname]
     $orm.models[fullname] = model
     let dao = { schema: schema, model: model }
-    let auto = null
 
     _.each(mapping.methods, (method, methodName) => {
         dao[methodName] = _.bind(method, dao, $orm.models)
-        $logger.info('DAO $dao.' + name + '.' + methodName)
+        //$logger.info('DAO $dao.' + name + '.' + methodName)
     })
     // abc.ciid > ci : CollectionItems
     attachMethodToDao(dao, 'join', function ({ }, array, ...settings) {
@@ -343,24 +386,24 @@ function createDao(schema, name, affix) {
     })
     attachMethodToDao(dao, 'delete', function ({ }, cond, options) {
         options = normalizeOptions(options)
-        options.where = cond
+        options.where = buildWhere(cond)
         options.force = true
         return model.destroy(options)
     })
     attachMethodToDao(dao, 'recycle', function ({ }, cond, options) {
         options = normalizeOptions(options)
-        options.where = cond
+        options.where = buildWhere(cond)
         options.force = false
         return model.destroy(options)
     })
     attachMethodToDao(dao, 'restore', function ({ }, cond, options) {
         options = normalizeOptions(options)
-        options.where = cond
+        options.where = buildWhere(cond)
         return model.restore(options)
     })
     attachMethodToDao(dao, 'count', function ({ }, cond, options) {
         options = normalizeOptions(options)
-        options.where = cond
+        options.where = buildWhere(cond)
         return model.count(options)
     })
     attachMethodToDao(dao, 'getMappings', function ({ }) {
@@ -381,7 +424,7 @@ function createDao(schema, name, affix) {
     attachMethodToDao(dao, 'select', function ({ }, params, options) {
         if (!params) params = {}
         options = normalizeOptions(options)
-        options.where = params.query || params.cond || {}
+        options.where = buildWhere(params.query || params.cond || {})
         let skip = +(params.skip || 0)
         if (skip) options.offset = skip
         let size = +(params.limit || params.size || 0)

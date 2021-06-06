@@ -7,7 +7,7 @@ properties:
   phone: string         # 电话号码
   mobile: string        # 手机号
   birthday: date        # 生日
-  dashboard: string     # 工作台样式
+  resume: text              # 简历
   sex: string           # m : 男, f: 女, null : unknown
   blocked: boolean      # 是否被禁用
   blocked_reason: string # 禁用原因

@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const { Op } = require("sequelize");
 require('./fixture.js')
 beforeAll(function () {
     return $orm.connected.then(() => {
@@ -69,17 +70,33 @@ test('delete user', async function () {
 })
 
 
-test('list all users', async function () {
-    const {Users} = $orm.dao
-    await Users.add({ id: 'u003', email: '3@company.com', blocked: true })
-    await Users.add({ id: 'u004', email: '4@company.com', blocked: true })
-    await Users.add({ id: 'u005', email: '5@company.com', blocked: true })
+test('find users', async function () {
+    const { Users } = $orm.dao
+    await Users.set({ id: 'u001', no: 1, resume: 'name : 111' })
+    await Users.set({ id: 'u002', no: 2, resume: 'name : 222'  })
+    await Users.add({ id: 'u003', email: '3@company.com', no: 3, blocked: true })
+    await Users.add({ id: 'u004', email: '4@company.com', no: 4, blocked: true })
+    await Users.add({ id: 'u005', email: '5@company.com', no: 5, blocked: true })
+    await Users.add({ id: 'u006', email: '6@company.com', no: 6 })
+    await Users.add({ id: 'u007', email: '7@company.com', no: 7 })
+    await Users.add({ id: 'u008', email: '8@company.com', no: 8 })
     await Users.recycle({ id: 'u004' })
 
     let r = await Users.select()
-    expect(r.data.length).toEqual(4)
-    r = await Users.select({ cond: { blocked: true }, count: true, limit: 2 }, { paranoid: false })
+    expect(r.data.length).toEqual(7)
+    r = await Users.select({ cond: { blocked: true }, count: true, skip: 1, limit: 2, sort: [['email', 'DESC']] }, { paranoid: false })
 
     expect(r.count).toEqual(3)
     expect(r.data.length).toEqual(2)
+    expect(r.data[0].email).toEqual('4@company.com')
+
+
+    r = await Users.select({ cond: { no: [3, 6, 8, 4, 100] } })
+    expect(r.data.length).toEqual(3)
+
+    let cond = { $or: [{ no: { $eq: 7 } }, { email: { $like: '8%' } }] }
+    r = await Users.select({ cond, sort: [['no', 'DESC']] }, {debug: true})
+    expect(r.data.length).toEqual(2)
+    expect(r.data[0].no).toEqual(8)
+    expect(r.data[1].no).toEqual(7)
 })
