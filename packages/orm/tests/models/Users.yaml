@@ -10,7 +10,6 @@ properties:
   resume: text              # 简历
   sex: string           # m : 男, f: 女, null : unknown
   blocked: boolean      # 是否被禁用
-  blocked_reason: string # 禁用原因
 $mapping:
   collection: users
   sync: true
