@@ -1,15 +1,15 @@
 {
   "name": "@vimesh/discovery",
-  "version": "0.10.25",
+  "version": "0.10.32",
   "description": "Vimesh share KV store, service discovery",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
-    "@vimesh/grpc": "^0.10.4",
-    "@vimesh/logger": "^0.10.1",
-    "@vimesh/utils": "^0.10.25",
+    "@vimesh/grpc": "^0.10.32",
+    "@vimesh/logger": "^0.10.32",
+    "@vimesh/utils": "^0.10.32",
     "lodash": "^4.17.15"
   },
   "gitHead": "86d1e806d4e78cc77c8576369ae01e516b39098e"
