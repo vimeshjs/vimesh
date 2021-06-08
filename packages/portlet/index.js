@@ -11,7 +11,6 @@ const { setupProxy } = require('./proxy')
 const { setupAssets } = require('./assets')
 const { createViewEngine } = require('./view-engine')
 const { formatError } = require('./utils')
-const { createKeyValueClient } = require('@vimesh/discovery')
 const { setupRedirects } = require('./redirects')
 const { setupHealthCheck } = require('./health')
 const { setupComponents } = require('./components')
@@ -67,6 +66,7 @@ function PortletServer(config) {
     this.kvClient = null
     this.standalone = !discoveryUrl
     if (discoveryUrl) {
+        const { createKeyValueClient } = require('@vimesh/discovery')
         this.kvClient = createKeyValueClient({ url: discoveryUrl })
         this.selfUrl = config.selfUrl
         if (this.selfUrl) {
