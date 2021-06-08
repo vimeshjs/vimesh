@@ -14,9 +14,7 @@
     "lodash": "^4.17.15",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
-    "mongodb": "^3.5.9",
-    "mongodb-extjson": "^3.0.3",
-    "snappy": "^6.2.3"
+    "mongodb": "^3.5.9"
   },
   "gitHead": "86d1e806d4e78cc77c8576369ae01e516b39098e"
 }
