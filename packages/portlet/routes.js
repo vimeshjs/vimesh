@@ -74,6 +74,7 @@ function setupMiddleware(req, res, next) {
         res.locals._i18nItems = portletServer.mergedI18nItems || {}
         res.locals._menusByZone = portletServer.allMenusByZone
         res.locals._extensionsByZone = portletServer.allExtensionsByZone
+        res.locals._urlPrefix = portletServer.urlPrefix
         res.locals.$portlet = portlet
         res.locals._port = portletServer.port
         res.locals._postProcessors = []

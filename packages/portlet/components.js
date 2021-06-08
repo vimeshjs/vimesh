@@ -1,8 +1,11 @@
 const vue = require('rollup-plugin-vue')
 const buble = require('@rollup/plugin-buble')
 const { terser } = require('rollup-plugin-terser')
-const resolve = require('@rollup/plugin-node-resolve')
+const { nodeResolve } = require('@rollup/plugin-node-resolve')
+const { babel } = require('@rollup/plugin-babel')
 const commonjs = require('@rollup/plugin-commonjs')
+const scss = require('rollup-plugin-scss')
+const postcss = require('rollup-plugin-postcss')
 const rollup = require('rollup')
 const _ = require('lodash')
 const fs = require('fs')
@@ -10,6 +13,8 @@ const path = require('path')
 const { createMemoryCache } = require('@vimesh/cache')
 const { loadYaml } = require('@vimesh/utils')
 const includePaths = require('rollup-plugin-includepaths')
+const builtins = require('rollup-plugin-node-builtins')
+const globals = require('rollup-plugin-node-globals')
 
 function configVue(options) {
     const rollupOptions = {
@@ -19,12 +24,25 @@ function configVue(options) {
             includePaths({
                 extensions: ['.js', '.json', '.html', '.vue', '.scss', '.sass', '.less', '.css', '.stylus', '.styl']
             }),
-            resolve(),
-            commonjs(),
+            nodeResolve({
+                browser: true, 
+                preferBuiltins: true
+            }),
+            commonjs(), 
+            globals(),
+            builtins(),
+            scss(),
+            postcss({
+                plugins: []
+            }),
             vue({
                 compileTemplate: true,
                 css: true,
                 needMap: options.debug
+            }),
+            babel({
+                presets: ['@babel/preset-env'],
+                exclude: 'node_modules/**'
             }),
             buble({
                 objectAssign: 'Object.assign'
@@ -67,7 +85,7 @@ function createComponentCache(portletServer) {
             let debug = portletServer.config.debug
             let outputDir = portletServer.config.componentsOutputDir || path.join(process.cwd(), 'mnt/dist')
             let meta = null
-            if (path.extname(keyPath) === '.min'){
+            if (path.extname(keyPath) === '.min') {
                 keyPath = keyPath.substring(0, keyPath.length - 4)
                 debug = false
             }
@@ -81,7 +99,7 @@ function createComponentCache(portletServer) {
             })
             if (file && config) {
                 let yf = path.join(portletServer.componentsDir, keyPath + '.yaml')
-                
+
                 let options = config({
                     name: keyPath.split(path.sep).join('.'),
                     input: file,
