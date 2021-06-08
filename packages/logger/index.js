@@ -46,19 +46,6 @@ function setupLogger(config) {
 					)
 				}))
 				break;
-			case 'mongodb':
-				require('winston-mongodb')
-				let options = {
-					db: typeConf.uri,
-					collection: typeConf.collection || 'logs',
-					storeHost: true,
-					label: config.name || 'log',
-					decolorize: true,
-					tryReconnect: true,
-					expireAfterSeconds: (typeConf.days || 7) * 24 * 60 * 60
-				}
-				transports.push(new winston.transports.MongoDB(options))
-				break;
 		}
 	})
 	let logger = winston.createLogger({
