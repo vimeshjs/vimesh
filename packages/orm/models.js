@@ -19,15 +19,19 @@ function loadModels(root, baseDb = 'base') {
 			if (ext === '.yaml') {
 				let yamlContent = fs.readFileSync(f).toString()
 				let json = yaml.load(yamlContent)
-				if (!json || !json.$mapping) {
-					$logger.warn(`SCHEMA MODEL ${name} has no mapping!`)
-				} else {
-					let stat = fs.statSync(key + '.js');
-					if (stat && stat.isFile()) {
-						json.$mapping.methods = require(key + '.js')
-					}
-					$logger.debug(`SCHEMA MODEL ${name} -> ${json.$mapping.database || baseDb}/${json.$mapping.collection}`)
+				if (!json) {
+					json = {}
 				}
+				if (!json.$mapping) json.$mapping = {}
+				if (json.props) {
+					json.properties = json.props
+					delete json.props
+				}
+				if (fs.existsSync(key + '.js')) {
+					json.$mapping.methods = require(key + '.js')
+				}
+				$logger.debug(`SCHEMA MODEL ${name} -> ${json.$mapping.database || baseDb}/${json.$mapping.collection}`)
+
 				if (!json.$mapping.database)
 					json.$mapping.database = baseDb
 				$orm.schemas.models[name] = json

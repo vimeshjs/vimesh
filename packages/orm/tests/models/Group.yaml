@@ -1,0 +1,6 @@
+properties:
+  name: string          # 名称
+  roles: 
+    type: Role*
+    through: GroupRole
+$mapping:

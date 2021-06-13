@@ -10,138 +10,6 @@ function attachMethodToDao(dao, name, func) {
     }
 }
 
-function getPaths(name, results, keys, index, path, obj) {
-    if (!obj || index >= keys.length) return
-    let key = keys[index]
-    let last = index == keys.length - 1
-    let v = obj[key]
-    if (v) {
-        if (_.isArray(v)) {
-            _.each(v, (vi, i) => {
-                if (last) {
-                    let pi = path + (path ? '.' : '') + `${name}[${i}]`
-                    results.push({ path: pi, val: vi })
-                } else {
-                    let pi = path + (path ? '.' : '') + `${key}[${i}]`
-                    getPaths(name, results, keys, index + 1, pi, vi)
-                }
-            })
-        } else {
-            if (last) {
-                path += (path ? '.' : '') + name
-                results.push({ path: path, val: v })
-            } else {
-                path += (path ? '.' : '') + key
-                getPaths(name, results, keys, index + 1, path, v)
-            }
-        }
-    }
-
-}
-
-function checkAndConvert(name, checkResults, convert, path, props, obj) {
-    if (!obj) return
-    _.each(props, (type, k) => {
-        let v = obj[k]
-        if (!v) return
-        let at = `${name}${path}.${k}`
-        let msgWrongType = `Wrong type @ ${at} (${type}): ` + JSON.stringify(v)
-        let msgFailsToConvert = `Fails to convert @ ${at} (${type}): ` + JSON.stringify(v)
-        let msgConvert = `Convert @ ${at} (${type}): ` + JSON.stringify(v) + ' -> '
-        if (type === 'ObjectId') {
-            if (!ObjectID.isValid(v)) {
-                checkResults.push(msgWrongType)
-                $logger.warn(msgWrongType)
-            }
-        } else if (type === 'boolean') {
-            if (!_.isBoolean(v)) {
-                checkResults.push(msgWrongType)
-                $logger.warn(msgWrongType)
-            }
-        } else if (type === 'string') {
-            if (!_.isString(v)) {
-                checkResults.push(msgWrongType)
-                $logger.warn(msgWrongType)
-            }
-        } else if (type === 'object') {
-            if (!_.isObject(v)) {
-                checkResults.push(msgWrongType)
-                $logger.warn(msgWrongType)
-            }
-        } else if (type === 'date') {
-            if (!_.isDate(v)) {
-                if (convert) {
-                    try {
-                        if (!v)
-                            delete obj[k]
-                        else {
-                            if (moment(v).isValid()) {
-                                obj[k] = moment(v).toDate()
-                                $logger.warn(msgConvert + formatDate(obj[k]))
-                            } else {
-                                checkResults.push(msgFailsToConvert)
-                                $logger.error(msgFailsToConvert)
-                            }
-                        }
-                    } catch (ex) {
-                        checkResults.push(msgFailsToConvert)
-                        $logger.error(msgFailsToConvert, ex)
-                    }
-                } else {
-                    checkResults.push(msgWrongType)
-                    $logger.warn(msgWrongType)
-                }
-            }
-        } else if (type === 'number') {
-            if (!_.isNumber(v)) {
-                if (convert) {
-                    try {
-                        if (!v)
-                            delete obj[k]
-                        else {
-                            let num = +v
-                            obj[k] = num
-                            $logger.warn(msgConvert + num)
-                        }
-                    } catch (ex) {
-                        checkResults.push(msgFailsToConvert)
-                        $logger.error(msgFailsToConvert, ex)
-                    }
-                } else {
-                    checkResults.push(msgWrongType)
-                    $logger.warn(msgWrongType)
-                }
-            }
-        } else if (_.isArray(type)) {
-            if (!_.isArray(v)) {
-                checkResults.push(msgWrongType)
-                $logger.warn(msgWrongType)
-            } else {
-                if (_.isString(type[0])) {
-                    let ntype = []
-                    _.each(v, (vi, i) => ntype.push(type[0]))
-                    checkAndConvert(name, checkResults, convert, `${path}.${k}`, ntype, v)
-                } else {
-                    _.each(v, (item, i) => {
-                        checkAndConvert(name, checkResults, convert, `${path}.${k}[${i}]`, type[0], item)
-                    })
-                }
-            }
-        } else if (_.isObject(type)) {
-            checkAndConvert(name, checkResults, convert, `${path}.${k}`, type, v)
-        } else {
-            if ($orm.schemas.types[type]) {
-                checkAndConvert(name, checkResults, convert, `${path}.${k}`, $orm.schemas.types[type].properties, v)
-            } else {
-                checkResults.push(msgWrongType)
-                $logger.warn(msgWrongType)
-            }
-        }
-
-    })
-}
-
-
 const DTMAPPING = {
     'string': DataTypes.STRING,
     'text': DataTypes.TEXT,
@@ -149,7 +17,8 @@ const DTMAPPING = {
     'int': DataTypes.INTEGER,
     'number': DataTypes.NUMBER,
     'date': DataTypes.DATE,
-    'decimal': DataTypes.DECIMAL
+    'decimal': DataTypes.DECIMAL,
+    'json': DataTypes.JSON
 }
 
 //https://sequelize.org/master/manual/model-querying-basics.html#operators
@@ -191,20 +60,13 @@ function buildWhere(cond) {
     return where
 }
 
-function normalizeOptions(options) {
-    if (!options) return {}
-    if (options.debug) {
-        delete options.debug
-        options.logging = _.bind($logger.debug, $logger)
-    }
-    return options
-}
-
 function toJson(obj) {
     if (_.isArray(obj)) return _.map(obj, i => toJson(i))
     if (obj && obj.toJSON) return obj.toJSON()
     return obj
 }
+$orm.dao.toJson = toJson
+$orm.dao.toWhere = buildWhere
 
 function createDao(schema, name, affix) {
     let mapping = schema.$mapping
@@ -220,32 +82,81 @@ function createDao(schema, name, affix) {
     let fullname = name
     let primaryKey = null
     let model = null
-    if (undefined === mapping.timestamps)
-        mapping.timestamps = true
-    if (undefined === mapping.recyclable)
-        mapping.recyclable = true
 
     let tableName = mapping.collection || mapping.table
     if (affix) {
         fullname = name + affix
         tableName = tableName + affix
     }
-
+    let assocCreators = {}
+    let associations = {}
     let definition = {}
     _.each(schema.properties, (v, k) => {
-        definition[k] = {
-            type: DTMAPPING[v]
+        if (_.isString(v)) v = { type: v }
+        if (!v.type) {
+            $logger.warn(`No type found for ${name}.${k} : ${JSON.stringify(v)}`)
+        }
+
+        let def = _.cloneDeep(v)
+        if (DTMAPPING[v.type]) {
+            def.type = DTMAPPING[v.type]
+            if (v.required) def.allowNull = false
+            if (v.auto) def.autoIncrement = true
+            if (v.primary) {
+                def.primaryKey = true
+                primaryKey = k
+            }
+            definition[k] = def
+        } else {
+            // It is an association
+            assocCreators[k] = () => {
+                let assoc = null
+                let aoptions = _.omit(v, 'type')
+                aoptions.as = k
+                if (_.endsWith(def.type, '*')) {
+                    let type = def.type.substring(0, def.type.length - 1)
+                    if (_.startsWith(type, '@')) {
+                        def.itype = type = type.substring(1)
+                        $logger.debug(`ASSOC ${name} hasMany ${type} (${JSON.stringify(aoptions)})`)
+                        assoc = $orm.models[name].hasMany($orm.models[type], aoptions)
+                    } else {
+                        def.itype = type
+                        $logger.debug(`ASSOC ${name} belongsToMany ${type} (${JSON.stringify(aoptions)})`)
+                        assoc = $orm.models[name].belongsToMany($orm.models[type], aoptions)
+                    }
+                } else {
+                    if (_.startsWith(def.type, '@')) {
+                        let type = def.itype = def.type.substring(1)
+                        $logger.debug(`ASSOC ${name} hasOne ${type} (${JSON.stringify(aoptions)})`)
+                        assoc = $orm.models[name].hasOne($orm.models[type], aoptions)
+                    } else {
+                        def.itype = def.type
+                        $logger.debug(`ASSOC ${name} belongsTo ${def.type} (${JSON.stringify(aoptions)})`)
+                        assoc = $orm.models[name].belongsTo($orm.models[def.type], aoptions)
+                    }
+                }
+                assoc._config = def
+                return assoc
+            }
         }
     })
-    if (!primaryKey && definition['id']) {
+    if (!primaryKey) {
         primaryKey = 'id'
-        definition[primaryKey].primaryKey = true
+        if (definition[primaryKey])
+            definition[primaryKey].primaryKey = true
     }
-    model = database.define(tableName, definition, {
-        tableName,
-        timestamps: !!mapping.timestamps,
-        paranoid: !!mapping.recyclable
-    })
+
+    let moptions = _.pick(mapping, 'timestamps', 'version', 'underscored', 'paranoid', 'indexes')
+    if (undefined === moptions.underscored) moptions.underscored = true
+    if (undefined === moptions.timestamps) moptions.timestamps = false
+    if (mapping.recyclable) {
+        moptions.timestamps = true
+        moptions.paranoid = true
+    }
+    if (tableName)
+        moptions.tableName = tableName
+
+    model = database.define(name, definition, moptions)
 
     if (mapping.sync) {
         $logger.warn(`Model ${fullname} is synchronizing its schema with database ${mapping.database} (options : ${JSON.stringify(mapping.sync)})`)
@@ -257,139 +168,115 @@ function createDao(schema, name, affix) {
 
     if ($orm.dao[fullname]) return $orm.dao[fullname]
     $orm.models[fullname] = model
-    let dao = { schema: schema, model: model }
+    let dao = function (obj) {
+        return model.build(obj)
+    }
+    dao.schema = schema
+    dao.model = model
+    dao.associations = associations
+    dao.assocCreators = assocCreators
+    dao.primaryKey = primaryKey
 
     _.each(mapping.methods, (method, methodName) => {
         dao[methodName] = _.bind(method, dao, $orm.models)
         //$logger.info('DAO $dao.' + name + '.' + methodName)
     })
-    // abc.ciid > ci : CollectionItems
-    attachMethodToDao(dao, 'join', function ({ }, array, ...settings) {
-        if (!array) return
-        if (!_.isArray(array)) array = [array]
-        if (_.isArray(settings[0])) settings = settings[0]
-        return Promise.each(settings, setting => {
-            let parts = setting.split('\>')
-            if (parts.length != 2) {
-                $logger.error(`Fails to join @${name} : ${setting}`)
-                return
-            }
-            let spath = _.trim(parts[0])
-            let spathParts = spath.split('\.')
-            parts = parts[1].split(':')
-            if (parts.length != 2) {
-                $logger.error(`Fails to join @${name} : ${setting}`)
-                return
-            }
-            let tkey = _.trim(parts[0])
-            let tmodel = _.trim(parts[1])
-            let tpath = ''
-            parts = tmodel.split('\/')
-            if (parts.length == 2) {
-                tmodel = _.trim(parts[0])
-                tpath = _.trim(parts[1])
-            }
-            let p1 = tmodel.indexOf('(')
-            let p2 = tmodel.indexOf(')')
-            let idkey = '_id'
-            let idToArray = false
-            if (p1 != -1 && p2 > p1) {
-                idkey = _.trim(tmodel.substring(p1 + 1, p2))
-                if (idkey[idkey.length - 1] == '*') {
-                    idkey = _.trim(idkey.substring(0, idkey.length - 1))
-                    idToArray = true
+
+    function normalizeOptions(options) {
+        if (!options) options = {}
+        if (options.debug) {
+            delete options.debug
+            options.logging = _.bind($logger.debug, $logger)
+        }
+        if (options.include) {
+            options.include = _.map(options.include, i => _.isPlainObject(i) ? i : { association: associations[i] })
+        } else {
+            options.include = []
+            _.each(associations, assoc => {
+                if (true !== assoc._config.lazy) {
+                    options.include.push({ association: assoc })
                 }
-                tmodel = _.trim(tmodel.substring(0, p1))
-            }
-            let model = $orm.schemas.models[tmodel]
-            let ttype = model.properties[idkey]
-            let idmap = {}
-            let actions = _.map(array, item => {
-                let results = []
-                getPaths(tkey, results, spathParts, 0, '', item)
-                _.each(results, item => {
-                    if (idmap[item.val] === undefined) {
-                        if (ttype == 'ObjectId') {
-                            idmap[item.val] = toObjectID(item.val)
-                        } else if (ttype == 'number') {
-                            idmap[item.val] = +item.val
-                        } else if (ttype == 'string') {
-                            idmap[item.val] = item.val.toString()
-                        } else {
-                            idmap[item.val] = item.val
-                        }
-                    }
-                })
-                return results
             })
-            let idset = _.values(idmap)
-            if (idset.length > 0) {
-                let cond = {}
-                cond[idkey] = { $in: idset }
-                return $orm.models[tmodel].find(cond).toArray().then(refItems => {
-                    $orm.dao[tmodel].addFullId(refItems)
-                    let refMap = {}
-                    _.each(refItems, item => {
-                        if (idToArray) {
-                            if (!refMap[item[idkey]])
-                                refMap[item[idkey]] = [item]
-                            else
-                                refMap[item[idkey]].push(item)
-                        } else {
-                            refMap[item[idkey]] = item
-                        }
-                    })
-                    _.each(actions, (results, i) => {
-                        let obj = array[i]
-                        _.each(results, r => {
-                            if (tpath && tpath.indexOf(',') != -1) {
-                                let sparts = tpath.split(',')
-                                let tparts = r.path.split(',')
-                                let pos = tparts[0].lastIndexOf('.')
-                                if (pos != -1) {
-                                    let prefix = tparts[0].substring(0, pos + 1)
-                                    for (let i = 1; i < tparts.length; i++) {
-                                        tparts[i] = prefix + tparts[i]
-                                    }
-                                }
-                                if (sparts.length != tparts.length)
-                                    $logger.error(`Wrong join config : ${setting} @${name}`)
-                                _.each(sparts, (sp, i) => {
-                                    let refObj = _.get(refMap[r.val], _.trim(sp))
-                                    _.set(obj, _.trim(tparts[i]), refObj)
-                                })
-                            } else {
-                                let refObj = tpath ? _.get(refMap[r.val], tpath) : refMap[r.val]
-                                _.set(obj, r.path, refObj)
-                            }
-                        })
-                    })
-                })
-            }
-        }).then(() => array)
-    })
-    attachMethodToDao(dao, 'check', function ({ }, data) {
-        let convert = false
-        let checkResults = []
-        checkAndConvert(name, checkResults, convert, "", schema.properties, data)
-        return checkResults.length == 0
-    })
-    attachMethodToDao(dao, 'convert', function ({ }, data) {
-        let convert = true
-        let checkResults = []
-        checkAndConvert(name, checkResults, convert, "", schema.properties, data)
-        return checkResults.length == 0
-    })
+        }
+        return options
+    }
+
     attachMethodToDao(dao, 'get', function ({ }, id, options) {
-        return model.findByPk(id, normalizeOptions(options)).then(r => {
-            return toJson(r)
+        options = normalizeOptions(options)
+        return model.findByPk(id, options).then(r => options.native ? r : toJson(r))
+    })
+    attachMethodToDao(dao, '_get', function ({ }, id, options) {
+        return this.get(id, { ...options, native: true })
+    })
+    attachMethodToDao(dao, 'set', async function ({ }, data, options) {
+        if (!data[dao.primaryKey]) {
+            return $logger.error(`No primary key ${dao.primaryKey} found for setting ${name} (${JSON.stringify(data)})`)
+        }
+        options = normalizeOptions(options)
+        let assocs = {}
+        let dataToUpdate = {}
+        _.each(data, (v, k) => {
+            if (this.associations[k]) {
+                assocs[k] = this.associations[k]
+            } else {
+                dataToUpdate[k] = v
+            }
+        })
+        return model.upsert(dataToUpdate, options).then(async (r) => {
+            let keys = _.keys(assocs)
+            if (keys.length > 0) {
+                let self = await dao._get(data[primaryKey])
+                for (let i = 0; i < keys.length; i++) {
+                    let key = keys[i]
+                    let val = data[key]
+                    let assoc = assocs[key]
+                    let target = $orm.dao[assoc._config.itype]
+                    if (_.isArray(val)) {
+                        let cond = { [target.primaryKey]: { $in: val } }
+                        let dataToSet = await target._select({ cond })
+                        await self[`set${_.capitalize(keys[i])}`](dataToSet.data)
+                    } else {
+                        await self[`set${_.capitalize(keys[i])}`](await target._get(val))
+                    }
+                }
+            }
+            return r
         })
     })
-    attachMethodToDao(dao, 'set', function ({ }, data, options) {
-        return model.upsert(data, normalizeOptions(options))
+    attachMethodToDao(dao, 'add', async function ({ }, data, options) {
+        options = normalizeOptions(options)
+        let assocs = {}
+        let dataToAdd = {}
+        _.each(data, (v, k) => {
+            if (this.associations[k]) {
+                assocs[k] = this.associations[k]
+            } else {
+                dataToAdd[k] = v
+            }
+        })
+        return model.create(dataToAdd, options).then(async (r) => {
+            let keys = _.keys(assocs)
+            if (keys.length > 0) {
+                let self = await dao._get(r[primaryKey])
+                for (let i = 0; i < keys.length; i++) {
+                    let key = keys[i]
+                    let val = data[key]
+                    let assoc = assocs[key]
+                    let target = $orm.dao[assoc._config.itype]
+                    if (_.isArray(val)) {
+                        let cond = { [target.primaryKey]: { $in: val } }
+                        let dataToSet = await target._select({ cond })
+                        await self[`set${_.capitalize(keys[i])}`](dataToSet.data)
+                    } else {
+                        await self[`set${_.capitalize(keys[i])}`](await target._get(val))
+                    }
+                }
+            }
+            return options.native ? r : toJson(r)
+        })
     })
-    attachMethodToDao(dao, 'add', function ({ }, data, options) {
-        return model.create(data, normalizeOptions(options))
+    attachMethodToDao(dao, '_add', function ({ }, data, options) {
+        return this.add(data, { ...options, native: true })
     })
     attachMethodToDao(dao, 'delete', function ({ }, cond, options) {
         options = normalizeOptions(options)
@@ -440,8 +327,13 @@ function createDao(schema, name, affix) {
         if (sort) options.order = sort
         let returnCount = !!params.count
         return (returnCount ? model.findAndCountAll(options) : model.findAll(options)).then(result => {
-            return returnCount ? { data: toJson(result.rows), count: result.count } : { data: toJson(result) }
+            return returnCount ?
+                { data: options.native ? result.rows : toJson(result.rows), count: result.count } :
+                { data: options.native ? result : toJson(result) }
         })
+    })
+    attachMethodToDao(dao, '_select', function ({ }, params, options) {
+        return this.select(params, { ...options, native: true })
     })
     if (!affix) {
         attachMethodToDao(dao, '_', function ({ }, date) {

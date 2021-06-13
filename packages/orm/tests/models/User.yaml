@@ -1,0 +1,31 @@
+properties:
+  id: string            # 用户ID
+  no: int               # 工号  
+  name: string          # 姓名
+  email: string         # 邮箱
+  mobile: string        # 手机
+  password: string      # 密码
+  isAdmin: boolean      # 是否为管理员
+  blocked: boolean      # 阻止
+  resume: 
+    type: '@Resume'
+    foreignKey: 'ownerId'
+  actions:
+    type: '@UserAction*'
+    foreignKey: userId
+    lazy: true
+  roles:
+    type: Role*
+    through: UserRole
+  groups: 
+    type: Group*
+    through: UserGroup
+$mapping:
+  recyclable: true
+  indexes:
+    - fields:
+        - mobile
+      unique: true
+    - fields:
+        - email
+      unique: true

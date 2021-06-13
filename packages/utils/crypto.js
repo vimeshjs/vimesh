@@ -12,12 +12,12 @@ function getCRC32(str) {
 }
 
 function fromBase64(data, enc = 'utf8') {
-    let buff = new Buffer(data, 'base64')
+    let buff = Buffer.from(data, 'base64')
     return buff.toString(enc)
 }
 
 function toBase64(data) {
-    let buff = Buffer.isBuffer(data) ? data : new Buffer(data);
+    let buff = Buffer.isBuffer(data) ? data : new Buffer.from(data);
     return buff.toString('base64')
 }
 

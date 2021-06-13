@@ -1,6 +1,5 @@
 ﻿const _ = require('lodash')
-const glob = require("glob")
-const path = require('path')
+const Promise = require('bluebird')
 const { Sequelize } = require('sequelize')
 const { retryPromise } = require('@vimesh/utils')
 global.$orm = {
@@ -15,7 +14,7 @@ async function connectTo(dbUri, options, name, debug) {
     if (!debug)
         options.logging = false
     else
-        options.logging = _.bind($logger.debug, $logger)
+        options.logging = (msg) => $logger.debug(msg + '')
     $logger.info("Connecting " + name + ":" + dbUri + " options : " + JSON.stringify(options))
     const sequelize = new Sequelize(dbUri, options)
     $orm.databases[name] = sequelize
@@ -51,14 +50,40 @@ function setupOrm(config, modelRoot, baseDb) {
         if (config.onBeforeSetup) return config.onBeforeSetup()
     }).then(r => {
         let allSetups = []
-        _.each($orm.dao, function (dao, name) {
-            if (!dao.$setup) return
-            $logger.debug(`SETUP ${name}`)
-            let promise = dao.$setup()
-            if (promise) allSetups.push(promise)
+        _.each($orm.dao, (dao, name) => {
+            if (_.entries(dao.assocCreators).length > 0) {
+                $logger.debug(`SETUP associations for ${name}`)
+                _.each(dao.assocCreators, (func, k) => {
+                    dao.associations[k] = func()
+                })
+                delete dao.assocCreators
+            }
+            if (dao.$setup) {
+                $logger.debug(`SETUP initializer for ${name}`)
+                let promise = dao.$setup()
+                if (promise) allSetups.push(promise)
+            }
         })
         return Promise.all(allSetups).then(function () {
             $logger.info('All setups finish!')
+        })
+    }).then(r => {
+        let allSync = []
+        let allSyncDbNames = []
+        _.each($orm.databases, (db, name) => {
+            let { sync } = config.databases[name]
+            if (sync) {
+                if (_.isPlainObject(sync)) {
+                    allSyncDbNames.push(`${name}|${JSON.stringify(sync)}`)
+                    allSync.push(db.sync(sync))
+                } else {
+                    allSyncDbNames.push(name)
+                    allSync.push(db.sync())
+                }
+            }
+        })
+        return Promise.all(allSync).then(function () {
+            $logger.info(`Databases (${allSyncDbNames}) have been synchronized!`)
         })
     })
 }

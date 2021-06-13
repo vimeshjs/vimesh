@@ -1,0 +1,8 @@
+properties:
+    content: text
+    owner: User
+$mapping:
+    indexes:
+      - fields:
+          - owner_id
+        unique: true

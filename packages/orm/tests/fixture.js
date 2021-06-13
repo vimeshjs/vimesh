@@ -6,7 +6,8 @@ const config = {
     databases: {
         main: {
             uri: `sqlite:${__dirname}/mnt/test.db`,
-            //debug: true
+            //debug: true,
+            sync: {force : true}
         }
     }
 }

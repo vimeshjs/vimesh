@@ -41,6 +41,7 @@ function configVue(options) {
                 needMap: options.debug
             }),
             babel({
+                babelHelpers: 'bundled',
                 presets: ['@babel/preset-env'],
                 exclude: 'node_modules/**'
             }),
