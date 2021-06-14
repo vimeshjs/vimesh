@@ -201,9 +201,11 @@ function createDao(schema, name, affix) {
         return options
     }
 
-    attachMethodToDao(dao, 'get', function ({ }, id, options) {
+    attachMethodToDao(dao, 'get', function ({ }, idOrCond, options) {
         options = normalizeOptions(options)
-        return model.findByPk(id, options).then(r => options.native ? r : toJson(r))
+        return (_.isPlainObject(idOrCond) ?
+            model.findOne({ where: buildWhere(idOrCond) }) :
+            model.findByPk(idOrCond, options)).then(r => options.native ? r : toJson(r))
     })
     attachMethodToDao(dao, '_get', function ({ }, id, options) {
         return this.get(id, { ...options, native: true })
