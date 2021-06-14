@@ -9,32 +9,44 @@ global.$orm = {
 }
 const loadModels = require('./models')
 const createDao = require('./dao.js')
-async function connectTo(dbUri, options, name, debug) {
-    options = options || {}
+
+const migrationModel = 'MigrationHistory'
+
+async function connectTo(config) {
+    let name = config.name
+    let debug = config.debug
+    let dbUri = config.uri
+    let options = {}
     if (!debug)
         options.logging = false
     else
         options.logging = (msg) => $logger.debug(msg + '')
-    $logger.info("Connecting " + name + ":" + dbUri + " options : " + JSON.stringify(options))
+    $logger.info(`Connecting ${name} (${JSON.stringify(config)})`)
     const sequelize = new Sequelize(dbUri, options)
     $orm.databases[name] = sequelize
+    sequelize._config = config
     await sequelize.authenticate();
     //$logger.info("DB " + name + )
 }
 
-function setupOrm(config, modelRoot, baseDb) {
+function setupOrm(config, modelsDir, migrationsDir) {
+    if (!modelsDir){  
+        throw Error('ORM models directory is not set!')   
+    }
+    if (!migrationsDir){   
+        throw Error('ORM migrations directory is not set!')     
+    }
+    let baseDb = null
     let dbNames = _.keys(config.databases)
     if (dbNames.length == 0) {
         $logger.error('There are no databases defined!')
         return
     }
     if (!baseDb) baseDb = dbNames[0]
-    loadModels(modelRoot, baseDb)
+    loadModels(modelsDir, baseDb)
     let databases = _.mapValues(config.databases, function (v, k) {
-        let uri = v.uri
-        let options = {}
         return retryPromise(
-            _.bind(connectTo, null, uri, options, k, v.debug),
+            _.bind(connectTo, null, { name: k, ...v }),
             10000
         )
     })
@@ -70,15 +82,30 @@ function setupOrm(config, modelRoot, baseDb) {
             }
         })
         return Promise.all(allSync).then(function () {
-            $logger.info(`Databases (${allSyncDbNames}) have been synchronized!`)
+            $logger.info(
+                allSync.length == 0 ?
+                    `No databases should be synchronized!` :
+                    `Databases (${allSyncDbNames.join(',')}) have been synchronized!`)
         })
-    }).then(r => {
-        if (!config.migrationsDir) return
+    }).then(async (r) => {
+        const { generate, execute } = require('./migration')
+        let keys = _.keys($orm.databases)
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i]
+            let db = $orm.databases[key]
+            let dbConfig = db._config
+            if (undefined !== dbConfig.migration) {
+                let checkpoint = _.get(dbConfig, 'migration.checkpoint')
+                let run = _.get(dbConfig, 'migration.execute')
+                generate(db, key, checkpoint, migrationsDir, migrationModel)
+                if (run) await execute(db, key, migrationsDir, migrationModel)
+            }
+        }
     }).then(r => {
         if (config.onBeforeSetup) return config.onBeforeSetup()
     }).then(r => {
         let allSetups = []
-        _.each($orm.dao, (dao, name) => {            
+        _.each($orm.dao, (dao, name) => {
             if (dao.$setup) {
                 $logger.debug(`SETUP initializer for ${name}`)
                 let promise = dao.$setup()

@@ -10,10 +10,14 @@
     "@vimesh/logger": "^0.10.32",
     "@vimesh/utils": "^0.10.34",
     "bluebird": "^3.7.2",
+    "deep-diff": "^1.0.2",
     "lodash": "^4.17.15",
-    "moment": "^2.27.0",
+    "mkdirp": "^1.0.4",
+    "moment": "^2.29.1",
     "moment-timezone": "^0.5.31",
-    "sequelize": "^6.6.2"
+    "object-hash": "^2.2.0",
+    "sequelize": "^6.6.2",
+    "umzug": "^2.3.0"
   },
   "devDependencies": {
     "sqlite3": "^5.0.2"
