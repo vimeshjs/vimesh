@@ -44,12 +44,7 @@ function setupOrm(config, modelRoot, baseDb) {
         _.each($orm.schemas.models, (schema, name) => {
             createDao(schema, name)
         })
-    }).then(r => {
-        if (!config.migrationsDir) return
-    }).then(r => {
-        if (config.onBeforeSetup) return config.onBeforeSetup()
-    }).then(r => {
-        let allSetups = []
+
         _.each($orm.dao, (dao, name) => {
             if (_.entries(dao.assocCreators).length > 0) {
                 $logger.debug(`SETUP associations for ${name}`)
@@ -58,16 +53,8 @@ function setupOrm(config, modelRoot, baseDb) {
                 })
                 delete dao.assocCreators
             }
-            if (dao.$setup) {
-                $logger.debug(`SETUP initializer for ${name}`)
-                let promise = dao.$setup()
-                if (promise) allSetups.push(promise)
-            }
         })
-        return Promise.all(allSetups).then(function () {
-            $logger.info('All setups finish!')
-        })
-    }).then(r => {
+
         let allSync = []
         let allSyncDbNames = []
         _.each($orm.databases, (db, name) => {
@@ -84,6 +71,22 @@ function setupOrm(config, modelRoot, baseDb) {
         })
         return Promise.all(allSync).then(function () {
             $logger.info(`Databases (${allSyncDbNames}) have been synchronized!`)
+        })
+    }).then(r => {
+        if (!config.migrationsDir) return
+    }).then(r => {
+        if (config.onBeforeSetup) return config.onBeforeSetup()
+    }).then(r => {
+        let allSetups = []
+        _.each($orm.dao, (dao, name) => {            
+            if (dao.$setup) {
+                $logger.debug(`SETUP initializer for ${name}`)
+                let promise = dao.$setup()
+                if (promise) allSetups.push(promise)
+            }
+        })
+        return Promise.all(allSetups).then(function () {
+            $logger.info('All setups finish!')
         })
     })
 }

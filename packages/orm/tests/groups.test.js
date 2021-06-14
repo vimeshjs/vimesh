@@ -5,7 +5,7 @@ beforeAll(async function () {
     await $orm.connected
 }, 1000 * 60)
 
-test('native way for groups and roles', async function () {
+test('groups and roles', async function () {
     const { Group, Role, toJson: J } = $orm.dao
 
     let r1 = await Role.add({ name: 'r1', permissions: ['p1', 'p2'] })
@@ -18,14 +18,10 @@ test('native way for groups and roles', async function () {
     let g = await Group.get(2)
     expect(_.map(g.roles, r => r.id)).toEqual([1, 2])
 
-})
-
-test('new way for groups and roles', async function () {
-    const { Group } = $orm.dao
-
     let g3 = await Group.add({ name: 'group3' })
     await Group.set({ id: g3.id, roles: [1, 3] })
-    let g = await Group.get(g3.id)
+    g = await Group.get(g3.id)
     expect(_.map(g.roles, r => r.id)).toEqual([1, 3])
-
+    let gByName = await Group.get({name: 'group3'})
+    expect(gByName.id).toBe(g.id)
 })

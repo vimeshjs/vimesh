@@ -18,5 +18,8 @@
   "devDependencies": {
     "sqlite3": "^5.0.2"
   },
+  "scripts": {
+    "test": "jest --runInBand"
+  },
   "gitHead": "40eea1678e3f5ae8a07e22908f60c32797a5c1dc"
 }
