@@ -30,7 +30,7 @@ function evaluatePermissionFormular(formular, ownedPermissions, allPermissions){
     try{
         return eval(formular)
     }catch(ex){
-        $logger.error('Fails to evaluate permission formular. ', ex)
+        $logger.error(`Fails to evaluate permission formular(${formular}). `, ex)
         return false
     }
 }

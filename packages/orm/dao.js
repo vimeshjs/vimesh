@@ -211,9 +211,6 @@ function createDao(schema, name, affix) {
         return this.get(id, { ...options, native: true })
     })
     attachMethodToDao(dao, 'set', async function ({ }, data, options) {
-        if (!data[dao.primaryKey]) {
-            return $logger.error(`No primary key ${dao.primaryKey} found for setting ${name} (${JSON.stringify(data)})`)
-        }
         options = normalizeOptions(options)
         let assocs = {}
         let dataToUpdate = {}
@@ -224,10 +221,10 @@ function createDao(schema, name, affix) {
                 dataToUpdate[k] = v
             }
         })
-        return model.upsert(dataToUpdate, options).then(async (r) => {
+        return model.upsert(dataToUpdate, options).then(async ([r]) => {
             let keys = _.keys(assocs)
             if (keys.length > 0) {
-                let self = await dao._get(data[primaryKey])
+                let self = await dao._get(r[primaryKey])
                 for (let i = 0; i < keys.length; i++) {
                     let key = keys[i]
                     let val = data[key]
@@ -242,8 +239,11 @@ function createDao(schema, name, affix) {
                     }
                 }
             }
-            return r
+            return options.native ? r : toJson(r)
         })
+    })
+    attachMethodToDao(dao, '_set', function ({ }, data, options) {
+        return this.set(data, { ...options, native: true })
     })
     attachMethodToDao(dao, 'add', async function ({ }, data, options) {
         options = normalizeOptions(options)
@@ -280,21 +280,21 @@ function createDao(schema, name, affix) {
     attachMethodToDao(dao, '_add', function ({ }, data, options) {
         return this.add(data, { ...options, native: true })
     })
-    attachMethodToDao(dao, 'delete', function ({ }, cond, options) {
+    attachMethodToDao(dao, 'delete', function ({ }, idOrCond, options) {
         options = normalizeOptions(options)
-        options.where = buildWhere(cond)
+        options.where = _.isPlainObject(idOrCond) ? buildWhere(idOrCond) : { [primaryKey]: idOrCond }
         options.force = true
         return model.destroy(options)
     })
-    attachMethodToDao(dao, 'recycle', function ({ }, cond, options) {
+    attachMethodToDao(dao, 'recycle', function ({ }, idOrCond, options) {
         options = normalizeOptions(options)
-        options.where = buildWhere(cond)
+        options.where = _.isPlainObject(idOrCond) ? buildWhere(idOrCond) : { [primaryKey]: idOrCond }
         options.force = false
         return model.destroy(options)
     })
-    attachMethodToDao(dao, 'restore', function ({ }, cond, options) {
+    attachMethodToDao(dao, 'restore', function ({ }, idOrCond, options) {
         options = normalizeOptions(options)
-        options.where = buildWhere(cond)
+        options.where = _.isPlainObject(idOrCond) ? buildWhere(idOrCond) : { [primaryKey]: idOrCond }
         return model.restore(options)
     })
     attachMethodToDao(dao, 'count', function ({ }, cond, options) {
