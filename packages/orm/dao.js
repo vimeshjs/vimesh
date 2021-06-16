@@ -101,6 +101,7 @@ function createDao(schema, name, affix) {
         if (DTMAPPING[v.type]) {
             def.type = DTMAPPING[v.type]
             if (v.required) def.allowNull = false
+            if (undefined !== v.default) def.defaultValue = v.default
             if (v.auto) def.autoIncrement = true
             if (v.primary) {
                 def.primaryKey = true
