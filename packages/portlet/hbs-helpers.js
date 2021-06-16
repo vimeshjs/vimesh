@@ -92,7 +92,7 @@ function menusByZone(name, options) {
             }
         })
     }
-    let am = getActiveMenu(menus, options.data.root.$path)
+    let am = getActiveMenu(menus, options.data.root.$url)
     let result = { activeMenu: am && am.index, menus }
     let variable = options.hash.assignTo
     if (variable) {

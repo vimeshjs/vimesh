@@ -160,7 +160,10 @@ function PortletServer(config) {
 }
 
 function setupPortletServer(config) {
-    return new PortletServer(config)
+    if (!config.global)
+        config.global = '$portlet'
+
+    return global[config.global] = new PortletServer(config)
 }
 
 module.exports = {

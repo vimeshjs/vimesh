@@ -44,7 +44,7 @@ function filesize(size) {
 
 function bodyParserMiddleware(req, res, next) {
     if (("POST" == req.method || "PUT" == req.method) &&
-        (req.is('json') || req.is('multipart') || req.is('urlencoded'))){
+        (req.is('json') || req.is('multipart') || req.is('urlencoded'))) {
         let form = formidable(this)
         form.parse(req, (err, fields, files) => {
             if (err) return next(err)
@@ -69,6 +69,7 @@ function setupMiddleware(req, res, next) {
         if (!ready) $logger.warn(`Server is not ready (menu: ${portletServer.menusReady}, i18n:${portletServer.i18nReady})!`)
         return ready ? Promise.resolve() : Promise.reject(Error())
     }).then(() => {
+        res.locals.$url = req.originalUrl
         res.locals.$path = req.path
         res.locals.$language = portletServer.config.language
         res.locals._i18nItems = portletServer.mergedI18nItems || {}
@@ -82,23 +83,33 @@ function setupMiddleware(req, res, next) {
         res.locals.layout = _.isFunction(mlayout) ? mlayout(req) : mlayout
         res.locals._req = _.pick(req, 'params', 'query', 'body', 'headers', 'cookies')
         res.locals._remoteApis = portletServer.remoteApis
-        res.ok = function (msg, code) {
+        res.ok = (msg, code) => {
             res.json(formatOK(msg, code))
         }
-        res.error = function (err, code) {
+        res.error = (err, code) => {
             res.status(500).json(formatError(err, code))
         }
-        res.allow = function (perm, cond) {
+        res.allow = (perm, cond) => {
             let allowed = evaluatePermissionFormular(perm, res.locals.$permissions, res.locals._allPermissions)
             return allowed && (cond === undefined || cond)
         }
-        res.ensure = function (perm, cond) {
+        res.ensure = (perm, cond) => {
             if (!res.allow(perm, cond)) {
                 $logger.error(`Access Forbidden (${JSON.stringify(req.user)}) @ ${req.path} `)
                 throw Error('Access Forbidden!')
             }
         }
-        res.i18n = function (names) {
+        res.empower = (perm, result) => {
+            if (_.isPlainObject(perm)) {
+                if (!res.locals.$permissions)
+                    res.locals.$permissions = { ...perm }
+                else
+                    res.locals.$permissions = { ...res.locals.$permissions, ...perm }
+            } else {
+                res.locals.$permissions[perm] = !!result
+            }
+        }
+        res.i18n = (names) => {
             if (_.isString(names)) names = _.map(names.split(';'), r => r.trim())
             return _.merge(..._.map(names, name => {
                 if (!name) return ''
@@ -121,8 +132,8 @@ function setupMiddleware(req, res, next) {
                 return fields && fields.length > 0 ? _.pick(result, fields) : result
             }))
         }
-        res.show = function (viewPath, data) {
-            if (!data) {
+        res.show = (viewPath, data) => {
+            if (!data && _.isPlainObject(viewPath)) {
                 data = viewPath
                 viewPath = `${current.urlPath}/${action}`.substring(1) // Remove the first '/'r
             }
@@ -151,14 +162,14 @@ function scanRoutes(portletServer, current) {
 
     if (!current.dir || !fs.existsSync(current.dir) || current.dir[0] == '_') return
 
-    if (!bindedBodyParserMiddleware){
+    if (!bindedBodyParserMiddleware) {
         let options = { multiples: true }
         options.uploadDir = portletServer.config.uploadDir || `${path.join(process.cwd(), 'mnt/uploads')}`
         mkdirp(options.uploadDir)
         $logger.info(`Upload directory : ${options.uploadDir}`)
         let mfs = portletServer.config.uploadMaxFileSize || '100M'
         options.maxFileSize = filesize(mfs)
-        $logger.info(`Upload maximum file size : ${mfs}`)        
+        $logger.info(`Upload maximum file size : ${mfs}`)
         bindedBodyParserMiddleware = _.bind(bodyParserMiddleware, options)
     }
 
@@ -245,7 +256,7 @@ function scanRoutes(portletServer, current) {
                 } else {
                     $logger.error('Route handler must be a function or an object with {before:, handler:, after:}')
                     return
-                }     
+                }
                 let allHandlers = _.concat(
                     bindedBodyParserMiddleware,
                     _.bind(setupMiddleware, mcontext),
