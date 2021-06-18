@@ -1,4 +1,5 @@
 ﻿const _ = require('lodash')
+const url = require('url')
 const Promise = require('bluebird')
 const { Sequelize } = require('sequelize')
 const { retryPromise } = require('@vimesh/utils')
@@ -22,6 +23,9 @@ async function connectTo(config) {
     else
         options.logging = (msg) => $logger.debug(msg + '')
     $logger.info(`Connecting ${name} (${JSON.stringify(config)})`)
+    if (_.startsWith(dbUri, 'sqlite:')){
+        options.storage = dbUri.substring(7)
+    }
     const sequelize = new Sequelize(dbUri, options)
     $orm.databases[name] = sequelize
     sequelize._config = config
@@ -34,7 +38,7 @@ function setupOrm(config, modelsDir, migrationsDir) {
         throw Error('ORM models directory is not set!')   
     }
     if (!migrationsDir){   
-        throw Error('ORM migrations directory is not set!')     
+        $logger.warn('ORM migrations directory is not set!')     
     }
     let baseDb = null
     let dbNames = _.keys(config.databases)
@@ -88,17 +92,19 @@ function setupOrm(config, modelsDir, migrationsDir) {
                     `Databases (${allSyncDbNames.join(',')}) have been synchronized!`)
         })
     }).then(async (r) => {
-        const { generate, execute } = require('./migration')
-        let keys = _.keys($orm.databases)
-        for (let i = 0; i < keys.length; i++) {
-            let key = keys[i]
-            let db = $orm.databases[key]
-            let dbConfig = db._config
-            if (undefined !== dbConfig.migration) {
-                let checkpoint = _.get(dbConfig, 'migration.checkpoint')
-                let run = _.get(dbConfig, 'migration.execute')
-                generate(db, key, checkpoint, migrationsDir, migrationModel)
-                if (run) await execute(db, key, migrationsDir, migrationModel)
+        if (migrationsDir){
+            const { generate, execute } = require('./migration')
+            let keys = _.keys($orm.databases)
+            for (let i = 0; i < keys.length; i++) {
+                let key = keys[i]
+                let db = $orm.databases[key]
+                let dbConfig = db._config
+                if (undefined !== dbConfig.migration) {
+                    let checkpoint = _.get(dbConfig, 'migration.checkpoint')
+                    let run = _.get(dbConfig, 'migration.execute')
+                    generate(db, key, checkpoint, migrationsDir, migrationModel)
+                    if (run) await execute(db, key, migrationsDir, migrationModel)
+                }
             }
         }
     }).then(r => {
