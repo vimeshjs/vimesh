@@ -97,7 +97,7 @@ function createDao(schema, name, affix) {
             $logger.warn(`No type found for ${name}.${k} : ${JSON.stringify(v)}`)
         }
 
-        let def = _.cloneDeep(v)
+        let def = _.omit(v, 'required', 'default', 'auto', 'primary')
         if (DTMAPPING[v.type]) {
             def.type = DTMAPPING[v.type]
             if (v.required) def.allowNull = false

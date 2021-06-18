@@ -1,0 +1,8 @@
+properties:
+  action: string        # 用户执行的动作(URL Path)
+  method: string        # HTTP Method
+  data: json            # HTTP 请求信息
+  at: date              # 记录的时间
+  dd: number            # 日期
+  user: User
+$mapping:

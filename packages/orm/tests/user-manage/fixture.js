@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const { setupLogger } = require('@vimesh/logger')
-const { setupOrm } = require('..')
+const { setupOrm } = require('@vimesh/orm')
 
 const config = {
     databases: {

@@ -135,7 +135,7 @@ const reverseSequelizeDefValueType = function (defaultValue, prefix = 'Sequelize
     if (typeof defaultValue === 'function')
         return { notSupported: true, value: '' };
 
-    return { value: defaultValue };
+    return defaultValue
 };
 
 const parseIndex = function (idx) {
@@ -588,7 +588,7 @@ const getMigration = function (actions) {
                     continue;
 
                 let x = {};
-                x[k] = obj[k].value;
+                x[k] = obj[k];
                 vals.push(JSON.stringify(x).slice(1, -1));
                 continue;
             }

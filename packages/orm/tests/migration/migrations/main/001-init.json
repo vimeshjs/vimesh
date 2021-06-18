@@ -1,0 +1,155 @@
+{
+  "tables": {
+    "roles": {
+      "tableName": "roles",
+      "schema": {
+        "id": {
+          "allowNull": false,
+          "primaryKey": true,
+          "autoIncrement": true,
+          "field": "id",
+          "seqType": "Sequelize.INTEGER"
+        },
+        "name": {
+          "allowNull": false,
+          "field": "name",
+          "seqType": "Sequelize.STRING"
+        },
+        "permissions": {
+          "field": "permissions",
+          "seqType": "Sequelize.JSON"
+        }
+      },
+      "indexes": []
+    },
+    "users": {
+      "tableName": "users",
+      "schema": {
+        "id": {
+          "allowNull": false,
+          "primaryKey": true,
+          "autoIncrement": true,
+          "field": "id",
+          "seqType": "Sequelize.INTEGER"
+        },
+        "login": {
+          "allowNull": false,
+          "field": "login",
+          "seqType": "Sequelize.STRING"
+        },
+        "name": {
+          "field": "name",
+          "seqType": "Sequelize.STRING"
+        },
+        "password": {
+          "field": "password",
+          "seqType": "Sequelize.STRING"
+        },
+        "isAdmin": {
+          "allowNull": false,
+          "defaultValue": false,
+          "field": "is_admin",
+          "seqType": "Sequelize.BOOLEAN"
+        },
+        "blocked": {
+          "allowNull": false,
+          "defaultValue": false,
+          "field": "blocked",
+          "seqType": "Sequelize.BOOLEAN"
+        },
+        "avatar": {
+          "field": "avatar",
+          "seqType": "Sequelize.STRING"
+        }
+      },
+      "indexes": {
+        "d15d4c8b26b717e18602176b925d783003c14d59": {
+          "fields": [
+            "login"
+          ],
+          "unique": true,
+          "name": "users_login",
+          "options": {
+            "indexName": "users_login",
+            "name": "users_login",
+            "indicesType": "UNIQUE",
+            "type": "UNIQUE"
+          }
+        }
+      }
+    },
+    "user_actions": {
+      "tableName": "user_actions",
+      "schema": {
+        "id": {
+          "allowNull": false,
+          "primaryKey": true,
+          "autoIncrement": true,
+          "field": "id",
+          "seqType": "Sequelize.INTEGER"
+        },
+        "action": {
+          "field": "action",
+          "seqType": "Sequelize.STRING"
+        },
+        "method": {
+          "field": "method",
+          "seqType": "Sequelize.STRING"
+        },
+        "data": {
+          "field": "data",
+          "seqType": "Sequelize.JSON"
+        },
+        "at": {
+          "field": "at",
+          "seqType": "Sequelize.DATE"
+        },
+        "dd": {
+          "field": "dd",
+          "seqType": "Sequelize.NUMBER"
+        },
+        "userId": {
+          "allowNull": true,
+          "references": {
+            "model": "users",
+            "key": "id"
+          },
+          "onDelete": "SET NULL",
+          "onUpdate": "CASCADE",
+          "field": "user_id",
+          "seqType": "Sequelize.INTEGER"
+        }
+      },
+      "indexes": []
+    },
+    "user_roles": {
+      "tableName": "user_roles",
+      "schema": {
+        "UserId": {
+          "primaryKey": true,
+          "references": {
+            "model": "users",
+            "key": "id"
+          },
+          "onDelete": "CASCADE",
+          "onUpdate": "CASCADE",
+          "field": "user_id",
+          "seqType": "Sequelize.INTEGER"
+        },
+        "RoleId": {
+          "primaryKey": true,
+          "references": {
+            "model": "roles",
+            "key": "id"
+          },
+          "onDelete": "CASCADE",
+          "onUpdate": "CASCADE",
+          "field": "role_id",
+          "seqType": "Sequelize.INTEGER"
+        }
+      },
+      "indexes": []
+    }
+  },
+  "revision": 1
+}

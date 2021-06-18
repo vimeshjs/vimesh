@@ -1,0 +1,23 @@
+properties:
+  login:                # 账号
+    type: string
+    required: true
+  name: string          # 姓名
+  password: string      # 密码
+  isAdmin: 
+    type: boolean      # 是否为管理员
+    required: true
+    default: false
+  blocked:
+    type: boolean      # 阻止  
+    required: true
+    default: false
+  avatar: string
+  roles:
+    type: Role*
+    through: UserRole
+$mapping:
+  indexes:
+    - fields:
+        - login
+      unique: true
