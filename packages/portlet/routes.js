@@ -112,7 +112,7 @@ function setupMiddleware(req, res, next) {
         }
         res.i18n = (names) => {
             if (_.isString(names)) names = _.map(names.split(';'), r => r.trim())
-            return _.merge(..._.map(names, name => {
+            let translations = _.merge(..._.map(names, name => {
                 if (!name) return ''
                 let p1 = name.indexOf('(')
                 let p2 = name.indexOf(')')
@@ -130,8 +130,9 @@ function setupMiddleware(req, res, next) {
                     $logger.error(`I18n item "${name}" does not have any translation!`)
                     return {}
                 }
-                return fields && fields.length > 0 ? _.pick(result, fields) : result
+                return fields && fields.length > 0 ? _.pick(result, fields) : { _: result }
             }))
+            return translations._ && _.keys(translations).length == 1 ? translations._ : translations
         }
         res.show = (viewPath, data) => {
             if (!data && _.isPlainObject(viewPath)) {
@@ -150,7 +151,7 @@ function setupMiddleware(req, res, next) {
             let menus = getSortedMenus(lang, 'menu', menusInZone, permissions)
             let am = getActiveMenu(menus, res.locals.$url)
             return { activeMenu: am && am.index, menus }
-        }        
+        }
         let inputs = context.inputs
         if (inputs) {
             convertParameters(req.query, inputs.query)
