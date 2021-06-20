@@ -108,6 +108,14 @@ function normalizeInclude(dao, options) {
                     $logger.error(`Association ${dao.getName()}.${i.as} does not exist!`)
                 } else {
                     i.association = assoc
+                    if (i.cond) {
+                        i.where = buildWhere(i.cond)
+                        delete i.cond
+                    }
+                    if (i.through && i.through.cond) {
+                        i.through.where = buildWhere(i.through.cond)
+                        delete i.through.cond
+                    }
                     if (i.include) {
                         normalizeInclude($orm.dao[assoc._config.target], i)
                     }
@@ -126,6 +134,7 @@ function normalizeInclude(dao, options) {
     }
 }
 function normalizeOptions(dao, options) {
+    options = _.cloneDeep(options)
     if (!options) options = {}
     if (options.debug) {
         delete options.debug

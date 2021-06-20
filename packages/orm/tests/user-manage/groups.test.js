@@ -63,7 +63,13 @@ test('groups and users', async function () {
 
         await UserGroup.add({ isLeader: false, userId: 'u001', groupId: g2.id })
 
-        let us = await User.select({}, { include: [{ as: 'groups', required: true, through: { as: 'ug', where: { isLeader: true } } }] })
+        let us = await User.select({}, {
+            include: [{
+                as: 'groups',
+                required: true,
+                through: { as: 'ug', cond: { isLeader: true } }
+            }]
+        })
         //console.log(JSON.stringify(us.data, null, 2))
         expect(us.data.length).toBe(3)
         us = await User.select({}, { include: [{ as: 'groups', through: { as: 'ug' } }] })
@@ -77,20 +83,37 @@ test('groups and users', async function () {
         //console.log(JSON.stringify(fus, null, 2))
         expect(_.filter(fus, u => u.managedGroup).length).toBe(3)
 
+        us = await User.select({
+            cond: {
+                '$ugs.is_leader$': true
+            }
+        }, {
+            include: [
+                {
+                    as: 'ugs',
+                    required: false, // LEFT JOIN, if required = true, it will be INNER JOIN
+                    include: ['group']
+                }
+            ],
+            //logging: true
+        })
+        //console.log(JSON.stringify(us.data, null, 2))   
+        expect(us.data.length).toBe(3)
         us = await User.select({}, {
             include: [
                 {
                     as: 'ugs',
                     required: false, // LEFT JOIN, if required = true, it will be INNER JOIN
-                    where: { isLeader: true },
+                    cond: { isLeader: true },
                     include: ['group']
                 }
-            ]
+            ],
+            //logging: true
         })
         fus = _.map(us.data, u => {
             if (u.ugs.length > 0) {
                 u.managedGroup = {
-                    isLeader : u.ugs[0].isLeader,
+                    isLeader: u.ugs[0].isLeader,
                     groupName: u.ugs[0].group.name
                 }
             }
@@ -100,6 +123,32 @@ test('groups and users', async function () {
         //console.log(JSON.stringify(fus, null, 2))   
         expect(fus.length).toBe(6)
         expect(_.filter(fus, u => u.managedGroup).length).toBe(3)
+
+        ug = await UserGroup.select({
+            cond: {
+                isLeader: true,
+                '$group.name$': { $in: ['group1', 'group3'] }
+            }
+        })
+        expect(ug.data.length).toBe(2)
+        //console.log(JSON.stringify(ug, null, 2))
+
+        /* RIGHT JOIN does not work, need more exploration
+        ug = await UserGroup.select({},
+            {
+                include: [
+                    {
+                        as: 'group',
+                        required: false,
+                        right: true
+                    }
+                ],
+                logging: true
+            })
+        console.log(JSON.stringify(ug, null, 2))
+        */
+        //expect(ug.data.length).toBe(2)
+
     } catch (ex) {
         console.log(ex)
     }
