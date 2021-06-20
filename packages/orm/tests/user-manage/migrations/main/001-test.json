@@ -1,0 +1,302 @@
+{
+  "tables": {
+    "groups": {
+      "tableName": "groups",
+      "schema": {
+        "id": {
+          "allowNull": false,
+          "primaryKey": true,
+          "autoIncrement": true,
+          "field": "id",
+          "seqType": "Sequelize.INTEGER"
+        },
+        "name": {
+          "field": "name",
+          "seqType": "Sequelize.STRING"
+        }
+      },
+      "indexes": {}
+    },
+    "group_roles": {
+      "tableName": "group_roles",
+      "schema": {
+        "GroupId": {
+          "primaryKey": true,
+          "references": {
+            "model": "groups",
+            "key": "id"
+          },
+          "onDelete": "CASCADE",
+          "onUpdate": "CASCADE",
+          "field": "group_id",
+          "seqType": "Sequelize.INTEGER"
+        },
+        "RoleId": {
+          "primaryKey": true,
+          "references": {
+            "model": "roles",
+            "key": "id"
+          },
+          "onDelete": "CASCADE",
+          "onUpdate": "CASCADE",
+          "field": "role_id",
+          "seqType": "Sequelize.INTEGER"
+        }
+      },
+      "indexes": {}
+    },
+    "resumes": {
+      "tableName": "resumes",
+      "schema": {
+        "id": {
+          "allowNull": false,
+          "primaryKey": true,
+          "autoIncrement": true,
+          "field": "id",
+          "seqType": "Sequelize.INTEGER"
+        },
+        "content": {
+          "field": "content",
+          "seqType": "Sequelize.TEXT"
+        },
+        "ownerId": {
+          "allowNull": true,
+          "references": {
+            "model": "users",
+            "key": "id"
+          },
+          "onDelete": "SET NULL",
+          "onUpdate": "CASCADE",
+          "field": "owner_id",
+          "seqType": "Sequelize.STRING"
+        }
+      },
+      "indexes": {
+        "72366610d0db0c71db238d19df935d5fb591950c": {
+          "fields": [
+            "owner_id"
+          ],
+          "unique": true,
+          "name": "resumes_owner_id",
+          "options": {
+            "indexName": "resumes_owner_id",
+            "name": "resumes_owner_id",
+            "indicesType": "UNIQUE",
+            "type": "UNIQUE"
+          }
+        }
+      }
+    },
+    "roles": {
+      "tableName": "roles",
+      "schema": {
+        "id": {
+          "allowNull": false,
+          "primaryKey": true,
+          "autoIncrement": true,
+          "field": "id",
+          "seqType": "Sequelize.INTEGER"
+        },
+        "name": {
+          "allowNull": false,
+          "field": "name",
+          "seqType": "Sequelize.STRING"
+        },
+        "permissions": {
+          "field": "permissions",
+          "seqType": "Sequelize.JSON"
+        }
+      },
+      "indexes": {}
+    },
+    "users": {
+      "tableName": "users",
+      "schema": {
+        "id": {
+          "primaryKey": true,
+          "field": "id",
+          "seqType": "Sequelize.STRING"
+        },
+        "no": {
+          "field": "no",
+          "seqType": "Sequelize.INTEGER"
+        },
+        "name": {
+          "field": "name",
+          "seqType": "Sequelize.STRING"
+        },
+        "email": {
+          "field": "email",
+          "seqType": "Sequelize.STRING"
+        },
+        "mobile": {
+          "field": "mobile",
+          "seqType": "Sequelize.STRING"
+        },
+        "password": {
+          "field": "password",
+          "seqType": "Sequelize.STRING"
+        },
+        "isAdmin": {
+          "field": "is_admin",
+          "seqType": "Sequelize.BOOLEAN"
+        },
+        "blocked": {
+          "field": "blocked",
+          "seqType": "Sequelize.BOOLEAN"
+        },
+        "createdAt": {
+          "allowNull": false,
+          "field": "created_at",
+          "seqType": "Sequelize.DATE"
+        },
+        "updatedAt": {
+          "allowNull": false,
+          "field": "updated_at",
+          "seqType": "Sequelize.DATE"
+        },
+        "deletedAt": {
+          "field": "deleted_at",
+          "seqType": "Sequelize.DATE"
+        }
+      },
+      "indexes": {
+        "5012b514d7a57863fc1db2df101105504e334aaa": {
+          "fields": [
+            "mobile"
+          ],
+          "unique": true,
+          "name": "users_mobile",
+          "options": {
+            "indexName": "users_mobile",
+            "name": "users_mobile",
+            "indicesType": "UNIQUE",
+            "type": "UNIQUE"
+          }
+        },
+        "dc5153e4004b6323de4db96d57f9c069e4fe19aa": {
+          "fields": [
+            "email"
+          ],
+          "unique": true,
+          "name": "users_email",
+          "options": {
+            "indexName": "users_email",
+            "name": "users_email",
+            "indicesType": "UNIQUE",
+            "type": "UNIQUE"
+          }
+        }
+      }
+    },
+    "user_actions": {
+      "tableName": "user_actions",
+      "schema": {
+        "id": {
+          "allowNull": false,
+          "primaryKey": true,
+          "autoIncrement": true,
+          "field": "id",
+          "seqType": "Sequelize.INTEGER"
+        },
+        "action": {
+          "field": "action",
+          "seqType": "Sequelize.STRING"
+        },
+        "method": {
+          "field": "method",
+          "seqType": "Sequelize.STRING"
+        },
+        "data": {
+          "field": "data",
+          "seqType": "Sequelize.JSON"
+        },
+        "at": {
+          "field": "at",
+          "seqType": "Sequelize.DATE"
+        },
+        "dd": {
+          "field": "dd",
+          "seqType": "Sequelize.NUMBER"
+        },
+        "userId": {
+          "allowNull": true,
+          "references": {
+            "model": "users",
+            "key": "id"
+          },
+          "onDelete": "SET NULL",
+          "onUpdate": "CASCADE",
+          "field": "user_id",
+          "seqType": "Sequelize.STRING"
+        }
+      },
+      "indexes": {}
+    },
+    "user_groups": {
+      "tableName": "user_groups",
+      "schema": {
+        "isLeader": {
+          "allowNull": false,
+          "defaultValue": false,
+          "field": "is_leader",
+          "seqType": "Sequelize.BOOLEAN"
+        },
+        "groupId": {
+          "primaryKey": true,
+          "references": {
+            "model": "groups",
+            "key": "id"
+          },
+          "onDelete": "CASCADE",
+          "onUpdate": "CASCADE",
+          "field": "group_id",
+          "allowNull": true,
+          "seqType": "Sequelize.INTEGER"
+        },
+        "userId": {
+          "primaryKey": true,
+          "references": {
+            "model": "users",
+            "key": "id"
+          },
+          "onDelete": "CASCADE",
+          "onUpdate": "CASCADE",
+          "field": "user_id",
+          "allowNull": true,
+          "seqType": "Sequelize.STRING"
+        }
+      },
+      "indexes": {}
+    },
+    "user_roles": {
+      "tableName": "user_roles",
+      "schema": {
+        "userId": {
+          "primaryKey": true,
+          "references": {
+            "model": "users",
+            "key": "id"
+          },
+          "onDelete": "CASCADE",
+          "onUpdate": "CASCADE",
+          "field": "user_id",
+          "seqType": "Sequelize.STRING"
+        },
+        "RoleId": {
+          "primaryKey": true,
+          "references": {
+            "model": "roles",
+            "key": "id"
+          },
+          "onDelete": "CASCADE",
+          "onUpdate": "CASCADE",
+          "field": "role_id",
+          "seqType": "Sequelize.INTEGER"
+        }
+      },
+      "indexes": {}
+    }
+  },
+  "revision": 1
+}

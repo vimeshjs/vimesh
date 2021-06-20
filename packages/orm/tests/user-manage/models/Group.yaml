@@ -3,4 +3,8 @@ properties:
   roles: 
     type: Role*
     through: GroupRole
+  users:
+    type: User*
+    through: UserGroup
+    foreignKey: groupId
 $mapping:

@@ -17,9 +17,14 @@ properties:
   roles:
     type: Role*
     through: UserRole
+    foreignKey: userId
   groups: 
     type: Group*
     through: UserGroup
+    foreignKey: userId
+  ugs:
+    type: '@UserGroup*'
+    foreignKey: userId
 $mapping:
   recyclable: true
   indexes:

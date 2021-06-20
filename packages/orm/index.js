@@ -5,16 +5,16 @@ const { Sequelize } = require('sequelize')
 const { retryPromise } = require('@vimesh/utils')
 global.$orm = {
     databases: {},
+    databasesToMigrate: {},
     models: {},
     dao: {}
 }
 const loadModels = require('./models')
-const createDao = require('./dao.js')
+const { createDao, createAssociation } = require('./dao.js')
 
 const migrationModel = 'MigrationHistory'
 
 async function connectTo(config) {
-    let name = config.name
     let debug = config.debug
     let dbUri = config.uri
     let options = {}
@@ -22,23 +22,21 @@ async function connectTo(config) {
         options.logging = false
     else
         options.logging = (msg) => $logger.debug(msg + '')
-    $logger.info(`Connecting ${name} (${JSON.stringify(config)})`)
-    if (_.startsWith(dbUri, 'sqlite:')){
+    if (_.startsWith(dbUri, 'sqlite:')) {
         options.storage = dbUri.substring(7)
     }
     const sequelize = new Sequelize(dbUri, options)
-    $orm.databases[name] = sequelize
     sequelize._config = config
-    await sequelize.authenticate();
-    //$logger.info("DB " + name + )
+    await sequelize.authenticate()
+    return sequelize
 }
 
 function setupOrm(config, modelsDir, migrationsDir) {
-    if (!modelsDir){  
-        throw Error('ORM models directory is not set!')   
+    if (!modelsDir) {
+        throw Error('ORM models directory is not set!')
     }
-    if (!migrationsDir){   
-        $logger.warn('ORM migrations directory is not set!')     
+    if (!migrationsDir) {
+        $logger.warn('ORM migrations directory is not set!')
     }
     let baseDb = null
     let dbNames = _.keys(config.databases)
@@ -50,7 +48,11 @@ function setupOrm(config, modelsDir, migrationsDir) {
     loadModels(modelsDir, baseDb)
     let databases = _.mapValues(config.databases, function (v, k) {
         return retryPromise(
-            _.bind(connectTo, null, { name: k, ...v }),
+            async () => {
+                let name = k
+                $logger.info(`Connecting ${name} (${JSON.stringify(config)})`)
+                $orm.databases[name] = await connectTo(v)
+            },
             10000
         )
     })
@@ -62,12 +64,11 @@ function setupOrm(config, modelsDir, migrationsDir) {
         })
 
         _.each($orm.dao, (dao, name) => {
-            if (_.entries(dao.assocCreators).length > 0) {
+            if (_.entries(dao.associations).length > 0) {
                 $logger.debug(`SETUP associations for ${name}`)
-                _.each(dao.assocCreators, (func, k) => {
-                    dao.associations[k] = func()
+                _.each(dao.associations, (def, k) => {
+                    dao.associations[k] = createAssociation($orm.models, name, k, def)
                 })
-                delete dao.assocCreators
             }
         })
 
@@ -92,7 +93,7 @@ function setupOrm(config, modelsDir, migrationsDir) {
                     `Databases (${allSyncDbNames.join(',')}) have been synchronized!`)
         })
     }).then(async (r) => {
-        if (migrationsDir){
+        if (migrationsDir) {
             const { generate, execute } = require('./migration')
             let keys = _.keys($orm.databases)
             for (let i = 0; i < keys.length; i++) {

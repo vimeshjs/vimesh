@@ -67,8 +67,75 @@ function toJson(obj) {
 }
 $orm.dao.toJson = toJson
 $orm.dao.toWhere = buildWhere
+function createAssociation(models, modelName, name, def) {
+    let model = models[modelName]
+    let assoc = null
+    let aoptions = _.omit(def, 'type')
+    aoptions.as = name
+    let type = def.type
+    if (_.endsWith(def.type, '*')) {
+        type = def.type.substring(0, def.type.length - 1)
+        if (_.startsWith(type, '@')) {
+            type = type.substring(1)
+            $logger.debug(`ASSOC ${modelName}.${name} hasMany ${type} (${JSON.stringify(aoptions)})`)
+            assoc = model.hasMany(models[type], aoptions)
+        } else {
+            $logger.debug(`ASSOC ${modelName}.${name} belongsToMany ${type} (${JSON.stringify(aoptions)})`)
+            assoc = model.belongsToMany(models[type], aoptions)
+        }
+    } else {
+        if (_.startsWith(def.type, '@')) {
+            type = def.type.substring(1)
+            $logger.debug(`ASSOC ${modelName}.${name} hasOne ${type} (${JSON.stringify(aoptions)})`)
+            assoc = model.hasOne(models[type], aoptions)
+        } else {
+            $logger.debug(`ASSOC ${modelName}.${name} belongsTo ${def.type} (${JSON.stringify(aoptions)})`)
+            assoc = model.belongsTo(models[type], aoptions)
+        }
+    }
+    def.source = modelName
+    def.target = type
+    assoc._config = def
+    return assoc
+}
+function normalizeInclude(dao, options) {
+    let associations = dao.associations
+    if (options.include) {
+        options.include = _.map(options.include, i => {
+            if (_.isPlainObject(i)) {
+                let assoc = associations[i.as]
+                if (!assoc) {
+                    $logger.error(`Association ${dao.getName()}.${i.as} does not exist!`)
+                } else {
+                    i.association = assoc
+                    if (i.include) {
+                        normalizeInclude($orm.dao[assoc._config.target], i)
+                    }
+                }
+                return i
+            }
+            return { association: associations[i] }
+        })
+    } else {
+        options.include = []
+        _.each(associations, assoc => {
+            if (assoc._config && true !== assoc._config.lazy) {
+                options.include.push({ association: assoc })
+            }
+        })
+    }
+}
+function normalizeOptions(dao, options) {
+    if (!options) options = {}
+    if (options.debug) {
+        delete options.debug
+        options.logging = _.bind($logger.debug, $logger)
+    }
+    normalizeInclude(dao, options)
+    return options
+}
 
-function createDao(schema, name, affix) {
+function createDao(schema, name) {
     let mapping = schema.$mapping
     if (!mapping) {
         $logger.error(`Model ${name} has no database mappings!`)
@@ -79,16 +146,9 @@ function createDao(schema, name, affix) {
         return
     }
     let database = $orm.databases[mapping.database]
-    let fullname = name
     let primaryKey = null
     let model = null
-
     let tableName = mapping.collection || mapping.table
-    if (affix) {
-        fullname = name + affix
-        tableName = tableName + affix
-    }
-    let assocCreators = {}
     let associations = {}
     let definition = {}
     _.each(schema.properties, (v, k) => {
@@ -110,35 +170,7 @@ function createDao(schema, name, affix) {
             definition[k] = def
         } else {
             // It is an association
-            assocCreators[k] = () => {
-                let assoc = null
-                let aoptions = _.omit(v, 'type')
-                aoptions.as = k
-                if (_.endsWith(def.type, '*')) {
-                    let type = def.type.substring(0, def.type.length - 1)
-                    if (_.startsWith(type, '@')) {
-                        def.itype = type = type.substring(1)
-                        $logger.debug(`ASSOC ${name} hasMany ${type} (${JSON.stringify(aoptions)})`)
-                        assoc = $orm.models[name].hasMany($orm.models[type], aoptions)
-                    } else {
-                        def.itype = type
-                        $logger.debug(`ASSOC ${name} belongsToMany ${type} (${JSON.stringify(aoptions)})`)
-                        assoc = $orm.models[name].belongsToMany($orm.models[type], aoptions)
-                    }
-                } else {
-                    if (_.startsWith(def.type, '@')) {
-                        let type = def.itype = def.type.substring(1)
-                        $logger.debug(`ASSOC ${name} hasOne ${type} (${JSON.stringify(aoptions)})`)
-                        assoc = $orm.models[name].hasOne($orm.models[type], aoptions)
-                    } else {
-                        def.itype = def.type
-                        $logger.debug(`ASSOC ${name} belongsTo ${def.type} (${JSON.stringify(aoptions)})`)
-                        assoc = $orm.models[name].belongsTo($orm.models[def.type], aoptions)
-                    }
-                }
-                assoc._config = def
-                return assoc
-            }
+            associations[k] = def
         }
     })
     if (!primaryKey) {
@@ -157,25 +189,26 @@ function createDao(schema, name, affix) {
     if (tableName)
         moptions.tableName = tableName
 
-    model = database.define(name, definition, moptions)
+    $logger.debug(`MODEL ${mapping.database}/${name} `)
+    _.each(mapping.indexes, (index) => {
+        $logger.debug(`INDEX ${name} ${JSON.stringify(index)} `)
+    })
+    $orm.models[name] = model = database.define(name, definition, moptions)
 
     if (mapping.sync) {
-        $logger.warn(`Model ${fullname} is synchronizing its schema with database ${mapping.database} (options : ${JSON.stringify(mapping.sync)})`)
+        $logger.warn(`Model ${name} is synchronizing its schema with database ${mapping.database} (options : ${JSON.stringify(mapping.sync)})`)
         if (_.isObject(mapping.sync))
             model.sync(mapping.sync)
         else
             model.sync()
     }
 
-    if ($orm.dao[fullname]) return $orm.dao[fullname]
-    $orm.models[fullname] = model
-    let dao = function (obj) {
+    $orm.models[name] = model
+    let dao = $orm.dao[name] = function (obj) {
         return model.build(obj)
     }
     dao.schema = schema
-    dao.model = model
     dao.associations = associations
-    dao.assocCreators = assocCreators
     dao.primaryKey = primaryKey
 
     _.each(mapping.methods, (method, methodName) => {
@@ -183,27 +216,8 @@ function createDao(schema, name, affix) {
         //$logger.info('DAO $dao.' + name + '.' + methodName)
     })
 
-    function normalizeOptions(options) {
-        if (!options) options = {}
-        if (options.debug) {
-            delete options.debug
-            options.logging = _.bind($logger.debug, $logger)
-        }
-        if (options.include) {
-            options.include = _.map(options.include, i => _.isPlainObject(i) ? i : { association: associations[i] })
-        } else {
-            options.include = []
-            _.each(associations, assoc => {
-                if (true !== assoc._config.lazy) {
-                    options.include.push({ association: assoc })
-                }
-            })
-        }
-        return options
-    }
-
     attachMethodToDao(dao, 'get', function ({ }, idOrCond, options) {
-        options = normalizeOptions(options)
+        options = normalizeOptions(dao, options)
         return (_.isPlainObject(idOrCond) ?
             model.findOne({ where: buildWhere(idOrCond) }) :
             model.findByPk(idOrCond, options)).then(r => options.native ? r : toJson(r))
@@ -212,7 +226,7 @@ function createDao(schema, name, affix) {
         return this.get(id, { ...options, native: true })
     })
     attachMethodToDao(dao, 'set', async function ({ }, data, options) {
-        options = normalizeOptions(options)
+        options = normalizeOptions(dao, options)
         let assocs = {}
         let dataToUpdate = {}
         _.each(data, (v, k) => {
@@ -230,7 +244,7 @@ function createDao(schema, name, affix) {
                     let key = keys[i]
                     let val = data[key]
                     let assoc = assocs[key]
-                    let target = $orm.dao[assoc._config.itype]
+                    let target = $orm.dao[assoc._config.target]
                     if (_.isArray(val)) {
                         let cond = { [target.primaryKey]: { $in: val } }
                         let dataToSet = await target._select({ cond })
@@ -247,7 +261,7 @@ function createDao(schema, name, affix) {
         return this.set(data, { ...options, native: true })
     })
     attachMethodToDao(dao, 'add', async function ({ }, data, options) {
-        options = normalizeOptions(options)
+        options = normalizeOptions(dao, options)
         let assocs = {}
         let dataToAdd = {}
         _.each(data, (v, k) => {
@@ -265,7 +279,7 @@ function createDao(schema, name, affix) {
                     let key = keys[i]
                     let val = data[key]
                     let assoc = assocs[key]
-                    let target = $orm.dao[assoc._config.itype]
+                    let target = $orm.dao[assoc._config.target]
                     if (_.isArray(val)) {
                         let cond = { [target.primaryKey]: { $in: val } }
                         let dataToSet = await target._select({ cond })
@@ -281,46 +295,60 @@ function createDao(schema, name, affix) {
     attachMethodToDao(dao, '_add', function ({ }, data, options) {
         return this.add(data, { ...options, native: true })
     })
+    attachMethodToDao(dao, 'update', async function ({ }, data, options) {
+        options = normalizeOptions(dao, options)
+        if (options.cond) {
+            options.where = buildWhere(options.cond)
+            delete options.cond
+        }
+        let assocs = {}
+        let dataToUpdate = {}
+        _.each(data, (v, k) => {
+            if (this.associations[k]) {
+                assocs[k] = this.associations[k]
+            } else {
+                dataToUpdate[k] = v
+            }
+        })
+        return model.update(dataToUpdate, options)
+    })
     attachMethodToDao(dao, 'delete', function ({ }, idOrCond, options) {
-        options = normalizeOptions(options)
+        options = normalizeOptions(dao, options)
         options.where = _.isPlainObject(idOrCond) ? buildWhere(idOrCond) : { [primaryKey]: idOrCond }
         options.force = true
         return model.destroy(options)
     })
     attachMethodToDao(dao, 'recycle', function ({ }, idOrCond, options) {
-        options = normalizeOptions(options)
+        options = normalizeOptions(dao, options)
         options.where = _.isPlainObject(idOrCond) ? buildWhere(idOrCond) : { [primaryKey]: idOrCond }
         options.force = false
         return model.destroy(options)
     })
     attachMethodToDao(dao, 'restore', function ({ }, idOrCond, options) {
-        options = normalizeOptions(options)
+        options = normalizeOptions(dao, options)
         options.where = _.isPlainObject(idOrCond) ? buildWhere(idOrCond) : { [primaryKey]: idOrCond }
         return model.restore(options)
     })
     attachMethodToDao(dao, 'count', function ({ }, cond, options) {
-        options = normalizeOptions(options)
+        options = normalizeOptions(dao, options)
         options.where = buildWhere(cond)
         return model.count(options)
     })
     attachMethodToDao(dao, 'getMappings', function ({ }) {
         return mapping
     })
-    attachMethodToDao(dao, 'getModel', function ({ }) {
-        return model
-    })
     attachMethodToDao(dao, 'getName', function ({ }) {
         return name
-    })
-    attachMethodToDao(dao, 'getFullName', function ({ }) {
-        return fullname
     })
     attachMethodToDao(dao, 'getDatabase', function ({ }) {
         return database
     })
+    attachMethodToDao(dao, 'getDatabaseName', function ({ }) {
+        return mapping.database
+    })
     attachMethodToDao(dao, 'select', function ({ }, params, options) {
         if (!params) params = {}
-        options = normalizeOptions(options)
+        options = normalizeOptions(dao, options)
         options.where = buildWhere(params.query || params.cond || {})
         let skip = +(params.skip || 0)
         if (skip) options.offset = skip
@@ -338,33 +366,10 @@ function createDao(schema, name, affix) {
     attachMethodToDao(dao, '_select', function ({ }, params, options) {
         return this.select(params, { ...options, native: true })
     })
-    if (!affix) {
-        attachMethodToDao(dao, '_', function ({ }, date) {
-            let format = mapping.affix && mapping.affix.format || 'YYYYMMDD'
-            if (!date) {
-                date = moment.utc()
-            }
-            if (!_.isString(date) && !_.isNumber(date)) {
-                date = formatDate(date, format)
-            }
-            return createDao(schema, name, '_' + date)
-        })
-    }
-    $orm.dao[fullname] = dao;
-    $logger.debug(`MODEL ${name} -> ${mapping.database}/${mapping.collection}`)
-    _.each(mapping.indexes, (index) => {
-        if (!index.options) index.options = {}
-        let iarr = []
-
-        //if (index.keys) iarr.push(model.ensureIndex(index.keys, index.options));
-        if (iarr.length > 0)
-            Promise.all(iarr).then(r => {
-                $logger.debug(`INDEX ${name} ${JSON.stringify(index.keys)} ${JSON.stringify(index.options)} `)
-            }).catch(err => {
-                $logger.error(`INDEX ${name} ${JSON.stringify(index.keys)} ${JSON.stringify(index.options)}`, err)
-            });
-    })
     return dao
 }
 
-module.exports = createDao
+module.exports = {
+    createDao,
+    createAssociation
+}

@@ -1,0 +1,8 @@
+props:
+    user: User
+    group: Group
+    isLeader: 
+        type: boolean
+        default: false
+        required: true
+$mapping:
