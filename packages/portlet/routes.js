@@ -3,6 +3,7 @@ const _ = require('lodash')
 const path = require('path')
 const fs = require('graceful-fs')
 const mkdirp = require('mkdirp')
+const { getSortedMenus, getActiveMenu, visitMenus } = require('./menus')
 const formidable = require('formidable')
 const { retryPromise } = require('@vimesh/utils')
 const { formatError, formatOK, evaluatePermissionFormular } = require('./utils')
@@ -143,6 +144,13 @@ function setupMiddleware(req, res, next) {
                 res.send(html)
             })
         }
+        res.buildMenus = (menusInZone) => {
+            let lang = res.locals.$language
+            let permissions = res.locals.$permissions || {}
+            let menus = getSortedMenus(lang, 'menu', menusInZone, permissions)
+            let am = getActiveMenu(menus, res.locals.$url)
+            return { activeMenu: am && am.index, menus }
+        }        
         let inputs = context.inputs
         if (inputs) {
             convertParameters(req.query, inputs.query)
