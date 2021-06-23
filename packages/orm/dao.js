@@ -1,9 +1,9 @@
 const _ = require('lodash')
 const moment = require('moment')
 const Promise = require('bluebird')
-const { DataTypes, Op } = require('sequelize')
+const Sequelize = require('sequelize')
 const { formatDate, duration } = require('@vimesh/utils')
-
+const { DataTypes, Op } = Sequelize
 function attachMethodToDao(dao, name, func) {
     if (!dao[name]) {
         dao[name] = _.bind(func, dao, $orm.models)
@@ -100,6 +100,27 @@ function createAssociation(models, modelName, name, def) {
 }
 function normalizeInclude(dao, options) {
     let associations = dao.associations
+    if (options.attributes) {
+        options.attributes = _.map(options.attributes, attr => {
+            if (_.isString(attr)) {
+                let p1 = attr.indexOf('(')
+                let p2 = attr.indexOf(')')
+                let pas = attr.indexOf(' as ')
+                if (p2 > p1 && p1 > 0) {
+                    let func = _.trim(attr.substring(0, p1))
+                    let field = _.trim(attr.substring(p1 + 1, p2))
+                    let as = _.trim(attr.substring(p2 + 1))
+                    if (_.startsWith(as, 'as ')) {
+                        as = _.trim(as.substring(3))
+                    }
+                    attr = [Sequelize.fn(func, Sequelize.col(field)), as]
+                } else if (pas > 0) {
+                    attr = [_.trim(attr.substring(0, pas)), _.trim(attr.substring(pas + 4))]
+                }
+            }
+            return attr
+        })
+    }
     if (options.include) {
         options.include = _.map(options.include, i => {
             if (_.isPlainObject(i)) {
@@ -125,12 +146,14 @@ function normalizeInclude(dao, options) {
             return { association: associations[i] }
         })
     } else {
-        options.include = []
-        _.each(associations, assoc => {
-            if (assoc._config && true !== assoc._config.lazy) {
-                options.include.push({ association: assoc })
-            }
-        })
+        if (!options.group) {
+            options.include = []
+            _.each(associations, assoc => {
+                if (assoc._config && true !== assoc._config.lazy) {
+                    options.include.push({ association: assoc })
+                }
+            })
+        }
     }
 }
 function normalizeOptions(dao, options) {

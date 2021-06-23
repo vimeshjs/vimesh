@@ -8,11 +8,11 @@ const config = {
             uri: `sqlite:${__dirname}/mnt/test.db`,
             //debug: true,
             sync: {force : true},
-            
+            /*
             migration: {
                 checkpoint: 'test'
             }
-            
+            */
         }
     }
 }

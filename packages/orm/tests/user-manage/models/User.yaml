@@ -6,6 +6,7 @@ properties:
   mobile: string        # 手机
   password: string      # 密码
   isAdmin: boolean      # 是否为管理员
+  department: string
   blocked: boolean      # 阻止
   resume: 
     type: '@Resume'
