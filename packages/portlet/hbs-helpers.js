@@ -425,7 +425,8 @@ function template(tpl, options) {
 }
 
 function component(name, options){
-    return `<script src="${options.data.root._urlPrefix || ''}/_/${name}.min.js"></script>`
+    let isDev = 'development' === process.env.NODE_ENV
+    return `<script src="${options.data.root._urlPrefix || ''}/_/${name}${isDev ? '' : '.min'}.js"></script>`
 }
 
 module.exports = {

@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const http = require('http')
 const path = require('path')
 const fs = require('graceful-fs')
 const cookieParser = require('cookie-parser')
@@ -20,6 +21,7 @@ function PortletServer(config) {
     let portlet = this.portlet = config.name
     let port = this.port = config.port || (10000 + getCRC16(portlet) % 10000)
     let app = this.app = express()
+    this.server = http.createServer(app)
     let rootDir = config.rootDir || process.cwd()
     let routesDir = this.routesDir = path.join(rootDir, config.routesDir || 'routes')
     let assetsDir = this.assetsDir = path.join(rootDir, config.assetsDir || 'assets')
@@ -111,6 +113,11 @@ function PortletServer(config) {
         app.use(compression())
     }
 
+    if (config.onSetupRoutes){
+        config.onSetupRoutes(this)
+        delete config.onSetupRoutes
+    }
+
     app.use(cookieParser())
 
     setupRemoteApis(this)
@@ -151,12 +158,16 @@ function PortletServer(config) {
     app.use(function (err, req, res, next) {
         res.status(err.status || 500).end('500')
     })
+    
+    if (config.onStart){
+        config.onStart(this)
+        delete config.onStart
+    }
 
-    app.listen(port, () => {
+    this.server.listen(port, () => {
         $logger.info(`Portlet ${portlet}(version: ${this.version}) starts on port ${port} with node.js ${process.version}`)
         $logger.info(`Url http://localhost:${port}/${this.standalone ? '' : `@${portlet}/`}`)
     })
-
 }
 
 function setupPortletServer(config) {
