@@ -10,7 +10,8 @@ function generate(sequelize, name, checkpoint, migrationsDir, migrationModel) {
     const currentState = { tables: {} }
     const dbMigrationsDir = `${migrationsDir}/${name}`
     let previousState = { revision: 0, version: 1, tables: {} }
-    mkdirp.sync(dbMigrationsDir)
+    if (!fs.existsSync(dbMigrationsDir))
+        mkdirp.sync(dbMigrationsDir)
     let current = ''
     _.each(fs.readdirSync(dbMigrationsDir), f => {
         if (_.endsWith(f, '.json') && fs.existsSync(path.join(dbMigrationsDir, f.substring(0, f.length - 5) + '.js'))) {
