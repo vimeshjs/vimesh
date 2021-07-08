@@ -126,7 +126,8 @@ function T(name, options) {
 
 function es5(options) {
     let code = options.fn(this)
-    let result = babel.transformSync(code, { presets: ["@babel/preset-env"] })
+    let fullpath = path.join(options.data.root._rootDir, 'node_modules', '@babel/preset-env')
+    let result = babel.transformSync(code, { presets: [fullpath] })
     return `${result.code}`
 }
 
@@ -424,7 +425,7 @@ function template(tpl, options) {
     }
 }
 
-function component(name, options){
+function component(name, options) {
     let isDev = 'development' === process.env.NODE_ENV
     return `<script src="${options.data.root._urlPrefix || ''}/_/${name}${isDev ? '' : '.min'}.js"></script>`
 }

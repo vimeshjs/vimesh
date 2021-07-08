@@ -17,6 +17,7 @@ const builtins = require('rollup-plugin-node-builtins')
 const globals = require('rollup-plugin-node-globals')
 
 function configVue(options) {
+    let fullpath = path.join(options.rootDir, 'node_modules', '@babel/preset-env')
     const rollupOptions = {
         input: options.input,
         external: options.external || [],
@@ -25,10 +26,10 @@ function configVue(options) {
                 extensions: ['.js', '.json', '.html', '.vue', '.scss', '.sass', '.less', '.css', '.stylus', '.styl']
             }),
             nodeResolve({
-                browser: true, 
+                browser: true,
                 preferBuiltins: true
             }),
-            commonjs(), 
+            commonjs(),
             globals(),
             builtins(),
             scss(),
@@ -42,7 +43,7 @@ function configVue(options) {
             }),
             babel({
                 babelHelpers: 'bundled',
-                presets: ['@babel/preset-env'],
+                presets: [fullpath],
                 exclude: 'node_modules/**'
             }),
             buble({
@@ -102,6 +103,7 @@ function createComponentCache(portletServer) {
                 let yf = path.join(portletServer.componentsDir, keyPath + '.yaml')
 
                 let options = config({
+                    rootDir: portletServer.rootDir,
                     name: keyPath.split(path.sep).join('.'),
                     input: file,
                     output: path.join(outputDir, key),

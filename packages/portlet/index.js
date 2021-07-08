@@ -22,7 +22,7 @@ function PortletServer(config) {
     let port = this.port = config.port || (10000 + getCRC16(portlet) % 10000)
     let app = this.app = express()
     this.server = http.createServer(app)
-    let rootDir = config.rootDir || process.cwd()
+    let rootDir = this.rootDir = config.rootDir || process.cwd()
     let routesDir = this.routesDir = path.join(rootDir, config.routesDir || 'routes')
     let assetsDir = this.assetsDir = path.join(rootDir, config.assetsDir || 'assets')
     if (!fs.existsSync(assetsDir)) {
