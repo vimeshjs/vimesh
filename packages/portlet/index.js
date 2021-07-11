@@ -42,6 +42,7 @@ function PortletServer(config) {
     this.mergedI18nItems = {}
     this.allPermissions = {}
     this.allExtensionsByZone = {}
+    this.allEnums = {}
     this.beforeAll = []
     this.menusReady = false
     this.i18nReady = false

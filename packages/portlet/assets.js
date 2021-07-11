@@ -76,16 +76,23 @@ function mergeAssets(portletServer) {
 
         let cacheI18n = portletServer.assetCaches['i18n']
         cacheI18n.enumerate(true).then(rs => {
+            let data = {}
             _.each(rs, (r, key) => {
-                let data = {}
                 data[key] = r.content
-                mergeI18nItems(portletServer.mergedI18nItems, data)
             })
+            mergeI18nItems(portletServer.mergedI18nItems, data)
         })
 
         let cachePermissions = portletServer.assetCaches['permissions']
         cachePermissions.enumerate(true).then(rs => {
             portletServer.allPermissions = _.merge({}, ..._.map(_.values(rs), item => item.content))
+        })
+
+        let cacheEnums = portletServer.assetCaches['enums']
+        cacheEnums.enumerate(true).then(rs => {
+            let data = {}
+            _.each(rs, (r, key) => { data[key] = r.content })
+            portletServer.allEnums = _.merge({}, data)
         })
 
         let cacheExtensions = portletServer.assetCaches['extensions']
@@ -115,12 +122,12 @@ function mergeAssets(portletServer) {
 
         kvClient.get('i18n/*').then(rs => {
             portletServer.mergedI18nItems = {}
+            let data = {}
             _.each(rs, (r, key) => {
                 key = key.substring(key.indexOf('/', key.indexOf('@')) + 1)
-                let data = {}
                 data[key] = r
-                mergeI18nItems(portletServer.mergedI18nItems, data)
             })
+            mergeI18nItems(portletServer.mergedI18nItems, data)
         }).then(r => {
             portletServer.i18nReady = true
         }).catch(ex => {
@@ -131,6 +138,14 @@ function mergeAssets(portletServer) {
             portletServer.allPermissions = _.merge({}, ..._.values(rs))
         }).catch(ex => {
             $logger.error('Fails to receive permissions.', ex)
+        })
+
+        kvClient.get('enums/*').then(rs => {
+            let data = {}
+            _.each(rs, (r, key) => { data[key] = r })
+            portletServer.allEnums = _.merge({}, data)
+        }).catch(ex => {
+            $logger.error('Fails to receive enums.', ex)
         })
 
         kvClient.get('extensions/*').then(rs => {
@@ -173,6 +188,7 @@ function setupAssets(portletServer) {
     createAssetsCache(portletServer, 'i18n', '.yaml')
     createAssetsCache(portletServer, 'permissions', '.yaml')
     createAssetsCache(portletServer, 'extensions', '.yaml')
+    createAssetsCache(portletServer, 'enums', '.yaml')
 
     mergeAssets(portletServer)
 

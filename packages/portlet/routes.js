@@ -78,6 +78,7 @@ function setupMiddleware(req, res, next) {
         res.locals._extensionsByZone = portletServer.allExtensionsByZone
         res.locals._urlPrefix = portletServer.urlPrefix
         res.locals._rootDir = portletServer.rootDir
+        res.locals._allEnums = portletServer.allEnums
         res.locals.$portlet = portlet
         res.locals._port = portletServer.port
         res.locals._postProcessors = []
@@ -110,6 +111,9 @@ function setupMiddleware(req, res, next) {
             } else {
                 res.locals.$permissions[perm] = !!result
             }
+        }
+        res.enums = name => {
+            return res.locals._allEnums[name]
         }
         res.i18n = (names) => {
             if (_.isString(names)) names = _.map(names.split(';'), r => r.trim())
