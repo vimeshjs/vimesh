@@ -166,7 +166,14 @@ function normalizeOptions(dao, options) {
     normalizeInclude(dao, options)
     return options
 }
-
+function getPrimaryKeys(model) {
+    let attributes = model.attributes || model.rawAttributes
+    let pks = []
+    _.each(attributes, attr => {
+        if (attr.primaryKey) pks.push(attr.fieldName)
+    })
+    return pks
+}
 function createDao(schema, name) {
     let mapping = schema.$mapping
     if (!mapping) {
@@ -251,7 +258,7 @@ function createDao(schema, name) {
     attachMethodToDao(dao, 'get', function ({ }, idOrCond, options) {
         options = normalizeOptions(dao, options)
         return (_.isPlainObject(idOrCond) ?
-            model.findOne({ where: buildWhere(idOrCond) }) :
+            model.findOne({ where: buildWhere(idOrCond), ...options }) :
             model.findByPk(idOrCond, options)).then(r => options.native ? r : toJson(r))
     })
     attachMethodToDao(dao, '_get', function ({ }, id, options) {
@@ -271,7 +278,8 @@ function createDao(schema, name) {
         return model.upsert(dataToUpdate, options).then(async ([r]) => {
             let keys = _.keys(assocs)
             if (keys.length > 0) {
-                let self = await dao._get(r[primaryKey])
+                let pks = getPrimaryKeys(model)
+                let self = await dao._get(_.pick(r, pks))
                 for (let i = 0; i < keys.length; i++) {
                     let key = keys[i]
                     let val = data[key]
@@ -280,9 +288,9 @@ function createDao(schema, name) {
                     if (_.isArray(val)) {
                         let cond = { [target.primaryKey]: { $in: val } }
                         let dataToSet = await target._select({ cond })
-                        await self[`set${_.capitalize(keys[i])}`](dataToSet.data)
+                        await self[`set${_.upperFirst(keys[i])}`](dataToSet.data)
                     } else {
-                        await self[`set${_.capitalize(keys[i])}`](await target._get(val))
+                        await self[`set${_.upperFirst(keys[i])}`](await target._get(val))
                     }
                 }
             }
@@ -306,7 +314,8 @@ function createDao(schema, name) {
         return model.create(dataToAdd, options).then(async (r) => {
             let keys = _.keys(assocs)
             if (keys.length > 0) {
-                let self = await dao._get(r[primaryKey])
+                let pks = getPrimaryKeys(model)
+                let self = await dao._get(_.pick(r, pks))
                 for (let i = 0; i < keys.length; i++) {
                     let key = keys[i]
                     let val = data[key]
@@ -315,9 +324,9 @@ function createDao(schema, name) {
                     if (_.isArray(val)) {
                         let cond = { [target.primaryKey]: { $in: val } }
                         let dataToSet = await target._select({ cond })
-                        await self[`set${_.capitalize(keys[i])}`](dataToSet.data)
+                        await self[`set${_.upperFirst(keys[i])}`](dataToSet.data)
                     } else {
-                        await self[`set${_.capitalize(keys[i])}`](await target._get(val))
+                        await self[`set${_.upperFirst(keys[i])}`](await target._get(val))
                     }
                 }
             }
