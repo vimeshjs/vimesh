@@ -1,10 +1,12 @@
 const _ = require('lodash')
+
 function MemoryKeyValueStore() {
     this.all = {}
     setInterval(() => {
         this.clean()
     }, 1000)
 }
+
 MemoryKeyValueStore.prototype.clean = function(){
     let keysToRemove = []
     _.each(this.all, (v, k) => {       
@@ -15,6 +17,7 @@ MemoryKeyValueStore.prototype.clean = function(){
         this.all = _.omit(this.all, keysToRemove)
     }
 }
+
 MemoryKeyValueStore.prototype.get = function (key) {
     key = _.trim(key)
     let results = {}
