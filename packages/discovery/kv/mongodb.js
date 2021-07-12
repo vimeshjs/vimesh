@@ -1,5 +1,4 @@
 const _ = require('lodash')
-const { MongoClient } = require('mongodb')
 
 function MongodbKeyValueStore(options) {
     $mongodb.connected.then(() => {
