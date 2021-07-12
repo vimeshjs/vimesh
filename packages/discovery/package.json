@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/discovery",
-  "version": "0.10.44",
+  "version": "0.10.45",
   "description": "Vimesh share KV store, service discovery",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
