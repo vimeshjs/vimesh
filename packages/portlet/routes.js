@@ -66,7 +66,7 @@ function setupMiddleware(req, res, next) {
     let action = context.action
     let viewEngine = context.viewEngine
     retryPromise(() => {
-        let ready = portletServer.standalone || portletServer.menusReady && portletServer.i18nReady
+        let ready = portletServer.menusReady && portletServer.i18nReady
         if (!ready) $logger.warn(`Server is not ready (menu: ${portletServer.menusReady}, i18n:${portletServer.i18nReady})!`)
         return ready ? Promise.resolve() : Promise.reject(Error())
     }).then(() => {

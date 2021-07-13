@@ -72,6 +72,7 @@ function mergeAssets(portletServer) {
                 let zone = pos == -1 ? key : key.substring(0, pos)
                 portletServer.allMenusByZone[zone] = _.merge(portletServer.allMenusByZone[zone], r.content)
             })
+            portletServer.menusReady = true
         })
 
         let cacheI18n = portletServer.assetCaches['i18n']
@@ -81,6 +82,7 @@ function mergeAssets(portletServer) {
                 data[key] = r.content
             })
             mergeI18nItems(portletServer.mergedI18nItems, data)
+            portletServer.i18nReady = true
         })
 
         let cachePermissions = portletServer.assetCaches['permissions']
