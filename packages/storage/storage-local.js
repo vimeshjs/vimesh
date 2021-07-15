@@ -127,10 +127,17 @@ LocalStorage.prototype.statObject = function (bucket, filePath) {
     return this.hasBucket(bucket).then(r => {
         if (r) {
             let fn = path.join(this.root, bucket, filePath)
-            return Promise.all([statAsync(fn), readFileAsync(`${fn}.meta.json`)]).then(rs => {
-                let s = rs[0]
-                let meta = JSON.parse(rs[1].toString())
-                return { path: filePath, size: s.size, modifiedAt: new Date(s.mtimeMs), meta }
+            let stat = null
+            let meta = {}
+            return statAsync(fn).then(r => {
+                stat = r
+                return readFileAsync(`${fn}.meta.json`).then(r => {
+                    meta = JSON.parse(r.toString())
+                    return { path: filePath, size: stat.size, modifiedAt: new Date(stat.mtimeMs), meta }
+                }).catch(ex => {
+                    //$logger.warn(`Fails to read meta for ${fn}`)
+                    return { path: filePath, size: stat.size, modifiedAt: new Date(stat.mtimeMs), meta }
+                })
             })
         } else {
             return Promise.reject(Error(`Bucket ${bucket} does not exist for file ${filePath}!`))
