@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/portlet",
-  "version": "0.10.46",
+  "version": "0.10.47",
   "description": "Vimesh micro-frontend framework",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
@@ -23,7 +23,7 @@
     "@vimesh/graphql": "^0.10.34",
     "@vimesh/grpc": "^0.10.32",
     "@vimesh/logger": "^0.10.32",
-    "@vimesh/storage": "^0.10.34",
+    "@vimesh/storage": "^0.10.47",
     "@vimesh/utils": "^0.10.34",
     "axios": "^0.21.1",
     "bluebird": "^3.7.2",
