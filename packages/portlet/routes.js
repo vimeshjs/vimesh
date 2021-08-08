@@ -82,6 +82,9 @@ function setupMiddleware(req, res, next) {
         res.locals.$portlet = portlet
         res.locals._port = portletServer.port
         res.locals._postProcessors = []
+        res.locals._handlebarSettings = _.get(portletServer.config, 'handlebars.settings') || {}
+        res.locals._handlebarHelpers = _.get(portletServer.config, 'handlebars.helpers') || {}
+        res.locals._componentCache = portletServer.componentCache
         res.locals._allPermissions = portletServer.allPermissions
         res.locals.layout = _.isFunction(mlayout) ? mlayout(req) : mlayout
         res.locals._req = _.pick(req, 'params', 'query', 'body', 'headers', 'cookies')
@@ -140,8 +143,8 @@ function setupMiddleware(req, res, next) {
             return translations._ && _.keys(translations).length == 1 ? translations._ : translations
         }
         res.show = (viewPath, data) => {
-            if (!data && _.isPlainObject(viewPath)) {
-                data = viewPath
+            if (!data) {
+                data = viewPath || {}
                 viewPath = `${current.urlPath}/${action}`.substring(1) // Remove the first '/'r
             }
             //res.render(viewPath, data) --> It will check the view file in the disk, while our view may be in another peer server

@@ -175,8 +175,8 @@ function addRule(parent, rule, selector) {
     tailwindStylesList.push(ss)
 }
 
-function preloadTailwindCss() {
-    let cssTailwind = fs.readFileSync(path.join(__dirname, '/tailwind@1.2.0.min.css'))
+function preloadTailwindCss(cssFile) {
+    let cssTailwind = fs.readFileSync(cssFile || path.join(__dirname, '/tailwind@1.2.0.min.css'))
     tailwindStyles = css.parse(cssTailwind.toString())
     _.each(tailwindStyles.stylesheet.rules, (rule, i) => {
         if (rule.selectors) {
@@ -193,7 +193,7 @@ function tailwindUse(usedClasses, options) {
     if (!options.data.root._tailwindStyles) options.data.root._tailwindStyles = {}
     if (!options.data.root._tailwindUsedClasses) options.data.root._tailwindUsedClasses = {}
     if (!options.data.root._tailwindAllClasses) {
-        if (!tailwindStyles) preloadTailwindCss()
+        if (!tailwindStyles) preloadTailwindCss(options.data.root._handlebarSettings.tailwindCssFile)
         options.data.root._tailwindAllClasses = tailwindStylesMap
     }
     let items = _.map(usedClasses.split(/\s+/), s => {
@@ -255,7 +255,7 @@ function injectTailwindStyles(params, context, html) {
 }
 function tailwindBlock(options) {
     if (!options.data.root._tailwindAllClasses) {
-        if (!tailwindStyles) preloadTailwindCss()
+        if (!tailwindStyles) preloadTailwindCss(options.data.root._handlebarSettings.tailwindCssFile)
         options.data.root._tailwindAllClasses = tailwindStylesMap
     }
     if (!options.data.root._tailwindStylesList) options.data.root._tailwindStylesList = tailwindStylesList
@@ -427,7 +427,8 @@ function template(tpl, options) {
 
 function component(name, options) {
     let isDev = 'development' === process.env.NODE_ENV
-    return `<script src="${options.data.root._urlPrefix || ''}/_/${name}${isDev ? '' : '.min'}.js"></script>`
+    let fn = `${name}${isDev ? '' : '.min'}.js`
+    return `<script src="${options.data.root._urlPrefix || ''}/_/${fn}"></script>`
 }
 
 module.exports = {
