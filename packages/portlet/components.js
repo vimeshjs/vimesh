@@ -76,27 +76,30 @@ const ROLLUP_CONFIGS = {
 }
 
 function createComponentCache(portletServer) {
+    const extNames = _.get(portletServer.config, 'components.extNames')
+    const handlers = _.get(portletServer.config, 'components.handlers') || {}
+    const outputDir = _.get(portletServer.config, 'components.outputDir') || portletServer.config.componentsOutputDir || path.join(process.cwd(), 'mnt/dist')
+    const cacheTime = _.get(portletServer.config, 'components.cacheTime') || (portletServer.config.debug ? '3s' : '24h')
     return createMemoryCache({
-        maxAge: portletServer.config.debug ? '3s' : '1h',
+        maxAge: cacheTime,
         updateAgeOnGet: false,
         onRefresh: function (key) {
+            let debug = portletServer.config.debug
             let keyExt = path.extname(key)
             let keyPath = keyExt ? key.substring(0, key.length - keyExt.length) : key
             let file = null
             let config = null
-            let debug = portletServer.config.debug
-            let outputDir = portletServer.config.componentsOutputDir || path.join(process.cwd(), 'mnt/dist')
             let meta = null
             if (path.extname(keyPath) === '.min') {
                 keyPath = keyPath.substring(0, keyPath.length - 4)
                 debug = false
             }
-            _.each(COMPONENT_EXT_NAMES, extName => {
+            _.each(extNames || COMPONENT_EXT_NAMES, extName => {
                 if (file) return
                 let f = path.join(portletServer.componentsDir, keyPath + extName)
                 if (fs.existsSync(f)) {
                     file = f
-                    config = ROLLUP_CONFIGS[extName]
+                    config = handlers[extName] || ROLLUP_CONFIGS[extName]
                 }
             })
             if (file && config) {
@@ -123,7 +126,7 @@ function createComponentCache(portletServer) {
 }
 
 function setupComponents(portletServer) {
-    let cache = createComponentCache(portletServer)
+    let cache = portletServer.componentCache = createComponentCache(portletServer)
     let urlPath = `${portletServer.urlPrefix}/_`
     portletServer.app.get(`${urlPath}/*`, function (req, res, next) {
         let filePath = path.relative(`${urlPath}/`, req.path)
