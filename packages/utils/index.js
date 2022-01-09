@@ -4,6 +4,5 @@ module.exports = {
 	...require('./crypto'),
 	...require('./datetime'),
 	...require('./file'),
-	...require('./network'),
-	...require('./health')
+	...require('./network')
 }
