@@ -1,0 +1,13 @@
+{
+  "name": "@vimesh/portlet-helper-obfuscate",
+  "description": "Vimesh portlet hbs helper for obfuscating javascript code",
+  "version": "0.10.32",
+  "main": "index.js",
+  "repository": "https://github.com/vimeshjs/vimesh.git",
+  "author": "Jacky <jacky@vimesh.org>",
+  "license": "MIT",
+  "dependencies": {
+    "javascript-obfuscator": "^1.2.1"
+  },
+  "portlet": true
+}
