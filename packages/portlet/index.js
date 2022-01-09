@@ -15,7 +15,6 @@ const { createViewEngine } = require('./view-engine')
 const { formatError } = require('./utils')
 const { setupRedirects } = require('./redirects')
 const defaultHbsHelpers = require('./hbs-helpers')
-const { createStorage, createScopedStorage, createCacheForScopedStorage } = require('@vimesh/storage')
 
 class PortletServer extends EventEmitter {
     constructor(config) {
@@ -82,17 +81,6 @@ class PortletServer extends EventEmitter {
             }
         }
         this.urlPrefix = this.standalone ? '' : `/@${portlet}`
-        this.storages = {}
-        _.each(config.storages, (sconfig, name) => {
-            let storage = createStorage(sconfig)
-            let bucket = sconfig.bucket || 'default'
-            storage.hasBucket(bucket).then(exists => {
-                if (!exists) storage.createBucket(bucket)
-            })
-            let scopedStorage = createScopedStorage(storage, bucket, sconfig.prefix)
-            let cache = createCacheForScopedStorage(scopedStorage, sconfig.cacheDir, sconfig.cacheOptions)
-            this.storages[name] = { storage: scopedStorage, cache }
-        })
         app.enable('trust proxy')
         app.disable('x-powered-by')
         app.disable('etag')

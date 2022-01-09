@@ -1,0 +1,13 @@
+{
+  "name": "@vimesh/portlet-plugin-storage",
+  "description": "Vimesh portlet storage support",
+  "version": "0.10.32",
+  "main": "index.js",
+  "repository": "https://github.com/vimeshjs/vimesh.git",
+  "author": "Jacky <jacky@vimesh.org>",
+  "license": "MIT",
+  "dependencies": {
+    "@vimesh/storage": "^0.10.47"
+  },
+  "portlet": true
+}
