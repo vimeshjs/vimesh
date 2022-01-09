@@ -8,7 +8,6 @@ const { getCRC16, duration } = require('@vimesh/utils')
 const express = require('express')
 const compression = require('compression')
 const { setupRoutes } = require('./routes')
-const { setupRemoteApis } = require('./remote-apis')
 const { setupProxy } = require('./proxy')
 const { setupAssets } = require('./assets')
 const { createViewEngine } = require('./view-engine')
@@ -138,14 +137,9 @@ class PortletServer extends EventEmitter {
             app.use(cookieParser())
         $logger.info(`HTTP cookies is ${config.disableCookies ? 'disabled' : 'enabled'}`)
 
-        setupRemoteApis(this)
-        this.emit('beforeSetupRoutes')
         setupRoutes(this)
-        this.emit('afterSetupRoutes')
-
         setupAssets(this)
         setupProxy(this)
-
         setupRedirects(this)
 
         app.use(this.urlPrefix, express.static(config.publicDir || 'public', {

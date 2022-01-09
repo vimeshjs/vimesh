@@ -1,0 +1,16 @@
+{
+  "name": "@vimesh/portlet-plugin-remote-apis",
+  "description": "Vimesh portlet remote apis support",
+  "version": "0.10.32",
+  "main": "index.js",
+  "repository": "https://github.com/vimeshjs/vimesh.git",
+  "author": "Jacky <jacky@vimesh.org>",
+  "license": "MIT",
+  "dependencies": {
+    "@vimesh/utils": "^0.10.34",
+    "@vimesh/graphql": "^0.10.34",
+    "@vimesh/grpc": "^0.10.32",
+    "axios": "^0.21.1"
+  },
+  "portlet": true
+}

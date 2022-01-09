@@ -83,11 +83,9 @@ function setupMiddleware(req, res, next) {
         res.locals._port = portletServer.port
         res.locals._postProcessors = []
         res.locals._allHbsHelpers = portletServer.allHbsHelpers
-        res.locals._componentCache = portletServer.componentCache
         res.locals._allPermissions = portletServer.allPermissions
         res.locals.layout = _.isFunction(mlayout) ? mlayout(req) : mlayout
         res.locals._req = _.pick(req, 'params', 'query', 'body', 'headers', 'cookies')
-        res.locals._remoteApis = portletServer.remoteApis
         res.ok = (msg, code) => {
             res.json(formatOK(msg, code))
         }

@@ -9,8 +9,6 @@
   "dependencies": {
     "@vimesh/cache": "^0.10.34",
     "@vimesh/discovery": "^0.10.45",
-    "@vimesh/graphql": "^0.10.34",
-    "@vimesh/grpc": "^0.10.32",
     "@vimesh/logger": "^0.10.32",
     "@vimesh/utils": "^0.10.34",
     "axios": "^0.21.1",
