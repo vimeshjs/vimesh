@@ -82,8 +82,7 @@ function setupMiddleware(req, res, next) {
         res.locals.$portlet = portlet
         res.locals._port = portletServer.port
         res.locals._postProcessors = []
-        res.locals._handlebarSettings = _.get(portletServer.config, 'handlebars.settings') || {}
-        res.locals._handlebarHelpers = _.get(portletServer.config, 'handlebars.helpers') || {}
+        res.locals._allHbsHelpers = portletServer.allHbsHelpers
         res.locals._componentCache = portletServer.componentCache
         res.locals._allPermissions = portletServer.allPermissions
         res.locals.layout = _.isFunction(mlayout) ? mlayout(req) : mlayout
@@ -165,6 +164,7 @@ function setupMiddleware(req, res, next) {
             convertParameters(req.query, inputs.query)
             convertParameters(req.params, inputs.params)
         }
+        portletServer.emit('decorateResponse', req, res)
         next()
     })
 }

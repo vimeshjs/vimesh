@@ -119,7 +119,7 @@ HbsViewEngine.prototype.render = function (filename, context, callback) {
             alias: this.alias,
             layouts: allLayouts,
             partials: allPartials,
-            helpers: _.merge(...allHelpers, context._handlebarHelpers),
+            helpers: context._allHbsHelpers,
             layout: context.layout || this.layout,
             locals: context,
             data: {},
