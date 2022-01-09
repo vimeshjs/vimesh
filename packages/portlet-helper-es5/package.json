@@ -1,0 +1,14 @@
+{
+  "name": "@vimesh/portlet-helper-es5",
+  "description": "Vimesh portlet hbs helper for ES5",
+  "version": "0.10.32",
+  "main": "index.js",
+  "repository": "https://github.com/vimeshjs/vimesh.git",
+  "author": "Jacky <jacky@vimesh.org>",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/core": "^7.10.3",
+    "@babel/preset-env": "^7.10.3"
+  },
+  "portlet": true
+}
