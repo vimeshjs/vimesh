@@ -126,7 +126,7 @@ function createComponentCache(portletServer) {
 }
 
 function setupComponents(portletServer) {
-    let cache = portletServer.componentCache = createComponentCache(portletServer)
+    let cache = createComponentCache(portletServer)
     let urlPath = `${portletServer.urlPrefix}/_`
     portletServer.app.get(`${urlPath}/*`, function (req, res, next) {
         let filePath = path.relative(`${urlPath}/`, req.path)
