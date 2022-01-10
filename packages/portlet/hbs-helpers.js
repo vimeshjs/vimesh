@@ -1,14 +1,13 @@
 const _ = require('lodash')
 const { sanitizeJsonToString } = require('./xss')
-const axios = require('axios')
 const { evaluatePermissionFormular } = require('./utils')
 const { getSortedMenus, getActiveMenu } = require('./menus')
 const { getSortedExtensions } = require('./extensions')
-const { getUUID, toTemplate } = require('@vimesh/utils')
 
 function injectBlocks(params, context) {
     return (context._blocks[params.name] || []).join('\n')
 }
+
 function block(name, options) {
     if (!options.data.root._blocks) options.data.root._blocks = {}
     if (!options.data.root._blocks[name]) options.data.root._blocks[name] = []
@@ -21,11 +20,13 @@ function block(name, options) {
     })
     return placeholder
 }
+
 function appendContentToBlock(name, options, content) {
     if (!options.data.root._blocks) options.data.root._blocks = {}
     if (!options.data.root._blocks[name]) options.data.root._blocks[name] = []
     options.data.root._blocks[name].push(content)
 }
+
 function contentFor(name, options) {
     if (!name) {
         $logger.error('Block name must be provided in contentFor helper!')
@@ -34,9 +35,11 @@ function contentFor(name, options) {
     let content = options.fn(this)
     appendContentToBlock(name, options, content)
 }
+
 function json(js) {
     return js == null ? "null" : sanitizeJsonToString(js)
 }
+
 function menusByZone(name, options) {
     let lang = options.data.root.$language
     let permissions = options.data.root.$permissions || {}
@@ -85,28 +88,12 @@ function allow(perm, options) {
     return allowed ? content : ''
 }
 
-function template(tpl, options) {
-    let meta = {}
-    _.each(options.data, (v, k) => meta[`$${k}`] = v)
-    let data = _.extend({}, options.hash, meta)
-    with (data) {
-        try {
-            let result = _.bind(toTemplate(tpl), this)(data)
-            return result
-        } catch (ex) {
-            $logger.error(ex + ' ', ex)
-            return ex + ''
-        }
-    }
-}
-
 module.exports = {
     T,
     allow,
     contentFor,
-    menusByZone,
     block,
     json,
-    extensionsByZone,
-    template
+    menusByZone,
+    extensionsByZone
 }

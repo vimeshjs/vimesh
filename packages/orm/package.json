@@ -14,13 +14,13 @@
     "lodash": "^4.17.15",
     "mkdirp": "^1.0.4",
     "moment": "^2.29.1",
-    "moment-timezone": "^0.5.31",
+    "moment-timezone": "^0.5.34",
     "object-hash": "^2.2.0",
-    "sequelize": "^6.6.2",
+    "sequelize": "^6.12.5",
     "umzug": "^2.3.0"
   },
   "devDependencies": {
-    "command-line-args": "^5.1.1",
+    "command-line-args": "^5.2.0",
     "sqlite3": "^5.0.2"
   },
   "scripts": {

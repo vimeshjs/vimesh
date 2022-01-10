@@ -50,7 +50,13 @@ function bodyParserMiddleware(req, res, next) {
         form.parse(req, (err, fields, files) => {
             if (err) return next(err)
             req.body = fields
-            req.files = files
+            req.files = _.mapValues(files, f => {return {
+                _raw: f, 
+                name: f.originalFilename,
+                type: f.mimetype,
+                size: f.size,
+                path: f.filepath
+            }})
             next()
         })
     } else {

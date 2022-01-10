@@ -13,8 +13,8 @@
     "bluebird": "^3.7.2",
     "lodash": "^4.17.15",
     "moment": "^2.27.0",
-    "moment-timezone": "^0.5.31",
-    "mongodb": "^3.5.9"
+    "moment-timezone": "^0.5.34",
+    "mongodb": "^3.7.3"
   },
   "gitHead": "86d1e806d4e78cc77c8576369ae01e516b39098e"
 }
