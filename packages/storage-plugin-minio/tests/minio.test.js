@@ -1,7 +1,7 @@
 
 const _ = require('lodash')
 const fs = require('graceful-fs')
-const { createStorage } = require('..')
+const createStorage = require('..')
 const Promise = require('bluebird')
 
 const { setupLogger } = require('@vimesh/logger')
@@ -10,7 +10,6 @@ setupLogger()
 let storage = null
 beforeAll(() => {
     storage = createStorage({
-        type: 'minio',
         options: {
             endPoint: 'localhost',
             port: 9000,
@@ -92,7 +91,7 @@ test('list, delete, stat object', function () {
 
 test('put stream', function () {
     let jscontent = null
-    return storage.putObject('bucket-001', 'folder1/streamfile.js', fs.createReadStream(__dirname + '/local.test.js'), { meta: { 'content-type': 'text/javascript' } }).then(r => {
+    return storage.putObject('bucket-001', 'folder1/streamfile.js', fs.createReadStream(__dirname + '/minio.test.js'), { meta: { 'content-type': 'text/javascript' } }).then(r => {
         return storage.getObjectAsBuffer('bucket-001', 'folder1/streamfile.js').then(r => {
             jscontent = r.toString()
             expect(jscontent.indexOf("'bucket-001', 'folder1/streamfile.js'") !== -1).toBeTruthy()

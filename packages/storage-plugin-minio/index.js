@@ -1,9 +1,8 @@
 
 const _ = require('lodash')
 const util = require("util")
-const { encodeMeta, decodeMeta } = require('./meta')
 const minio = require('minio')
-const { Storage } = require('./storage')
+const { encodeMeta, decodeMeta, Storage } = require('@vimesh/storage')
 const { isStream, getMD5 } = require('@vimesh/utils')
 function MinioStorage(config) {
     Storage.call(this, config)
@@ -96,9 +95,7 @@ MinioStorage.prototype.listObjects = function (bucket, prefix) {
     })
 }
 
-function createMinioStorage(config) {
+
+module.exports = (config) => {
     return new MinioStorage(config)
-}
-module.exports = {
-    createMinioStorage
 }
