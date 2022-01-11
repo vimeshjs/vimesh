@@ -1,7 +1,7 @@
 {
   "name": "@vimesh/portlet-helper-tailwind",
   "description": "Vimesh portlet hbs helper for Tailwind CSS support",
-  "version": "0.10.32",
+  "version": "0.11.0",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
   "author": "Jacky <jacky@vimesh.org>",

@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/graphql",
-  "version": "0.10.34",
+  "version": "0.11.0",
   "description": "Vimesh GraphQL server and client",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
@@ -9,8 +9,8 @@
   "dependencies": {
     "@apollo/federation": "^0.33.8",
     "@apollo/gateway": "^0.45.1",
-    "@vimesh/logger": "^0.10.32",
-    "@vimesh/utils": "^0.10.34",
+    "@vimesh/logger": "^0.11.0",
+    "@vimesh/utils": "^0.11.0",
     "apollo-boost": "^0.4.9",
     "apollo-cache-inmemory": "^1.6.6",
     "apollo-link-http": "^1.5.17",
