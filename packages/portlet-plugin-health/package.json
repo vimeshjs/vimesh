@@ -5,6 +5,5 @@
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
   "author": "Jacky <jacky@vimesh.org>",
-  "license": "MIT",
-  "portlet": true
+  "license": "MIT"
 }

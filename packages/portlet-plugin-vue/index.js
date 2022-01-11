@@ -1,4 +1,3 @@
-
 const { setupComponents } = require('./components')
 
 function component(name, options) {

@@ -8,6 +8,5 @@
   "license": "MIT",
   "dependencies": {
     "javascript-obfuscator": "^3.0.0"
-  },
-  "portlet": true
+  }
 }
