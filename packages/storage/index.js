@@ -6,28 +6,28 @@ const Promise = require('bluebird')
 const { createMemoryCache } = require('@vimesh/cache')
 const { getFullLocalStat, compareLocalAndRemoteStat } = require('./storage')
 const { createLocalStorage } = require('./storage-local')
-const { createMinioStorage } = require('./storage-minio')
-const { createS3Storage } = require('./storage-s3')
-const { createGcpStorage } = require('./storage-gcp')
-const { createAzureStorage } = require('./storage-azure')
 const { getMD5 } = require('@vimesh/utils')
 const writeFileAsync = Promise.promisify(fs.writeFile)
 
 function createStorage(config) {
-    switch (config.type) {
-        case 'local': return createLocalStorage(config)
-        case 'minio': return createMinioStorage(config)
-        case 's3': 
-        case 'aws': 
-            return createS3Storage(config)
-        case 'gcp':
-        case 'google':
-            return createGcpStorage(config)
-        case 'azure':
-            return createAzureStorage(config)
+    if (!config.type || config.type === 'local') {
+        return createLocalStorage(config)
+    } else {
+        try {
+            let createFunc
+            try {
+                createFunc = require(config.type)
+            } catch (ex) {
+                let pluginPath = path.join(process.cwd(), 'node_modules', config.type)
+                createFunc = require(pluginPath)
+            }
+            return createFunc(config)
+        } catch (ex) {
+            $logger.error(`Fails to load storage ${config.type}`, ex)
+        }
     }
-    throw Error(`Storage type "${config.type}" is not supported`)
 }
+
 function createScopedStorage(storage, bucket, prefix) {
     prefix = prefix || ''
     return {
@@ -161,4 +161,6 @@ module.exports = {
     createCacheForStorage,
     createScopedStorage,
     createCacheForScopedStorage,
+    ...require('./meta'),
+    ...require('./storage')
 }

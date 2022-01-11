@@ -1,5 +1,5 @@
 {
-  "name": "@vimesh/storage-plugin-s3",
+  "name": "@vimesh/storage-plugin-minio",
   "description": "Vimesh Minio storage support",
   "version": "0.11.0",
   "main": "index.js",
