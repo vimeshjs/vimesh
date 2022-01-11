@@ -1,7 +1,7 @@
 
 const _ = require('lodash')
 const fs = require('graceful-fs')
-const { createStorage } = require('..')
+const createStorage = require('..')
 const Promise = require('bluebird')
 
 const { setupLogger } = require('@vimesh/logger')
@@ -11,7 +11,6 @@ const PREFIX = 'vimesh-'
 let storage = null
 beforeAll(() => {
     storage = createStorage({
-        type: 'gcp',
         options: {
             bucketPrefix: PREFIX,
             //projectId : "airnow-272002",
@@ -94,7 +93,7 @@ test('list, delete, stat object', function () {
 
 test('put stream', function () {
     let jscontent = null
-    return storage.putObject('bucket-001', 'folder1/streamfile.js', fs.createReadStream(__dirname + '/local.test.js'), {
+    return storage.putObject('bucket-001', 'folder1/streamfile.js', fs.createReadStream(__dirname + '/gcp.test.js'), {
         meta: {
             'content-type': 'text/javascript',
             '名称' : '测试文件'

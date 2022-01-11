@@ -1,9 +1,8 @@
 
 const _ = require('lodash')
 const util = require("util")
-const { decodeMeta } = require('./meta')
+const { encodeMeta, decodeMeta, Storage } = require('@vimesh/storage')
 const GcpCloudStorageSDK = require('@google-cloud/storage')
-const { Storage } = require('./storage')
 const { isStream, isReadableStream, getMD5, loadJson, pipeStreams } = require('@vimesh/utils')
 
 function GcpStorage(config) {
@@ -220,9 +219,6 @@ GcpStorage.prototype.listObjects = function (bucket, prefix) {
     })
 }
 
-function createGcpStorage(config) {
+module.exports = (config) => {
     return new GcpStorage(config)
-}
-module.exports = {
-    createGcpStorage
 }
