@@ -1,13 +1,13 @@
 {
   "name": "@vimesh/storage-plugin-minio",
   "description": "Vimesh Minio storage support",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
-    "minio": "^7.0.25",
-    "@vimesh/storage": "^0.11.0"
+    "@vimesh/storage": "^0.11.1",
+    "minio": "^7.0.25"
   }
 }

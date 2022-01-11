@@ -1,14 +1,14 @@
 {
   "name": "@vimesh/orm",
   "description": "Vimesh ORM",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
-    "@vimesh/logger": "^0.11.0",
-    "@vimesh/utils": "^0.11.0",
+    "@vimesh/logger": "^0.11.1",
+    "@vimesh/utils": "^0.11.1",
     "bluebird": "^3.7.2",
     "deep-diff": "^1.0.2",
     "lodash": "^4.17.15",
