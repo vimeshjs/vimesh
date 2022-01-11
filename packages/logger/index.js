@@ -6,7 +6,7 @@ const winston = require('winston')
 function setupLogger(config) {
 
 	config = config || { console: {} }
-	
+
 	let transports = []
 	_.each(config, (typeConf, type) => {
 		switch (type) {
@@ -62,7 +62,9 @@ function setupLogger(config) {
 			if (excludes.indexOf(name) == -1)
 				moduleOrig._resolveFilename(name, parent);
 		} catch (ex) {
-			if (name.indexOf('/build/') == -1)
+			if (name.indexOf('/build/') == -1 &&
+				name.indexOf('/vendor/') == -1 &&
+				name.indexOf('/node_modules/') == -1)
 				logger.error('Fails to load module ' + name, ex)
 		}
 		return _load_orig(name, parent, isMain);
@@ -72,6 +74,7 @@ function setupLogger(config) {
 		logger.error('Uncaught Exception !!!', ex)
 	})
 
+	logger.ignoreMissingModules = names => excludes.push(names)
 	global.$logger = logger
 }
 
