@@ -1,9 +1,8 @@
 
 const _ = require('lodash')
 const util = require("util")
-const { encodeMeta, decodeMeta } = require('./meta')
 const Azure = require('azure-storage')
-const { Storage } = require('./storage')
+const { encodeMeta, decodeMeta, Storage } = require('@vimesh/storage')
 const { isStream, getMD5 } = require('@vimesh/utils')
 const { Stream, Transform } = require('stream')
 
@@ -353,9 +352,6 @@ AzureStorage.prototype._createContainerInternal = function (container, ifNotExis
     })
 }
 
-function createAzureStorage(config) {
+module.exports = (config) => {
     return new AzureStorage(config)
-}
-module.exports = {
-    createAzureStorage
 }

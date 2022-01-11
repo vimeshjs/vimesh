@@ -1,18 +1,19 @@
 
 const _ = require('lodash')
 const fs = require('graceful-fs')
-const { createStorage } = require('..')
 const Promise = require('bluebird')
 const {timeout} = require('@vimesh/utils')
 const { setupLogger } = require('@vimesh/logger')
+const createStorage = require('..')
 setupLogger()
 
+const AZURE_KEYS = require('./key-azure.json')
+console.log(AZURE_KEYS)
 let storage = null
 beforeAll(() => {
     storage = createStorage({
-        type: 'azure',
         options: {
-            connection: 'DefaultEndpointsProtocol=https;AccountName=sepdev;AccountKey=pHIyMjl4BmT1TUC0Ds6EZdjVUA0SGVhRS/0cmwQvmXmPxkFZDYwQ+JGqQydiXDij9FsfSnhIAsroTW7h5E9pBw==;EndpointSuffix=core.chinacloudapi.cn'
+            ...AZURE_KEYS
         }
     })
     return storage.listObjects('bucket-001').then(fs => {
@@ -94,7 +95,7 @@ test('list, delete, stat object', function () {
 
 test('put stream', function () {
     let jscontent = null
-    return storage.putObject('bucket-001', 'folder1/streamfile.js', fs.createReadStream(__dirname + '/local.test.js'), {
+    return storage.putObject('bucket-001', 'folder1/streamfile.js', fs.createReadStream(__dirname + '/azure.test.js'), {
         meta: {
             'content-type': 'text/javascript',
             'name': '测试文件'
