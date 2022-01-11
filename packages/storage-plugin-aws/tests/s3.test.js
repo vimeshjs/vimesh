@@ -1,35 +1,37 @@
 
 const _ = require('lodash')
 const fs = require('graceful-fs')
-const { createStorage } = require('..')
 const Promise = require('bluebird')
-
 const { setupLogger } = require('@vimesh/logger')
+const createStorage = require('..')
 setupLogger()
 
 const PREFIX = 'vimesh.'
 let storage = null
+const AWS_KEYS = require('./key-aws.json')
+console.log(AWS_KEYS)
 beforeAll(() => {
     storage = createStorage({
-        type: 's3',
         options: {
             bucketPrefix: PREFIX,
-            region: 'ap-southeast-1',
-            accessKey: 'AKIATGZ3IMMJIYMYHZOE',
-            secretKey: '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'
+            ...AWS_KEYS
         }
     })
     return storage.listObjects('bucket-001').then(fs => {
         return fs && Promise.each(fs, f => {
             return storage.deleteObject('bucket-001', f.path)
         })
-    }).catch(ex => { }).then(r => {
+    }).catch(ex => { 
+        console.log(ex)
+    }).then(r => {
         return storage.listObjects('bucket-002').then(fs => {
             return fs && Promise.each(fs, f => {
                 return storage.deleteObject('bucket-002', f.path)
             })
         })
-    }).catch(ex => { }).then(r => {
+    }).catch(ex => { 
+        console.log(ex)
+    }).then(r => {
         return Promise.all([
             storage.deleteBucket('bucket-001'),
             storage.deleteBucket('bucket-002')
@@ -92,7 +94,7 @@ test('list, delete, stat object', function () {
 
 test('put stream', function () {
     let jscontent = null
-    return storage.putObject('bucket-001', 'folder1/streamfile.js', fs.createReadStream(__dirname + '/local.test.js'), {
+    return storage.putObject('bucket-001', 'folder1/streamfile.js', fs.createReadStream(__dirname + '/s3.test.js'), {
         meta: {
             'content-type': 'text/javascript',
             'name': '测试文件'

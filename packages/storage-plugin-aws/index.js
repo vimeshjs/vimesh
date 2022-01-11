@@ -1,10 +1,9 @@
 
 const _ = require('lodash')
 const util = require("util")
-const { encodeMeta, decodeMeta } = require('./meta')
 const AWS = require('aws-sdk')
-const { Storage } = require('./storage')
 const { isStream, getMD5 } = require('@vimesh/utils')
+const { encodeMeta, decodeMeta, Storage } = require('@vimesh/storage')
 
 function S3Storage(config) {
     Storage.call(this, config)
@@ -374,9 +373,6 @@ S3Storage.prototype.listObjects = function (bucket, prefix) {
     return makeRequest()
 }
 
-function createS3Storage(config) {
+module.exports = (config) => {
     return new S3Storage(config)
-}
-module.exports = {
-    createS3Storage
 }
