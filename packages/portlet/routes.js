@@ -50,13 +50,15 @@ function bodyParserMiddleware(req, res, next) {
         form.parse(req, (err, fields, files) => {
             if (err) return next(err)
             req.body = fields
-            req.files = _.mapValues(files, f => {return {
-                _raw: f, 
-                name: f.originalFilename,
-                type: f.mimetype,
-                size: f.size,
-                path: f.filepath
-            }})
+            req.files = _.mapValues(files, f => {
+                return {
+                    _raw: f,
+                    name: f.originalFilename,
+                    type: f.mimetype,
+                    size: f.size,
+                    path: f.filepath
+                }
+            })
             next()
         })
     } else {
@@ -266,7 +268,7 @@ function scanRoutes(portletServer, current) {
                     }
                     if (m.after && m.after.length > 0) {
                         if (m.after[m.after.length - 1] === '|')
-                            mafter = _.slice(0, m.after.length - 1)
+                            mafter = _.slice(mafter, 0, m.after.length - 1)
                         else
                             mafter = _.concat(m.after, mafter)
                     }
@@ -274,6 +276,16 @@ function scanRoutes(portletServer, current) {
                         mcontext.layout = m.layout
                     mcontext.handler = m.handler
                     mcontext.inputs = m.inputs
+                } else if (_.isArray(m)) {
+                    if (m.length > 0 && m[0] === '|') {
+                        mbefore = []
+                        m = _.slice(m, 1)
+                    }
+                    if (m.length > 0 && m[m.length - 1] === '|') {
+                        mafter = []
+                        m = _.slice(mafter, 0, m.length - 1)
+                    }
+                    mcontext.handler = m
                 } else {
                     $logger.error('Route handler must be a function or an object with {before:, handler:, after:}')
                     return
