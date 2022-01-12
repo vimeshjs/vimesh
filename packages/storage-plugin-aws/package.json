@@ -1,13 +1,13 @@
 {
   "name": "@vimesh/storage-plugin-aws",
   "description": "Vimesh AWS S3 storage support",
-  "version": "0.11.1",
+  "version": "0.11.4",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
-    "@vimesh/storage": "^0.11.1",
+    "@vimesh/storage": "^0.11.4",
     "aws-sdk": "^2.1053.0"
   }
 }
