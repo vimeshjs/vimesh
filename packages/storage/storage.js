@@ -86,6 +86,12 @@ Storage.prototype.getPartialObjectAsString = function (bucket, filePath, offset,
     return this.getPartialObjectAsBuffer(bucket, filePath, offset, size).then(buffer => buffer.toString())
 }
 
+Storage.prototype.moveObject = function (sourceBucket, sourcePath, targetBucket, targetPath) {
+    return this.copyObject(sourceBucket, sourcePath, targetBucket, targetPath).then(r => {
+        return this.deleteObject(sourceBucket, sourcePath)
+    })
+}
+
 module.exports = {
     compareLocalAndRemoteStat,
     getFullLocalStat,
