@@ -127,3 +127,12 @@ test('copy ', function () {
         })
     })
 }, 1000 * 60)
+
+test('move ', function () {
+    return storage.moveObject('bucket-001', 'folder1/b-001.txt', 'folder1/b-moved.txt').then(r => {
+        return storage.getObjectAsString('bucket-001', 'folder1/b-moved.txt').then(r => {
+            expect(r).toBe('Hi this is b')
+            expect(storage.getObject('bucket-001', 'folder1/b-001.txt')).rejects.toThrow()
+        })
+    })
+})

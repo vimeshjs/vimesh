@@ -200,6 +200,17 @@ GcpStorage.prototype.copyObject = function (sourceBucket, sourcePath, targetBuck
         .copy(this.client.bucket(this.bucketPrefix + targetBucket).file(targetPath))
 }
 
+GcpStorage.prototype.moveObject = function (sourceBucket, sourcePath, targetBucket, targetPath) {
+    if (targetPath === undefined) {
+        targetPath = targetBucket
+        targetBucket = sourceBucket
+    }
+    return this.client
+        .bucket(this.bucketPrefix + sourceBucket)
+        .file(sourcePath)
+        .move(this.client.bucket(this.bucketPrefix + targetBucket).file(targetPath))
+}
+
 GcpStorage.prototype.listObjects = function (bucket, prefix) {
     const methodOptions = {
         prefix: prefix,
