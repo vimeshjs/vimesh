@@ -603,7 +603,7 @@ function createDao(schema, name, affix) {
                             fields = _.slice(fields, 1)
                         }
                         fields = _.map(fields.split(','), _.trim)
-                        items = _.map(items, item => omit ? _.omit(item, fields) : _.picks(item, fields))
+                        items = _.map(items, item => omit ? _.omit(item, fields) : _.pick(item, fields))
                     }
                     if (returnCount) {
                         return model.count(query).then(count => {
