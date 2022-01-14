@@ -1,7 +1,6 @@
 const _ = require('lodash')
 const { sanitizeJsonToString } = require('./xss')
 const { evaluatePermissionFormular } = require('./utils')
-const { getSortedMenus, getActiveMenu } = require('./menus')
 const { getSortedExtensions } = require('./extensions')
 
 function injectBlocks(params, context) {
@@ -40,21 +39,6 @@ function json(js) {
     return js == null ? "null" : sanitizeJsonToString(js)
 }
 
-function menusByZone(name, options) {
-    let lang = options.data.root.$language
-    let permissions = options.data.root.$permissions || {}
-    let menusInZone = options.data.root._menusByZone && options.data.root._menusByZone[name]
-    let menus = getSortedMenus(lang, name, menusInZone, permissions)    
-    let am = getActiveMenu(menus, options.data.root.$url)
-    let result = { activeMenu: am && am.index, menus }
-    let variable = options.hash.assignTo
-    if (variable) {
-        this[variable] = result
-    } else {
-        return JSON.stringify(result)
-    }
-}
-
 function extensionsByZone(name, options) {
     let permissions = options.data.root.$permissions || {}
     let extensionsInZone = options.data.root._extensionsByZone && options.data.root._extensionsByZone[name]
@@ -65,16 +49,6 @@ function extensionsByZone(name, options) {
     } else {
         return JSON.stringify(extensions)
     }
-}
-
-function T(name, options) {
-    if (!name) return ''
-    let lang = options.data.root.$language
-    let items = options.data.root._i18nItems
-    let ls = _.keys(_.omit(items, '*'))
-    if (!lang && ls.length > 0) lang = ls[0]
-    let fallbackText = _.capitalize(name.substring(name.lastIndexOf('.') + 1))
-    return _.get(items[lang], name) || _.get(items['*'], name) || fallbackText
 }
 
 function allow(perm, options) {
@@ -89,11 +63,9 @@ function allow(perm, options) {
 }
 
 module.exports = {
-    T,
     allow,
     contentFor,
     block,
     json,
-    menusByZone,
     extensionsByZone
 }
