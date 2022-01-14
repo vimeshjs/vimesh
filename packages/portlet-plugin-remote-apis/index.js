@@ -165,6 +165,7 @@ module.exports = (portlet) => {
     })
 
     portlet.on('decorateResponse', (req, res) => {
+        res.locals._req = _.pick(req, 'params', 'query', 'body', 'headers', 'cookies')
         res.locals._remoteApis = portlet.remoteApis
     })
 
