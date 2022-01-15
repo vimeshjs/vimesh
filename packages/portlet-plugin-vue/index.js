@@ -1,3 +1,4 @@
+const path = require('path')
 const { setupComponents } = require('./components')
 
 function component(name, options) {
@@ -7,6 +8,7 @@ function component(name, options) {
 }
 
 module.exports = (portlet) => {
+    portlet.componentsDir = path.join(portlet.assetsDir, 'components')
     portlet.registerHbsHelpers({ component })
     setupComponents(portlet)
 }
