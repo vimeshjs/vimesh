@@ -82,7 +82,6 @@ function setupMiddleware(req, res, next) {
         res.locals.$path = req.path
         res.locals._urlPrefix = portletServer.urlPrefix
         res.locals._rootDir = portletServer.rootDir
-        res.locals._allEnums = portletServer.allEnums
         res.locals._port = portletServer.port
         res.locals._postProcessors = []
         res.locals._allHbsHelpers = portletServer.allHbsHelpers
@@ -92,9 +91,6 @@ function setupMiddleware(req, res, next) {
         }
         res.error = (err, code) => {
             res.status(500).json(formatError(err, code))
-        }
-        res.enums = name => {
-            return res.locals._allEnums[name]
         }
         res.show = (viewPath, data) => {
             if (!data) {

@@ -40,7 +40,6 @@ class PortletServer extends EventEmitter {
         this.viewsDir = path.join(assetsDir, 'views')
         this.config = config
         this.assetCaches = {}
-        this.allEnums = {}
         this.allHbsHelpers = _.clone(defaultHbsHelpers)
         this.beforeAll = []
         this.ready = {}
@@ -139,10 +138,6 @@ class PortletServer extends EventEmitter {
         this.createAssetsCache('partials')
         this.createAssetsCache('views')
         
-        this.loadAssets('enums', '.yaml', (rs) => {
-            this.allEnums = _.merge({}, rs)
-        })
-
         this.emit('beforeSetupRoutes')
         setupRoutes(this)
         this.emit('afterSetupRoutes')
