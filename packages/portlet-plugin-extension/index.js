@@ -4,7 +4,7 @@ const { getSortedExtensions } = require('./extensions')
 function extensionsByZone(name, options) {
     let permissions = options.data.root.$permissions || {}
     let extensionsInZone = options.data.root._extensionsByZone && options.data.root._extensionsByZone[name]
-    let extensions = getSortedExtensions(name, extensionsInZone, permissions)
+    let extensions = getSortedExtensions(name, extensionsInZone, options.data.root.$allow)
     let variable = options.hash.assignTo
     if (variable) {
         this[variable] = extensions

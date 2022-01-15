@@ -2,13 +2,10 @@ const _ = require('lodash')
 const { setupRedirects } = require('./redirects')
 const { getSortedMenus, getActiveMenu } = require('./menus')
 
-let evaluatePermissionFormular = () => true
-
 function menusByZone(name, options) {
     let lang = options.data.root.$language
-    let permissions = options.data.root.$permissions || {}
     let menusInZone = options.data.root._menusByZone && options.data.root._menusByZone[name]
-    let menus = getSortedMenus(lang, name, menusInZone, (formular) => evaluatePermissionFormular(formular, permissions))
+    let menus = getSortedMenus(lang, name, menusInZone, options.data.root.$allow)
     let am = getActiveMenu(menus, options.data.root.$url)
     let result = { activeMenu: am && am.index, menus }
     let variable = options.hash.assignTo
@@ -26,8 +23,7 @@ module.exports = (portlet) => {
         res.locals._menusByZone = portlet.allMenusByZone
         res.buildMenus = (menusInZone) => {
             let lang = res.locals.$language
-            let permissions = res.locals.$permissions || {}
-            let menus = getSortedMenus(lang, 'menu', menusInZone, (formular) => evaluatePermissionFormular(formular, permissions))
+            let menus = getSortedMenus(lang, 'menu', menusInZone, allow)
             let am = getActiveMenu(menus, res.locals.$url)
             return { activeMenu: am && am.index, menus }
         }
@@ -48,9 +44,4 @@ module.exports = (portlet) => {
     })
 
     portlet.registerHbsHelpers({ menusByZone })
-
-    portlet.on('start', () => {
-        if (portlet.evaluatePermissionFormular)
-            evaluatePermissionFormular = portlet.evaluatePermissionFormular
-    })
 }

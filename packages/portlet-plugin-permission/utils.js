@@ -17,6 +17,7 @@ function getValue(context, perm) {
 }
 
 function evaluatePermissionFormular(formular, ownedPermissions) {
+    if (!formular) return true
     try {
         return evaluate(ownedPermissions || {}, formular, { getValue })
     } catch (ex) {

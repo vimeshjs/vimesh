@@ -14,11 +14,10 @@ function allow(perm, options) {
 
 module.exports = (portlet) => {
     portlet.allPermissions = {}
-    portlet.evaluatePermissionFormular = evaluatePermissionFormular
     portlet.on('decorateResponse', (req, res) => {
         res.locals.$permissions = {}
 
-        res.allow = (perm, cond) => {
+        res.locals.$allow = res.allow = (perm, cond) => {
             let allowed = evaluatePermissionFormular(perm, res.locals.$permissions)
             return allowed && (cond === undefined || cond)
         }

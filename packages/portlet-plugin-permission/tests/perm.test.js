@@ -15,6 +15,10 @@ it('normal cases', () => {
     expect(result).toBeTruthy()
     result = evaluatePermissionFormular('user.view && user.delete', ownedPerms)
     expect(result).toBeFalsy()
+    result = evaluatePermissionFormular('', ownedPerms)
+    expect(result).toBeTruthy()
+    result = evaluatePermissionFormular(null)
+    expect(result).toBeTruthy()
 })
 
 it('all allowed', () => {

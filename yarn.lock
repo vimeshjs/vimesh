@@ -4304,6 +4304,11 @@ get-symbol-description@^1.0.0:
     call-bind "^1.0.2"
     get-intrinsic "^1.1.1"
 
+get-value@^2.0.6:
+  version "2.0.6"
+  resolved "https://registry.npmjs.org/get-value/-/get-value-2.0.6.tgz#dc15ca1c672387ca76bd37ac0a395ba2042a2c28"
+  integrity sha1-3BXKHGcjh8p2vTesCjlbogQqLCg=
+
 getpass@^0.1.1:
   version "0.1.7"
   resolved "https://registry.npmjs.org/getpass/-/getpass-0.1.7.tgz#5eff8e3e684d569ae4cb2b1282604e8ba62149fa"
@@ -7900,6 +7905,13 @@ simple-concat@^1.0.0:
   version "1.0.1"
   resolved "https://registry.npmjs.org/simple-concat/-/simple-concat-1.0.1.tgz#f46976082ba35c2263f1c8ab5edfe26c41c9552f"
   integrity sha512-cSFtAPtRhljv69IK0hTVZQ+OfE9nePi/rtJmw5UjHeVyVroEqJXP1sFztKUy1qU+xvz3u/sfYJLa947b7nAN2Q==
+
+simple-evaluate@^1.4.4:
+  version "1.4.4"
+  resolved "https://registry.npmjs.org/simple-evaluate/-/simple-evaluate-1.4.4.tgz#f5b0652a3b60a68bca4df97d9af7ecd1f4092b8c"
+  integrity sha512-5InKclUrARVe1SdQqDlNum+nwP9ClNsxTVtxxTL0UeGHS5aJfaYtRq3EZTVsH2XBWstApCp2ICbplwkrVYq+9g==
+  dependencies:
+    get-value "^2.0.6"
 
 simple-get@^3.0.3:
   version "3.1.0"

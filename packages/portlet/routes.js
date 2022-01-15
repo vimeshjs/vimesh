@@ -5,7 +5,7 @@ const fs = require('graceful-fs')
 const mkdirp = require('mkdirp')
 const formidable = require('formidable')
 const { retryPromise } = require('@vimesh/utils')
-const { formatError, formatOK, evaluatePermissionFormular } = require('./utils')
+const { formatError, formatOK } = require('./utils')
 const HTTP_METHODS = ['all', 'get', 'post', 'put', 'delete', 'patch', 'config', 'head']
 function convertParameters(params, config) {
     try {
