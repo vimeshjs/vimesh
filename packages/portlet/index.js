@@ -38,11 +38,8 @@ class PortletServer extends EventEmitter {
         this.layoutsDir = path.join(assetsDir, 'layouts')
         this.partialsDir = path.join(assetsDir, 'partials')
         this.viewsDir = path.join(assetsDir, 'views')
-        this.componentsDir = path.join(assetsDir, 'components')
         this.config = config
         this.assetCaches = {}
-        this.allPermissions = {}
-        this.allExtensionsByZone = {}
         this.allEnums = {}
         this.allHbsHelpers = _.clone(defaultHbsHelpers)
         this.beforeAll = []
@@ -142,16 +139,6 @@ class PortletServer extends EventEmitter {
         this.createAssetsCache('partials')
         this.createAssetsCache('views')
         
-        this.loadAssets('permissions', '.yaml', (rs) => {
-            this.allPermissions = _.merge({}, ..._.values(rs))
-        })
-        this.loadAssets('extensions', '.yaml', (rs) => {
-            _.each(rs, (r, key) => {
-                let pos = key.indexOf('/')
-                let zone = pos == -1 ? key : key.substring(0, pos)
-                this.allExtensionsByZone[zone] = _.merge(this.allExtensionsByZone[zone], r)
-            })
-        })
         this.loadAssets('enums', '.yaml', (rs) => {
             this.allEnums = _.merge({}, rs)
         })

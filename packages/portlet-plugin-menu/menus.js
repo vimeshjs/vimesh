@@ -1,13 +1,9 @@
 const _ = require('lodash')
 
-function getSortedMenus(lang, index, menus, permissions) {
+function getSortedMenus(lang, index, menus, allow) {
     menus = _.filter(_.map(_.entries(menus), ar => _.extend({ _name: ar[0] }, ar[1])), m => {
         let perm = _.get(m, '_meta.permission')
-        if (perm) {
-            if (_.isString(perm) && (!permissions || !permissions[perm])) {
-                return false
-            }
-        }
+        if (perm && !allow(perm)) return false
         if (!m._meta)
             $logger.warn(`Menu config (${JSON.stringify(m)}) has no _meta definition.`)
         return !!m._meta
@@ -15,7 +11,7 @@ function getSortedMenus(lang, index, menus, permissions) {
     menus = _.sortBy(menus, m => _.get(m, '_meta.sort') || _.get(m, '_meta.order') || 1)
     return _.filter(_.map(menus, m => {
         let mindex = `${index}.${m._name}`
-        let submenus = getSortedMenus(lang, mindex, _.omit(m, '_name', '_meta'), permissions)
+        let submenus = getSortedMenus(lang, mindex, _.omit(m, '_name', '_meta'), allow)
         let title = _.get(m, '_meta.title')
         if (_.isObject(title)) {
             let i18n = title

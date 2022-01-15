@@ -80,40 +80,18 @@ function setupMiddleware(req, res, next) {
         res.locals.$portlet = portlet
         res.locals.$url = req.originalUrl
         res.locals.$path = req.path
-        res.locals._extensionsByZone = portletServer.allExtensionsByZone
         res.locals._urlPrefix = portletServer.urlPrefix
         res.locals._rootDir = portletServer.rootDir
         res.locals._allEnums = portletServer.allEnums
         res.locals._port = portletServer.port
         res.locals._postProcessors = []
         res.locals._allHbsHelpers = portletServer.allHbsHelpers
-        res.locals._allPermissions = portletServer.allPermissions
         res.locals.layout = _.isFunction(mlayout) ? mlayout(req) : mlayout
         res.ok = (msg, code) => {
             res.json(formatOK(msg, code))
         }
         res.error = (err, code) => {
             res.status(500).json(formatError(err, code))
-        }
-        res.allow = (perm, cond) => {
-            let allowed = evaluatePermissionFormular(perm, res.locals.$permissions, res.locals._allPermissions)
-            return allowed && (cond === undefined || cond)
-        }
-        res.ensure = (perm, cond) => {
-            if (!res.allow(perm, cond)) {
-                $logger.error(`Access Forbidden (${JSON.stringify(req.user)}) @ ${req.path} `)
-                throw Error('Access Forbidden!')
-            }
-        }
-        res.empower = (perm, result) => {
-            if (_.isPlainObject(perm)) {
-                if (!res.locals.$permissions)
-                    res.locals.$permissions = { ...perm }
-                else
-                    res.locals.$permissions = { ...res.locals.$permissions, ...perm }
-            } else {
-                res.locals.$permissions[perm] = !!result
-            }
         }
         res.enums = name => {
             return res.locals._allEnums[name]

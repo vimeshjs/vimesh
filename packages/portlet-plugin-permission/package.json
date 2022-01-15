@@ -1,0 +1,13 @@
+{
+  "name": "@vimesh/portlet-plugin-permission",
+  "description": "Vimesh portlet default permission implementation",
+  "version": "0.11.1",
+  "main": "index.js",
+  "repository": "https://github.com/vimeshjs/vimesh.git",
+  "author": "Jacky <jacky@vimesh.org>",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "simple-evaluate": "^1.4.4"
+  }
+}

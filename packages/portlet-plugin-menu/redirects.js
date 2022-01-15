@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const { getSortedMenus, getFirstMenu, getMenuByIndex} = require('./menus')
+const { getSortedMenus, getFirstMenu, getMenuByIndex } = require('./menus')
 
 function setupRedirects(portletServer) {
     let app = portletServer.app
@@ -11,7 +11,7 @@ function setupRedirects(portletServer) {
         if (url.startsWith('menu://')) {
             let fallback = null
             let pos = url.indexOf('|')
-            if (pos != -1){
+            if (pos != -1) {
                 fallback = url.substring(pos + 1).trim()
                 url = url.substring(0, pos).trim()
             }
@@ -26,7 +26,11 @@ function setupRedirects(portletServer) {
                     $logger.error(`Could not find menu zone "${menu.zone}" when redirecting "${path}"`)
                     return next()
                 }
-                let menus = getSortedMenus('', menu.zone, menusInZone, res.locals.$permissions)
+                const allow = (formular) => {
+                    if (!portletServer.evaluatePermissionFormular) return true
+                    return portletServer.evaluatePermissionFormular(formular, res.locals.$permissions)
+                }
+                let menus = getSortedMenus('', menu.zone, menusInZone, allow)
                 let menuItem = null
                 if (menu.index == menu.zone) {
                     menuItem = getFirstMenu(menus)
