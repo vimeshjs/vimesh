@@ -34,7 +34,11 @@ function contentFor(name, options) {
 }
 
 function json(js) {
-    return js == null ? "null" : sanitizeJsonToString(js)
+    const safeString = () => js == null ? "null" : sanitizeJsonToString(js)
+    return {
+        toString: safeString,
+        toHTML: safeString
+    }
 }
 
 module.exports = {

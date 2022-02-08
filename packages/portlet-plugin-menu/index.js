@@ -12,7 +12,11 @@ function menusByZone(name, options) {
     if (variable) {
         this[variable] = result
     } else {
-        return JSON.stringify(result)
+        const safeString = () => JSON.stringify(result)
+        return {
+            toString: safeString,
+            toHTML: safeString
+        }
     }
 }
 
