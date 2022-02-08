@@ -23,9 +23,13 @@ module.exports = (portlet) => {
         res.locals._menusByZone = portlet.allMenusByZone
         res.buildMenus = (menusInZone) => {
             let lang = res.locals.$language
-            let menus = getSortedMenus(lang, 'menu', menusInZone, allow)
+            let menus = getSortedMenus(lang, 'menu', menusInZone,
+                (perm, cond) => res.allow(perm, cond, res.locals._menusPermissionScope))
             let am = getActiveMenu(menus, res.locals.$url)
             return { activeMenu: am && am.index, menus }
+        }
+        res.setMenusPermissionScope = (scope) => {
+            res.locals._menusPermissionScope = _.merge(res.locals._menusPermissionScope, scope)
         }
     })
 

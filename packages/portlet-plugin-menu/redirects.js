@@ -26,7 +26,8 @@ function setupRedirects(portletServer) {
                     $logger.error(`Could not find menu zone "${menu.zone}" when redirecting "${path}"`)
                     return next()
                 }
-                let menus = getSortedMenus('', menu.zone, menusInZone, res.allow)
+                let menus = getSortedMenus('', menu.zone, menusInZone,
+                    (perm, cond) => res.allow(perm, cond, res.locals._menusPermissionScope))
                 let menuItem = null
                 if (menu.index == menu.zone) {
                     menuItem = getFirstMenu(menus)

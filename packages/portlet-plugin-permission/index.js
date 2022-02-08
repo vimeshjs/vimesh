@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const { evaluatePermissionFormular } = require('./utils')
+const { evaluatePermissionFormular, empower } = require('./utils')
 
 function allow(perm, options) {
     if (!options) {
@@ -17,36 +17,22 @@ module.exports = (portlet) => {
     portlet.on('decorateResponse', (req, res) => {
         res.locals.$permissions = {}
 
-        res.locals.$allow = res.allow = (perm, cond) => {
-            let allowed = evaluatePermissionFormular(perm, res.locals.$permissions)
-            return allowed && (cond === undefined || cond)
+        res.locals.$allow = res.allow = (perm, cond, scope) => {
+            if (undefined === scope && _.isObject(cond)) {
+                scope = cond
+                cond = true
+            }
+            let allowed = evaluatePermissionFormular(perm, res.locals.$permissions, scope)
+            return allowed && (undefined === cond || cond)
         }
-        res.ensure = (perm, cond) => {
-            if (!res.allow(perm, cond)) {
+        res.ensure = (perm, cond, scope) => {
+            if (!res.allow(perm, cond, scope)) {
                 $logger.error(`Access Forbidden (${JSON.stringify(req.user)}) @ ${req.path} `)
                 throw Error('Access Forbidden!')
             }
         }
-        res.empower = (perm, result) => {
-            let permMap = {}
-            if (undefined === result)
-                result = true
-            else
-                result = !!result
-
-            if (_.isString(perm))
-                permMap[perm] = result
-            else if (_.isArray(perm)) {
-                _.each(perm, k => permMap[k] = result)
-            } else if (_.isPlainObject(perm)) {
-                permMap = _.mapValues(perm, v => !!v)
-            } else {
-                $logger.warn(`Unable to empower ${perm}`)
-            }
-            _.each(permMap, (v, k) => {
-                if (_.indexOf(k, '.') == -1) $logger.warn('Permission id must follow format "{resource}.{action}"')
-            })
-            res.locals.$permissions = _.merge(res.locals.$permissions, permMap)
+        res.empower = (perm, result, scope) => {
+            _.merge(res.locals.$permissions, empower(perm, result, scope))
         }
     })
 
