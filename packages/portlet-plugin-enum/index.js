@@ -3,7 +3,7 @@ const _ = require('lodash')
 module.exports = (portlet) => {
     portlet.allEnums = {}
     portlet.on('decorateResponse', (req, res) => {
-        res.locals._allEnums = portletServer.allEnums
+        res.locals._allEnums = portlet.allEnums
         res.enums = name => {
             return res.locals._allEnums[name]
         }
