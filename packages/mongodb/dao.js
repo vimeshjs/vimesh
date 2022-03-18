@@ -131,8 +131,8 @@ function checkAndConvert(name, checkResults, convert, path, props, obj) {
         } else if (_.isObject(type)) {
             checkAndConvert(name, checkResults, convert, `${path}.${k}`, type, v)
         } else {
-            if ($schemas.types[type]) {
-                checkAndConvert(name, checkResults, convert, `${path}.${k}`, $schemas.types[type].properties, v)
+            if ($schemas.models[type]) {
+                checkAndConvert(name, checkResults, convert, `${path}.${k}`, $schemas.models[type].properties, v)
             } else {
                 checkResults.push(msgWrongType)
                 $logger.warn(msgWrongType)
@@ -396,7 +396,7 @@ function createDao(schema, name, affix) {
                     $logger.warn('Filter must be specific when "set" a document')
                 }
                 let update = item.$raw
-                if (!update){
+                if (!update) {
                     update = { $set: _.omit(item, '_id', '$when$', '$insert$', '$unset') }
                     if (item['$insert$']) update.$setOnInsert = item['$insert$']
                     if (item['$unset']) update.$unset = item['$unset']
@@ -508,113 +508,113 @@ function createDao(schema, name, affix) {
                 c => +c.name.substring(prefix.length)
             )
         })
-    }),
-        attachMethodToDao(dao, 'select', function ({ }, params) {
-            if (!params) params = {}
-            let query = params.query || params.cond || {}
-            let skip = +(params.skip || 0)
-            let size = +(params.limit || params.size || 0)
-            let sort = params.sort
-            let returnCount = !!params.count
-            let affix = params.affix
+    })
+    attachMethodToDao(dao, 'select', function ({ }, params) {
+        if (!params) params = {}
+        let query = params.query || params.cond || {}
+        let skip = +(params.skip || 0)
+        let size = +(params.limit || params.size || 0)
+        let sort = params.sort
+        let returnCount = !!params.count
+        let affix = params.affix
 
-            if (affix) {
-                let format = mapping.affix && mapping.affix.format || 'YYYYMMDD'
-                if (!size) return Promise.reject('Size must be set in case of affix select')
-                if (affix.begin && affix.end) {
-                    let prefix = `${mapping.collection}_`
-                    let begin = +formatDate(affix.begin, format)
-                    let end = +formatDate(affix.end, format)
-                    let asc = begin <= end
-                    let listByDate = []
-                    let count = 0
-                    return dao.listAllWithAffix().then(r =>
-                        _.sortBy(_.filter(r, cur => cur >= Math.min(begin, end) && cur <= Math.max(begin, end)), dt => asc ? dt : -dt)
-                    ).then(dts => {
-                        return Promise.all(_.map(dts, dt => {
-                            return dao._(dt + '').count(query)
-                        })).then(rs => {
-                            listByDate = _.map(dts, (dt, index) => {
-                                count += rs[index]
-                                return { date: dt, count: rs[index] }
-                            })
-                        })
-                    }).then(r => {
-                        let remainedSize = size
-                        let skipped = 0
-                        let tasks = []
-                        for (let i = 0; i < listByDate.length && remainedSize > 0; i++) {
-                            let cur = listByDate[i]
-                            if (cur.count > 0) {
-                                if (skipped < skip) {
-                                    let remainedSkip = skip - skipped
-                                    let curSkip = Math.min(cur.count, remainedSkip)
-                                    skipped += curSkip
-                                    if (curSkip < cur.count) {
-                                        let curSize = Math.min(remainedSize, cur.count - curSkip)
-                                        remainedSize -= curSize
-                                        tasks.push({ date: cur.date, skip: curSkip, size: curSize })
-                                    }
-                                } else {
-                                    let curSize = Math.min(remainedSize, cur.count)
-                                    remainedSize -= curSize
-                                    tasks.push({ date: cur.date, skip: 0, size: curSize })
-                                }
-                            }
-                        }
-                        return Promise.all(_.map(tasks, t => dao._(t.date + '').select(
-                            { cond: query, skip: t.skip, size: t.size, sort: sort, count: false }
-                        ))).then(rs => {
-                            let result = { data: [], count: count }
-                            if (affix.debug) {
-                                result.tasks = tasks
-                                result.from = listByDate
-                            }
-                            _.each(rs, r => {
-                                result.data = _.concat(result.data, r.data)
-                            })
-                            return result
+        if (affix) {
+            let format = mapping.affix && mapping.affix.format || 'YYYYMMDD'
+            if (!size) return Promise.reject('Size must be set in case of affix select')
+            if (affix.begin && affix.end) {
+                let prefix = `${mapping.collection}_`
+                let begin = +formatDate(affix.begin, format)
+                let end = +formatDate(affix.end, format)
+                let asc = begin <= end
+                let listByDate = []
+                let count = 0
+                return dao.listAllWithAffix().then(r =>
+                    _.sortBy(_.filter(r, cur => cur >= Math.min(begin, end) && cur <= Math.max(begin, end)), dt => asc ? dt : -dt)
+                ).then(dts => {
+                    return Promise.all(_.map(dts, dt => {
+                        return dao._(dt + '').count(query)
+                    })).then(rs => {
+                        listByDate = _.map(dts, (dt, index) => {
+                            count += rs[index]
+                            return { date: dt, count: rs[index] }
                         })
                     })
-                } else {
-                    return Promise.reject('affix select must specific the begin and end date')
-                }
-            }
-
-            let cursor = model.find(query)
-            if (skip)
-                cursor.skip(skip)
-            if (size)
-                cursor.limit(size)
-            if (sort)
-                cursor.sort(sort)
-            return cursor.toArray().then(items => {
-                let joined = params.join ? dao.join(items, params.join) : Promise.resolve(items)
-                return joined.then(r => {
-                    if (params.add_full_id !== false) dao.addFullId(items)
-                    if (params.fields) {
-                        let fields = _.trim(params.fields)
-                        let omit = false
-                        if (_.isString(fields)) {
-                            omit = fields[0] == '-'
-                            if (omit) fields = _.trim(fields.substring(1))
-                        } else {
-                            omit = fields[0] == '-'
-                            fields = _.slice(fields, 1)
+                }).then(r => {
+                    let remainedSize = size
+                    let skipped = 0
+                    let tasks = []
+                    for (let i = 0; i < listByDate.length && remainedSize > 0; i++) {
+                        let cur = listByDate[i]
+                        if (cur.count > 0) {
+                            if (skipped < skip) {
+                                let remainedSkip = skip - skipped
+                                let curSkip = Math.min(cur.count, remainedSkip)
+                                skipped += curSkip
+                                if (curSkip < cur.count) {
+                                    let curSize = Math.min(remainedSize, cur.count - curSkip)
+                                    remainedSize -= curSize
+                                    tasks.push({ date: cur.date, skip: curSkip, size: curSize })
+                                }
+                            } else {
+                                let curSize = Math.min(remainedSize, cur.count)
+                                remainedSize -= curSize
+                                tasks.push({ date: cur.date, skip: 0, size: curSize })
+                            }
                         }
-                        fields = _.map(fields.split(','), _.trim)
-                        items = _.map(items, item => omit ? _.omit(item, fields) : _.pick(item, fields))
                     }
-                    if (returnCount) {
-                        return model.count(query).then(count => {
-                            return { data: items, count: count }
+                    return Promise.all(_.map(tasks, t => dao._(t.date + '').select(
+                        { cond: query, skip: t.skip, size: t.size, sort: sort, count: false }
+                    ))).then(rs => {
+                        let result = { data: [], count: count }
+                        if (affix.debug) {
+                            result.tasks = tasks
+                            result.from = listByDate
+                        }
+                        _.each(rs, r => {
+                            result.data = _.concat(result.data, r.data)
                         })
-                    } else {
-                        return { data: items }
-                    }
+                        return result
+                    })
                 })
+            } else {
+                return Promise.reject('affix select must specific the begin and end date')
+            }
+        }
+
+        let cursor = model.find(query)
+        if (skip)
+            cursor.skip(skip)
+        if (size)
+            cursor.limit(size)
+        if (sort)
+            cursor.sort(sort)
+        return cursor.toArray().then(items => {
+            let joined = params.join ? dao.join(items, params.join) : Promise.resolve(items)
+            return joined.then(r => {
+                if (params.add_full_id !== false) dao.addFullId(items)
+                if (params.fields) {
+                    let fields = _.trim(params.fields)
+                    let omit = false
+                    if (_.isString(fields)) {
+                        omit = fields[0] == '-'
+                        if (omit) fields = _.trim(fields.substring(1))
+                    } else {
+                        omit = fields[0] == '-'
+                        fields = _.slice(fields, 1)
+                    }
+                    fields = _.map(fields.split(','), _.trim)
+                    items = _.map(items, item => omit ? _.omit(item, fields) : _.pick(item, fields))
+                }
+                if (returnCount) {
+                    return model.count(query).then(count => {
+                        return { data: items, count: count }
+                    })
+                } else {
+                    return { data: items }
+                }
             })
         })
+    })
     if (!affix) {
         attachMethodToDao(dao, '_', function ({ }, date) {
             let format = mapping.affix && mapping.affix.format || 'YYYYMMDD'

@@ -45,7 +45,8 @@ function connectTo(dbUri, dbName, options, name, debug, admin, remains) {
 }
 
 function setupMongoDB(config, modelRoot, baseDb) {
-    let dbNames = _.keys(config.databases)
+    let dbConfigs = config.databases || config
+    let dbNames = _.keys(dbConfigs)
     if (dbNames.length == 0) {
         $logger.error('There are no MongoDB databases defined!')
         return 
@@ -54,7 +55,7 @@ function setupMongoDB(config, modelRoot, baseDb) {
     loadModels(__dirname + '/models', baseDb)
     loadModels(modelRoot, baseDb)
     let remains = {}
-    let databases = _.mapValues(config.databases, function (v, k) {
+    let databases = _.mapValues(dbConfigs, function (v, k) {
         let uri = v.uri
         var dbName = v.dbName
         if (v.autoReconnect === undefined)

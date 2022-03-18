@@ -20,23 +20,17 @@ function loadModels(root, baseDb = 'base') {
 			name.substring(0, 1) != '_') {
 			if (ext === '.yaml') {
 				let yamlContent = fs.readFileSync(f).toString()
-				let json = yaml.load(yamlContent)
-				if (!fs.existsSync(f.substring(0, f.length - 5) + '.js')) {
-					$logger.info(`SCHEMA TYPE ${name} `)
-					$schemas.types[name] = json
-					return
-				}
+				let json = yaml.load(yamlContent)				
 				if (!json || !json.$mapping) {
 					$logger.warn(`SCHEMA MODEL ${name} has no mapping!`)
 				} else {
-					let stat = fs.statSync(key + '.js');
-					if (stat && stat.isFile()) {
+					if (!json.$mapping.database)
+						json.$mapping.database = baseDb
+					if (fs.existsSync(key + '.js')) {
 						json.$mapping.methods = require(key + '.js')
 					}
 					$logger.debug(`SCHEMA MODEL ${name} -> ${json.$mapping.database}/${json.$mapping.collection}`)
 				}
-				if (!json.$mapping.database)
-					json.$mapping.database = baseDb
 				$schemas.models[name] = json
 			}
 		}

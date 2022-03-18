@@ -32,6 +32,7 @@ async function connectTo(config) {
 }
 
 function setupOrm(config, modelsDir, migrationsDir) {
+    let dbConfigs = config.databases || config
     if (!modelsDir) {
         throw Error('ORM models directory is not set!')
     }
@@ -39,14 +40,14 @@ function setupOrm(config, modelsDir, migrationsDir) {
         $logger.warn('ORM migrations directory is not set!')
     }
     let baseDb = null
-    let dbNames = _.keys(config.databases)
+    let dbNames = _.keys(dbConfigs)
     if (dbNames.length == 0) {
         $logger.error('There are no databases defined!')
         return
     }
     if (!baseDb) baseDb = dbNames[0]
     loadModels(modelsDir, baseDb)
-    let databases = _.mapValues(config.databases, function (v, k) {
+    let databases = _.mapValues(dbConfigs, function (v, k) {
         return retryPromise(
             async () => {
                 let name = k
@@ -75,7 +76,7 @@ function setupOrm(config, modelsDir, migrationsDir) {
         let allSync = []
         let allSyncDbNames = []
         _.each($orm.databases, (db, name) => {
-            let { sync } = config.databases[name]
+            let { sync } = dbConfigs[name]
             if (sync) {
                 if (_.isPlainObject(sync)) {
                     allSyncDbNames.push(`${name}|${JSON.stringify(sync)}`)

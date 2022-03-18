@@ -27,13 +27,13 @@ function loadModels(root, baseDb = 'base') {
 					json.properties = json.props
 					delete json.props
 				}
+				if (!json.$mapping.database)
+					json.$mapping.database = baseDb
 				if (fs.existsSync(key + '.js')) {
 					json.$mapping.methods = require(key + '.js')
 				}
-				$logger.debug(`SCHEMA MODEL ${name} -> ${json.$mapping.database || baseDb}/${json.$mapping.collection}`)
+				$logger.debug(`SCHEMA MODEL ${name} -> ${json.$mapping.database}/${json.$mapping.table}`)
 
-				if (!json.$mapping.database)
-					json.$mapping.database = baseDb
 				$orm.schemas.models[name] = json
 			}
 		}
