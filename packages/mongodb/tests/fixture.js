@@ -9,5 +9,6 @@ const config = {
         }
     }
 }
+
 setupLogger()
 setupMongoDB(_.merge(config, global.extraConfig), __dirname + '/models')
