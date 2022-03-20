@@ -49,7 +49,7 @@ function setupMongoDB(config, modelRoot, baseDb) {
     let dbNames = _.keys(dbConfigs)
     if (dbNames.length == 0) {
         $logger.error('There are no MongoDB databases defined!')
-        return 
+        return
     }
     if (!baseDb) baseDb = dbNames[0]
     loadModels(__dirname + '/models', baseDb)
@@ -76,6 +76,8 @@ function setupMongoDB(config, modelRoot, baseDb) {
     })
 
     $mongodb.connected = Promise.all(_.values(databases)).then(() => {
+        if (config.onBeforeCreateDao) return config.onBeforeCreateDao()
+    }).then(() => {
         $logger.info('All databases are connected!')
         _.each($schemas.models, (schema, name) => {
             createDao(schema, name)
@@ -83,7 +85,7 @@ function setupMongoDB(config, modelRoot, baseDb) {
     }).then(r => {
         if (!config.migrationsDir) return
         let all = []
-        _.each(glob.sync(config.migrationsDir + "/*"), function(f){
+        _.each(glob.sync(config.migrationsDir + "/*"), function (f) {
             let ext = path.extname(f)
             let name = path.basename(f)
             let key = f
@@ -91,23 +93,23 @@ function setupMongoDB(config, modelRoot, baseDb) {
                 key = f.substring(0, f.length - ext.length)
                 name = name.substring(0, name.length - ext.length)
             }
-            let promise = models.Migrations.findOne({_id : name}).then(r => {
+            let promise = models.Migrations.findOne({ _id: name }).then(r => {
                 let testMode = name[0] === '@'
-                if (!r || testMode){
+                if (!r || testMode) {
                     $logger.info('Migrating ' + name)
                     let func = require(f)
                     let data = {
-                        _id : name,
-                        at : new Date(),
-                        logs : []
+                        _id: name,
+                        at: new Date(),
+                        logs: []
                     }
-                    return func(models, function(log){
+                    return func(models, function (log) {
                         data.logs.push({
-                            log : log,
-                            at : new Date()
+                            log: log,
+                            at: new Date()
                         })
                         $logger.info('Migration ' + name + ' > ' + log)
-                    }).then(function(){
+                    }).then(function () {
                         data.fat = new Date()
                         if (!testMode)
                             return models.Migrations.insert(data)
@@ -119,7 +121,7 @@ function setupMongoDB(config, modelRoot, baseDb) {
                     })
                 }
             })
-            
+
             if (promise) all.push(promise)
         })
         return Promise.all(all)
