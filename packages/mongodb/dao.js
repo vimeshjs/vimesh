@@ -505,7 +505,7 @@ function createDao(schema, name, affix) {
         return database.listCollections().toArray().then(r => {
             return _.map(
                 _.filter(r, c => c.name.indexOf(prefix) == 0),
-                c => +c.name.substring(prefix.length)
+                c => c.name.substring(prefix.length)
             )
         })
     })
