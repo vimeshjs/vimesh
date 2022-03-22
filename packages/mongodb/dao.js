@@ -222,11 +222,7 @@ function createDao(schema, name, affix) {
             _.each(array, item => {
                 item._fid = mapping.id_prefix + '_' + item._id
             })
-        } else {
-            _.each(array, item => {
-                item._fid = item._id
-            })
-        }
+        } 
     })
     // abc.ciid > ci : CollectionItems
     attachMethodToDao(dao, 'join', function ({ }, array, ...settings) {

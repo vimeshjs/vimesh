@@ -113,6 +113,8 @@ LocalStorage.prototype.copyObject = function (sourceBucket, sourcePath, targetBu
         if (r) {
             let fnSource = path.join(this.root, sourceBucket, sourcePath)
             let fnTarget = path.join(this.root, targetBucket, targetPath)
+            let dir = path.dirname(fnTarget)
+            if (!fs.existsSync(dir)) mkdirp.sync(dir)
             return Promise.all([
                 copyFileAsync(fnSource, fnTarget),
                 copyFileAsync(`${fnSource}.meta.json`, `${fnTarget}.meta.json`)
@@ -162,7 +164,7 @@ LocalStorage.prototype.listObjects = function (bucket, prefix) {
                 }).then(r => all)
             })
         } else {
-            return Promise.reject(Error(`Bucket ${bucket} does not exist for file ${filePath}!`))
+            return Promise.reject(Error(`Bucket ${bucket} does not exist!`))
         }
     })
 }

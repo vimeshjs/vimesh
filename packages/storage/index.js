@@ -56,7 +56,7 @@ function createScopedStorage(storage, bucket, prefix) {
             return storage.moveObject(bucket, prefix + sourcePath, prefix + targetPath)
         },
         listObjects(prefix2) {
-            return storage.listObjects(prefix + prefix2)
+            return storage.listObjects(bucket, prefix + prefix2)
         },
         getObjectAsFile(filePath, localFilePath) {
             return storage.getObjectAsFile(bucket, prefix + filePath, localFilePath)
