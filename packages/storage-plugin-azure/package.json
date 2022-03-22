@@ -1,13 +1,13 @@
 {
   "name": "@vimesh/storage-plugin-azure",
   "description": "Vimesh Microsoft Azure storage support",
-  "version": "0.11.12",
+  "version": "0.11.13",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
-    "@vimesh/storage": "^0.11.12",
+    "@vimesh/storage": "^0.11.13",
     "azure-storage": "^2.10.7"
   }
 }

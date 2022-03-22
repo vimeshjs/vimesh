@@ -1,7 +1,7 @@
 {
   "name": "@vimesh/portlet-helper-faicon",
   "description": "Vimesh portlet hbs helper for FontAwesomeIcon",
-  "version": "0.11.1",
+  "version": "0.11.13",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
   "author": "Jacky <jacky@vimesh.org>",
