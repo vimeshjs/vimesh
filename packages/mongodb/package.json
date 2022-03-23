@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/mongodb",
-  "version": "0.11.13",
+  "version": "0.11.14",
   "description": "Vimesh MongoDB",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
@@ -9,7 +9,7 @@
   "dependencies": {
     "@vimesh/cron": "^0.11.13",
     "@vimesh/logger": "^0.11.13",
-    "@vimesh/utils": "^0.11.13",
+    "@vimesh/utils": "^0.11.14",
     "bluebird": "^3.7.2",
     "lodash": "^4.17.15",
     "moment": "^2.27.0",

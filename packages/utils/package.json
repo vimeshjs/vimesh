@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/utils",
-  "version": "0.11.13",
+  "version": "0.11.14",
   "description": "Vimesh utils",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
