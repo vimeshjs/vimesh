@@ -1,13 +1,13 @@
 {
   "name": "@vimesh/services",
-  "version": "0.11.13",
+  "version": "0.11.15",
   "description": "Vimesh services implemented via Restful, gRPC, GraphQL",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
-    "@vimesh/logger": "^0.11.13",
+    "@vimesh/logger": "^0.11.15",
     "lodash": "^4.17.15"
   }
 }

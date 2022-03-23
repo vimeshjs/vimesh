@@ -1,7 +1,7 @@
 {
   "name": "@vimesh/portlet-helper-es5",
   "description": "Vimesh portlet hbs helper for ES5",
-  "version": "0.11.13",
+  "version": "0.11.15",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
   "author": "Jacky <jacky@vimesh.org>",
