@@ -35,28 +35,33 @@ function loadText(file) {
     }
 }
 
-function loadFileAs(data, category, name, file) {
-    if (!data[category]) data[category] = {}
-    let ext = path.extname(file)
-    data[category][name] = ext === '.yaml' || ext === '.yml' ? loadYaml(file) : loadJson(file)
-    if (!data[category][name])
-        $logger.error(`Fails to load ${category}/${name} from ${file}`)
+function loadFileAs(file) {
+    try {
+        let ext = path.extname(file)
+        if (ext === '.yaml' || ext === '.yml')
+            return loadYaml(file)
+        else if (ext === '.json')
+            return loadJson(file)
+        else if (ext === '.js')
+            return require(file)
+    } catch (ex) {
+        $logger.error(`Fails to load ${file}`, ex)
+    }
 }
 
 function loadDataTree(root) {
     let data = {}
-    _.each(glob.sync(root + "/*"), function (dir) {
-        if (fs.statSync(dir).isDirectory()) {
-            let category = path.basename(dir)
-            _.each(glob.sync(dir + "/*"), function (file) {
-                let ext = path.extname(file)
-                if (_.includes(['.yaml', '.yml', '.json', '.js'], ext)) {
-                    let name = path.basename(file)
-                    name = name.substring(0, name.length - ext.length)
-                    $logger.debug(`DATA ${category}/${name} <- ${file}`)
-                    loadFileAs(data, category, name, file)
-                }
-            })
+    _.each(glob.sync(root + "/*"), function (file) {
+        if (fs.statSync(file).isDirectory()) {
+            let name = path.basename(file)
+            data[name] = loadDataTree(file)
+        } else {
+            let ext = path.extname(file)
+            if (_.includes(['.yaml', '.yml', '.json', '.js'], ext)) {
+                let name = path.basename(file)
+                name = name.substring(0, name.length - ext.length)
+                data[name] = loadFileAs(file)
+            }
         }
     })
     return data
@@ -84,7 +89,7 @@ function loadConfigs(context, ...files) {
         }
     })
     vars.env = _.cloneDeep(vars) // make it compatible with previous version
-    vars.root = context.root     
+    vars.root = context.root
     _.each(files, f => {
         try {
             let filePath = path.join(configsDir, f) + '.yaml'
