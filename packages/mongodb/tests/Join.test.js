@@ -12,15 +12,6 @@ beforeAll(function () {
     return $mongodb.connected.then(() => {
         return Promise.all(
             [
-                $models.Users.remove({}),
-                $models.Companies.remove({}),
-                $models.Roles.remove({}),
-                $models.Departments.remove({}),
-            ]
-        )
-    }).then(() => {
-        return Promise.all(
-            [
                 $dao.Roles.set({ _id: 'r1', permissions: ['p1'] }),
                 $dao.Roles.set({ _id: 'r2', permissions: ['p2'] }),
                 $dao.Companies.set({ _id: cid, name: 'test company', sub_deps: [didp1, didp2] }),

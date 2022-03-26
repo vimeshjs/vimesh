@@ -1,14 +1,6 @@
 require('./fixture.js')
 beforeAll(function(){
-    return $mongodb.connected.then(() => {
-        return Promise.all(
-            [
-                $models.Users.remove({}),
-                $models.Roles.remove({}),
-                $models.Departments.remove({})
-            ]
-        )
-    })
+    return $mongodb.connected
 }, 1000 * 60)
 test('create user', function() {
     return $dao.Users.save({_id:'u001', email:'u001@email.com'}).then(function() {

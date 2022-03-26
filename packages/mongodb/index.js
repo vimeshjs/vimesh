@@ -58,17 +58,8 @@ function setupMongoDB(config, modelRoot, baseDb) {
     let databases = _.mapValues(dbConfigs, function (v, k) {
         let uri = v.uri
         var dbName = v.dbName
-        if (v.autoReconnect === undefined)
-            v.autoReconnect = true
-        let options = {}
-        if (v.poolSize)
-            options.poolSize = v.poolSize
-        options.autoReconnect = !!v.autoReconnect
-        if (v.readPreference)
-            options.readPreference = v.readPreference
-        if (v.authMechanism)
-            options.authMechanism = v.authMechanism
-        options.authSource = v.authSource || 'admin'
+        let options = _.omit(v, 'uri', 'dbName')
+        if (!options.authSource) options.authSource = 'admin'
         return retryPromise(
             _.bind(connectTo, null, uri, dbName, options, k, config.DB_DEBUG || v.DEBUG || false, v.ADMIN || false, remains),
             10000

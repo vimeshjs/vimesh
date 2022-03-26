@@ -1,0 +1,9 @@
+services:
+    mongo:
+        image: mongo
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: admin
+            MONGO_INITDB_ROOT_PASSWORD: pass4admin
+        ports:
+            - 10000:27017

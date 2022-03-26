@@ -416,7 +416,7 @@ function createDao(schema, name, affix) {
         let all = _.isArray(data) ? data : [data]
         return Promise.each(all, item => fixId(item, true, mapping.autoconvert || false)).then(() => {
             return model.insertMany(all, { ordered: false }).then((r) => {
-                return !!r.result.ok
+                return r.insertedIds
             })
         })
     })
@@ -432,7 +432,7 @@ function createDao(schema, name, affix) {
             else
                 cond = { _id: idOrCond }
         }
-        return model.remove(cond).then(r => {
+        return model.deleteMany(cond).then(r => {
             return r && r.result || { ok: 0 }
         })
     })
@@ -632,7 +632,7 @@ function createDao(schema, name, affix) {
             index.options.expireAfterSeconds = duration(index.options.expires) / 1000
             delete index.options.expires
         }
-        if (index.keys) iarr.push(model.ensureIndex(index.keys, index.options));
+        if (index.keys) iarr.push(model.createIndex(index.keys, index.options));
         if (iarr.length > 0)
             Promise.all(iarr).then(r => {
                 $logger.debug(`INDEX ${name} ${JSON.stringify(index.keys)} ${JSON.stringify(index.options)} `)

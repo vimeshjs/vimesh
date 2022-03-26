@@ -1,11 +1,3 @@
-global.extraConfig = {
-    onBeforeSetup() {
-        return Promise.all([
-            $dao.Ids.delete($dao.Orders.getAutoIdName()),
-            $models.Orders.remove({})
-        ])
-    }
-}
 require('./fixture.js')
 const Promise = require('bluebird')
 const { getObjectID } = require('../utils')
@@ -16,13 +8,7 @@ const didc12 = getObjectID()
 const didc21 = getObjectID()
 const didc22 = getObjectID()
 beforeAll(function () {
-    return $mongodb.connected.then(() => {
-        return Promise.all(
-            [
-                $models.Departments.remove({})
-            ]
-        )
-    })
+    return $mongodb.connected
 }, 1000 * 60)
 test('set departments', function () {
 
