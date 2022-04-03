@@ -13,8 +13,7 @@ const config = {
             uri: "mongodb://admin:pass4admin@localhost:10000/alone_unit_test",
         },
         shard: {
-            uri: "mongodb://root:password123@localhost:20000/shard_unit_test",
-            ensureSharded: true
+            uri: "mongodb://root:password123@localhost:20000/shard_unit_test?ensureSharded"
         }
     },
     async onBeforeCreateDao() {

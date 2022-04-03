@@ -1,6 +1,7 @@
 ﻿const _ = require('lodash')
 const glob = require("glob")
 const path = require('path')
+const {URL} = require('url')
 const { MongoClient } = require('mongodb')
 const { retryPromise } = require('@vimesh/utils')
 global.$mongodb = { databases: {} }
@@ -11,10 +12,17 @@ const loadModels = require('./models')
 const createDao = require('./dao.js')
 require('./aggregator.js')
 function connectTo(dbUri, dbName, options, name, debug, admin, remains) {
-    remains[name] = dbUri;
+    let urlObj = new URL(dbUri)
+    if (urlObj.searchParams.has('ensureSharded')){
+        options.ensureSharded = urlObj.searchParams.get('ensureSharded') !== 'false'
+        urlObj.searchParams.delete('ensureSharded')
+        urlObj.search = urlObj.searchParams.toString()
+        dbUri = urlObj.toString()
+    }
+    remains[name] = dbUri
     $logger.info("Connecting " + name + ":" + dbUri)
     let ensureSharded = !!options.ensureSharded
-    delete options.ensureSharded
+    options = _.omit(options, 'ensureSharded')
     return new Promise(function (resolve, reject) {
         MongoClient.connect(dbUri, options, function (err, client) {
             if (err) {
