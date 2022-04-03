@@ -9,7 +9,7 @@ const didc21 = getObjectID()
 const didc22 = getObjectID()
 beforeAll(function () {
     return $mongodb.connected
-}, 1000 * 60)
+})
 test('set departments', function () {
 
     return Promise.all(

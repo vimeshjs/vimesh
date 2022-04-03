@@ -1,9 +1,53 @@
 services:
-    mongo:
-        image: mongo
-        restart: always
-        environment:
-            MONGO_INITDB_ROOT_USERNAME: admin
-            MONGO_INITDB_ROOT_PASSWORD: pass4admin
-        ports:
-            - 10000:27017
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: pass4admin
+    ports:
+        - 10000:27017
+
+  mongodb-sharded:
+    image: docker.io/bitnami/mongodb-sharded:4.4
+    environment:
+      MONGODB_ADVERTISED_HOSTNAME: mongodb-sharded
+      MONGODB_SHARDING_MODE: mongos
+      MONGODB_CFG_PRIMARY_HOST: mongodb-cfg
+      MONGODB_CFG_REPLICA_SET_NAME: cfgreplicaset
+      MONGODB_REPLICA_SET_KEY: replicasetkey123
+      MONGODB_ROOT_PASSWORD: password123
+    ports:
+      - "20000:27017"
+
+  mongodb-shard0:
+    image: docker.io/bitnami/mongodb-sharded:4.4
+    environment:
+      MONGODB_ADVERTISED_HOSTNAME: mongodb-shard0
+      MONGODB_SHARDING_MODE: shardsvr
+      MONGODB_MONGOS_HOST: mongodb-sharded
+      MONGODB_ROOT_PASSWORD: password123
+      MONGODB_REPLICA_SET_MODE: primary
+      MONGODB_REPLICA_SET_KEY: replicasetkey123
+      MONGODB_REPLICA_SET_NAME: shard0
+
+  mongodb-shard1:
+    image: docker.io/bitnami/mongodb-sharded:4.4
+    environment:
+      MONGODB_ADVERTISED_HOSTNAME: mongodb-shard1
+      MONGODB_SHARDING_MODE: shardsvr
+      MONGODB_MONGOS_HOST: mongodb-sharded
+      MONGODB_ROOT_PASSWORD: password123
+      MONGODB_REPLICA_SET_MODE: primary
+      MONGODB_REPLICA_SET_KEY: replicasetkey123
+      MONGODB_REPLICA_SET_NAME: shard1
+
+  mongodb-cfg:
+    image: docker.io/bitnami/mongodb-sharded:4.4
+    environment:
+      MONGODB_ADVERTISED_HOSTNAME: mongodb-cfg
+      MONGODB_SHARDING_MODE: configsvr
+      MONGODB_ROOT_PASSWORD: password123
+      MONGODB_REPLICA_SET_MODE: primary
+      MONGODB_REPLICA_SET_KEY: replicasetkey123
+      MONGODB_REPLICA_SET_NAME: cfgreplicaset

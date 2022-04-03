@@ -13,6 +13,8 @@ require('./aggregator.js')
 function connectTo(dbUri, dbName, options, name, debug, admin, remains) {
     remains[name] = dbUri;
     $logger.info("Connecting " + name + ":" + dbUri)
+    let ensureSharded = !!options.ensureSharded
+    delete options.ensureSharded
     return new Promise(function (resolve, reject) {
         MongoClient.connect(dbUri, options, function (err, client) {
             if (err) {
@@ -21,24 +23,11 @@ function connectTo(dbUri, dbName, options, name, debug, admin, remains) {
             } else {
                 $logger.info("DB " + name + " options : " + JSON.stringify(client.options))
                 let db = client.db(dbName);
-                let result = { database: db, client: client }
+                let result = { database: db, client: client, ensureSharded }
                 $mongodb.databases[name] = result
-
-                MongoClient.connect(dbUri, options, function (err, adminClient) {
-                    delete remains[name]
-                    $logger.info('DB ' + name + ' >>> (' + _.keys(remains) + ')')
-                    if (err) {
-                        $logger.warn("Cannot connect to admin: " + err + "@" + dbUri);
-                        reject(err);
-                    } else {
-                        $logger.info("Connected to " + name + " admin @" + dbUri);
-                        if (admin)
-                            result.admin = adminClient.db(dbName).admin();
-                        else
-                            result.admin2 = adminClient.db(dbName).admin();
-                        resolve(result)
-                    }
-                });
+                delete remains[name]
+                $logger.info('DB ' + name + ' >>> (' + _.keys(remains) + ')')
+                resolve(result)
             }
         })
     })
@@ -129,6 +118,13 @@ function setupMongoDB(config, modelRoot, baseDb) {
         return Promise.all(allSetups).then(function () {
             $logger.info('All setups finish!')
         })
+    }).then(r => {
+        let tasks = []
+        _.each($mongodb.databases, db => {
+            if (db.ensureSharded)
+                tasks.push(db.database.admin().command({ enableSharding: db.database.databaseName }))
+        })
+        return Promise.all(tasks)
     })
 }
 

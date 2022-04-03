@@ -1,0 +1,20 @@
+properties:
+  _id: ObjectId         # 编号
+  _at: date             # 生成时间
+  v_at: date            # 客户端时间
+  sid: ObjectId           # 会话ID
+  rid: string           # 索引ID
+$mapping:
+  database: shard
+  collection: event     # event.{name}.YYYYMMDD
+  autoconvert: true
+  shard:
+    key:
+      _id: hashed
+  indexes:
+    - keys:
+        _id: hashed
+    - keys:
+        rid: 1
+    - keys:
+        v_at: -1

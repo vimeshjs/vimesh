@@ -5,12 +5,6 @@ const Promise = require('bluebird')
 const { formatDate, duration } = require('@vimesh/utils')
 const { toObjectID, getObjectID } = require('./utils')
 
-function attachMethodToDao(dao, name, func) {
-    if (!dao[name]) {
-        dao[name] = _.bind(func, dao, $models)
-    }
-}
-
 function getPaths(name, results, keys, index, path, obj) {
     if (!obj || index >= keys.length) return
     let key = keys[index]
@@ -152,7 +146,7 @@ function createDao(schema, name, affix) {
         $logger.error(`Model ${name} database ${mapping.database} is not defined!`)
         return
     }
-    let database = $mongodb.databases[mapping.database].database
+    let { client, database, ensureSharded } = $mongodb.databases[mapping.database]
     let fullname = name
     let model = null
     if (affix) {
@@ -202,10 +196,15 @@ function createDao(schema, name, affix) {
             })
         }
     }
-    dao.getAutoIdName = function () {
-        return fullname + '_id'
-    }
-    attachMethodToDao(dao, 'getCollectionSet', function ({ }, affix = '_') {
+    dao.getAutoIdName = () => { return fullname + '_id' }
+    dao.getMapping = () => { return mapping }
+    dao.getModel = () => { return model }
+    dao.getName = () => { return name }
+    dao.getFullName = () => { return fullname }
+    dao.getDatabase = () => { return database }
+    dao.getClient = () => { return client }
+
+    dao.getCollectionSet = (affix = '_') => {
         let prefix = mapping.collection + affix
         return database.collections().then(rs => {
             let names = []
@@ -214,18 +213,19 @@ function createDao(schema, name, affix) {
             })
             return _.sortBy(names)
         })
-    })
-    attachMethodToDao(dao, 'addFullId', function ({ }, data) {
+    }
+    dao.addFullId = (data) => {
         if (!data) return
         let array = _.isArray(data) ? data : [data]
         if (mapping && mapping.id_prefix) {
             _.each(array, item => {
                 item._fid = mapping.id_prefix + '_' + item._id
             })
-        } 
-    })
+        }
+    }
+
     // abc.ciid > ci : CollectionItems
-    attachMethodToDao(dao, 'join', function ({ }, array, ...settings) {
+    dao.join = (array, ...settings) => {
         if (!array) return
         if (!_.isArray(array)) array = [array]
         if (_.isArray(settings[0])) settings = settings[0]
@@ -328,20 +328,20 @@ function createDao(schema, name, affix) {
                 })
             }
         }).then(() => array)
-    })
-    attachMethodToDao(dao, 'check', function ({ }, data) {
+    }
+    dao.check = (data) => {
         let convert = false
         let checkResults = []
         checkAndConvert(name, checkResults, convert, "", schema.properties, data)
         return checkResults.length == 0
-    })
-    attachMethodToDao(dao, 'convert', function ({ }, data) {
+    }
+    dao.convert = (data) => {
         let convert = true
         let checkResults = []
         checkAndConvert(name, checkResults, convert, "", schema.properties, data)
         return checkResults.length == 0
-    })
-    attachMethodToDao(dao, 'get', function ({ }, id) {
+    }
+    dao.get = (id) => {
         if (_.isPlainObject(id))
             return model.findOne(id)
 
@@ -351,7 +351,7 @@ function createDao(schema, name, affix) {
         else if (idtype === 'ObjectId')
             id = toObjectID(id)
         return model.findOne({ _id: id })
-    })
+    }
     function fixId(data, check, convert) {
         let checkResults = []
         let idtype = schema.properties._id
@@ -377,7 +377,7 @@ function createDao(schema, name, affix) {
             checkAndConvert(name, checkResults, convert, "", schema.properties, data)
         return Promise.resolve(data)
     }
-    attachMethodToDao(dao, 'set', function ({ }, id, data) {
+    dao.set = (id, data) => {
         if (!data) {
             data = id
         } else if (!_.isArray(data)) {
@@ -411,16 +411,16 @@ function createDao(schema, name, affix) {
                 return !!r.result.ok
             })
         })
-    })
-    attachMethodToDao(dao, 'add', function ({ }, data) {
+    }
+    dao.add = (data) => {
         let all = _.isArray(data) ? data : [data]
         return Promise.each(all, item => fixId(item, true, mapping.autoconvert || false)).then(() => {
             return model.insertMany(all, { ordered: false }).then((r) => {
                 return r.insertedIds
             })
         })
-    })
-    attachMethodToDao(dao, 'delete', function ({ }, idOrCond) {
+    }
+    dao.delete = (idOrCond) => {
         if (!idOrCond) return Project.reject('Must specify a delete condition')
         let cond = idOrCond
         if (!_.isPlainObject(idOrCond)) {
@@ -435,22 +435,19 @@ function createDao(schema, name, affix) {
         return model.deleteMany(cond).then(r => {
             return r && r.result || { ok: 0 }
         })
-    })
-    attachMethodToDao(dao, 'count', function ({ }, query, options) {
+    }
+    dao.count = (query, options) => {
         return model.countDocuments(query || {}, options || {})
-    })
-    attachMethodToDao(dao, 'aggregate', function ({ }, pipelines) {
+    }
+    dao.aggregate = (pipelines) => {
         return new Promise(function (resolve, reject) {
             model.aggregate(pipelines).toArray(function (err, items) {
                 if (err) reject(err);
                 else resolve({ data: items });
             });
         });
-    })
-    attachMethodToDao(dao, 'find', function ({ }, query) {
-        return model.find(query)
-    })
-    attachMethodToDao(dao, 'lastid', function () {
+    }
+    dao.lastid = () => {
         return new Promise(function (resolve, reject) {
             if (auto) {
                 $dao.Ids.getNextId(dao.getAutoIdName(), auto.step).then(nid => {
@@ -462,14 +459,8 @@ function createDao(schema, name, affix) {
                 resolve()
             }
         })
-    })
-    attachMethodToDao(dao, 'bulk', function () {
-        //if (!params) params = {}
-        //let query = params.query || params.cond || {}
-        return model.initializeOrderedBulkOp();
-    })
-
-    attachMethodToDao(dao, 'recycle', function ({ }, id) {
+    }
+    dao.recycle = (id) => {
         let idtype = schema.properties._id
         if (idtype === 'number')
             id = +id
@@ -480,23 +471,8 @@ function createDao(schema, name, affix) {
                 $dao.RecycleBin.set({ model: name, data: r.value, at: new Date })
             return { ok: r.ok, data: r.value }
         })
-    })
-    attachMethodToDao(dao, 'getMappings', function ({ }) {
-        return mapping
-    })
-    attachMethodToDao(dao, 'getModel', function ({ }) {
-        return model
-    })
-    attachMethodToDao(dao, 'getName', function ({ }) {
-        return name
-    })
-    attachMethodToDao(dao, 'getFullName', function ({ }) {
-        return fullname
-    })
-    attachMethodToDao(dao, 'getDatabase', function ({ }) {
-        return database
-    })
-    attachMethodToDao(dao, 'listAllWithAffix', function ({ }) {
+    }
+    dao.listAllWithAffix = () => {
         let prefix = `${mapping.collection}_`
         return database.listCollections().toArray().then(r => {
             return _.map(
@@ -504,8 +480,8 @@ function createDao(schema, name, affix) {
                 c => c.name.substring(prefix.length)
             )
         })
-    })
-    attachMethodToDao(dao, 'select', function ({ }, params) {
+    }
+    dao.select = (params) => {
         if (!params) params = {}
         let query = params.query || params.cond || {}
         let skip = +(params.skip || 0)
@@ -610,9 +586,9 @@ function createDao(schema, name, affix) {
                 }
             })
         })
-    })
+    }
     if (!affix) {
-        attachMethodToDao(dao, '_', function ({ }, date) {
+        dao._ = (date) => {
             let format = mapping.affix && mapping.affix.format || 'YYYYMMDD'
             if (!date) {
                 date = moment.utc()
@@ -621,24 +597,36 @@ function createDao(schema, name, affix) {
                 date = formatDate(date, format)
             }
             return createDao(schema, name, '_' + date)
-        })
+        }
     }
     $dao[fullname] = dao;
-    $logger.debug(`MODEL ${name} -> ${mapping.database}/${mapping.collection}`)
-    _.each(mapping.indexes, (index) => {
+    $logger.debug(`MODEL ${fullname} -> ${mapping.database}/${model.collectionName}`)
+    dao.indexed = Promise.each(mapping.indexes || [], (index) => {
         if (!index.options) index.options = {}
-        let iarr = []
         if (index.options.expires) {
             index.options.expireAfterSeconds = duration(index.options.expires) / 1000
             delete index.options.expires
         }
-        if (index.keys) iarr.push(model.createIndex(index.keys, index.options));
-        if (iarr.length > 0)
-            Promise.all(iarr).then(r => {
-                $logger.debug(`INDEX ${name} ${JSON.stringify(index.keys)} ${JSON.stringify(index.options)} `)
-            }).catch(err => {
-                $logger.error(`INDEX ${name} ${JSON.stringify(index.keys)} ${JSON.stringify(index.options)}`, err)
-            });
+        return model.createIndex(index.keys, index.options).then(r => {
+            $logger.debug(`INDEX ${fullname} ${JSON.stringify(index.keys)} ${JSON.stringify(index.options)} `)
+        }).catch(err => {
+            $logger.error(`INDEX ${fullname} ${JSON.stringify(index.keys)} ${JSON.stringify(index.options)}`, err)
+        })
+    }).then(r => {
+        return $mongodb.connected.then(r => {
+            let tasks = []
+            if (ensureSharded && mapping.shard) {
+                tasks.push(client.db('admin').command({
+                    shardCollection: `${database.databaseName}.${model.collectionName}`,
+                    ...mapping.shard
+                }).then(r => {
+                    $logger.info(`SHARDING ${fullname} with ${JSON.stringify(mapping.shard)} `)
+                }).catch(ex => {
+                    $logger.error(`Fails to enable sharding on collection ${fullname} with ${JSON.stringify(mapping.shard)}`, ex)
+                }))
+            }
+            return Promise.all(tasks)
+        })
     })
     return dao
 }

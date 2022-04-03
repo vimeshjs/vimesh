@@ -1,7 +1,7 @@
 require('./fixture.js')
 beforeAll(function(){
     return $mongodb.connected
-}, 1000 * 60)
+})
 test('create user', function() {
     return $dao.Users.save({_id:'u001', email:'u001@email.com'}).then(function() {
         return $dao.Users.get('u001')

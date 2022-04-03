@@ -36,7 +36,7 @@ beforeAll(function () {
             ]
         )
     })
-}, 1000 * 60)
+})
 test('user join company', function () {
     return $dao.Users.select({ cond: { _id: 'test' } }).then(r => {
         all = r.data

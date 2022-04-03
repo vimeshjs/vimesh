@@ -10,12 +10,16 @@ const { setupMongoDB } = require('..')
 const config = {
     databases: {
         main: {
-            uri: "mongodb://admin:pass4admin@localhost:10000/unit_test",
-            authSource : 'admin'
+            uri: "mongodb://admin:pass4admin@localhost:10000/alone_unit_test",
+        },
+        shard: {
+            uri: "mongodb://root:password123@localhost:20000/shard_unit_test",
+            ensureSharded: true
         }
     },
     async onBeforeCreateDao() {
         await $mongodb.databases.main.database.dropDatabase()
+        await $mongodb.databases.shard.database.dropDatabase()
     }
 }
 
