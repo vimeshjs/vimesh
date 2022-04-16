@@ -1,15 +1,15 @@
 require('./fixture.js')
 const IDNAME = 'departments_id'
 
-beforeAll(function(){
-    return $mongodb.connected
+beforeAll(async function () {
+    await $mongodb.connected
 })
-it('set current id to 12345', function() {
-    return expect($dao.Ids.setId(IDNAME, 12345)).resolves.toBeTruthy()
+it('set current id to 12345', async function () {
+    expect(await $dao.Ids.setId(IDNAME, 12345)).toBeTruthy()
 })
-it('get id and increase it', function() {
-    return expect($dao.Ids.getNextId(IDNAME)).resolves.toBe(12345)
+it('get id and increase it', async function () {
+    expect(await $dao.Ids.getNextId(IDNAME)).toBe(12345)
 })
-it('get current id', function() {
-    return expect($dao.Ids.getId(IDNAME)).resolves.toBe(12346)
+it('get current id', async function () {
+    expect(await $dao.Ids.getId(IDNAME)).toBe(12346)
 })
