@@ -466,7 +466,7 @@ function createDao(schema, name, affix) {
             id = +id
         else if (idtype === 'ObjectId')
             id = toObjectID(id)
-        return model.findAndRemove({ _id: id }).then(r => {
+        return model.findOneAndDelete({ _id: id }).then(r => {
             if (r.value)
                 $dao.RecycleBin.set({ model: name, data: r.value, at: new Date })
             return { ok: r.ok, data: r.value }
