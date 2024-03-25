@@ -393,9 +393,10 @@ function createDao(schema, name, affix) {
                 }
                 let update = item.$raw
                 if (!update) {
-                    update = { $set: _.omit(item, '_id', '$when$', '$insert$', '$unset') }
+                    update = { $set: _.omit(item, '_id', '$when$', '$insert$', '$unset', '$inc$') }
                     if (item['$insert$']) update.$setOnInsert = item['$insert$']
                     if (item['$unset']) update.$unset = item['$unset']
+                    if (item['$inc$']) update.$inc = item['$inc$']
                 }
                 if (_.keys(update.$set).length == 0) delete update.$set
                 return {
