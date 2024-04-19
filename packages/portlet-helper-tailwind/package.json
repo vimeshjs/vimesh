@@ -8,5 +8,6 @@
   "license": "MIT",
   "dependencies": {
     "@vimesh/style": "^1.1.5"
-  }
+  },
+  "gitHead": "4aeb35f4c1739df9abae46c93fcbfd39ff026e8a"
 }
