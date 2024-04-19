@@ -4,7 +4,6 @@ const { terser } = require('rollup-plugin-terser')
 const { nodeResolve } = require('@rollup/plugin-node-resolve')
 const { babel } = require('@rollup/plugin-babel')
 const commonjs = require('@rollup/plugin-commonjs')
-const scss = require('rollup-plugin-scss')
 const postcss = require('rollup-plugin-postcss')
 const rollup = require('rollup')
 const _ = require('lodash')
@@ -23,7 +22,7 @@ function configVue(options) {
         external: options.external || [],
         plugins: [
             includePaths({
-                extensions: ['.js', '.json', '.html', '.vue', '.scss', '.sass', '.less', '.css', '.stylus', '.styl']
+                extensions: ['.js', '.json', '.html', '.vue', '.css']
             }),
             nodeResolve({
                 browser: true,
@@ -32,7 +31,7 @@ function configVue(options) {
             commonjs(),
             globals(),
             builtins(),
-            scss(),
+            //scss(),
             postcss({
                 plugins: []
             }),
