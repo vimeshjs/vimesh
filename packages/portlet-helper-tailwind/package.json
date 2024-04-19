@@ -7,6 +7,6 @@
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
-    "css": "^3.0.0"
+    "@vimesh/style": "^1.1.5"
   }
 }
