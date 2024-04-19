@@ -8,6 +8,6 @@
   "license": "MIT",
   "dependencies": {
     "lodash": "^4.17.21",
-    "simple-evaluate": "^1.4.4"
+    "simple-evaluate": "^1.4.6"
   }
 }

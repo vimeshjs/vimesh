@@ -2,8 +2,8 @@ const _ = require('lodash')
 const util = require("util")
 const fs = require('graceful-fs')
 const path = require('path')
-const glob = require('glob')
-const mkdirp = require('mkdirp')
+const { glob } = require('glob')
+const { mkdirp }  = require('mkdirp')
 const { isStream, isReadableStream, pipeStreams, getMD5 } = require('@vimesh/utils')
 const Promise = require('bluebird')
 const accessAsync = Promise.promisify(fs.access)
@@ -11,7 +11,6 @@ const writeFileAsync = Promise.promisify(fs.writeFile)
 const readFileAsync = Promise.promisify(fs.readFile)
 const readdirAsync = Promise.promisify(fs.readdir)
 const statAsync = Promise.promisify(fs.stat)
-const globAsync = Promise.promisify(glob)
 const rmdirAsync = Promise.promisify(fs.rmdir)
 const unlinkAsync = Promise.promisify(fs.unlink)
 const copyFileAsync = Promise.promisify(fs.copyFile)
@@ -150,7 +149,7 @@ LocalStorage.prototype.statObject = function (bucket, filePath) {
 LocalStorage.prototype.listObjects = function (bucket, prefix) {
     return this.hasBucket(bucket).then(r => {
         if (r) {
-            return globAsync(`${this.root}/${bucket}/${prefix}*`).then(fs => {
+            return glob(`${this.root}/${bucket}/${prefix}*`).then(fs => {
                 fs = _.filter(fs, f => !_.endsWith(f, '.meta.json'))
                 let all = []
                 return Promise.each(fs, f => {

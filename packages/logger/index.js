@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const fs = require('fs')
-const mkdirp = require('mkdirp')
+const { mkdirp } = require('mkdirp')
 const winston = require('winston')
 
 function setupLogger(config) {

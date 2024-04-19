@@ -10,18 +10,19 @@
     "@vimesh/logger": "^0.11.15",
     "@vimesh/utils": "^0.11.15",
     "bluebird": "^3.7.2",
+    "command-line-args": "^5.2.1",
     "deep-diff": "^1.0.2",
     "lodash": "^4.17.15",
-    "mkdirp": "^1.0.4",
-    "moment": "^2.29.1",
-    "moment-timezone": "^0.5.34",
-    "object-hash": "^2.2.0",
-    "sequelize": "^6.12.5",
-    "umzug": "^2.3.0"
+    "mkdirp": "^3.0.1",
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.5.45",
+    "object-hash": "^3.0.0",
+    "sequelize": "^6.37.3",
+    "umzug": "^3.8.0"
   },
   "devDependencies": {
     "command-line-args": "^5.2.0",
-    "sqlite3": "^5.0.2"
+    "sqlite3": "^5.1.7"
   },
   "scripts": {
     "test": "jest --runInBand"

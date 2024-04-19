@@ -1,14 +1,12 @@
 const _ = require('lodash')
 const fs = require('fs')
 const path = require('path')
-const glob = require('glob')
-const axios = require('axios')
-const { timeout, getFullUrl } = require('@vimesh/utils')
+const { glob } = require('glob')
+const { getFullUrl } = require('@vimesh/utils')
 const express = require('express')
 const { createStorage, createScopedStorage, createCacheForScopedStorage } = require('..')
 const { setupLogger } = require('@vimesh/logger')
 const sinon = require('sinon')
-const { duration } = require('@vimesh/utils')
 const sharp = require('sharp')
 const clock = sinon.useFakeTimers({
     now: new Date(),
@@ -65,36 +63,36 @@ test('image middleware', function () {
         scopedStorage.putObjectAsFile('avatar.jpg', `${__dirname}/avatar.jpg`),
         scopedStorage.putObjectAsFile('river.jpeg', `${__dirname}/river.jpeg`)
     ]).then(r => {
-        return axios.get(`http://localhost:${port}/@test/get/avatar.jpg`, { responseType: 'arraybuffer' })
+        return fetch(`http://localhost:${port}/@test/get/avatar.jpg`).then(r => r.blob()).then(r => r.arrayBuffer())
             .then(r => {
-                return sharp(Buffer.from(r.data, 'binary')).metadata().then(metadata => {
+                return sharp(Buffer.from(r, 'binary')).metadata().then(metadata => {
                     expect(metadata.width).toBe(1200)
                     expect(metadata.height).toBe(1200)
                 })
             }).then(r => {
-                return axios.get(`http://localhost:${port}/@test/get/avatar.jpg?cmd=image.info`)
+                return fetch(`http://localhost:${port}/@test/get/avatar.jpg?cmd=image.info`).then(r => r.json())
             }).then(r => {
-                let metadata = r.data
+                let metadata = r
                 expect(metadata.format).toBe('jpeg')
                 expect(metadata.width).toBe(1200)
                 expect(metadata.height).toBe(1200)
-                return axios.get(`http://localhost:${port}/@test/get/avatar.jpg?s=128`, { responseType: 'arraybuffer' })
+                return fetch(`http://localhost:${port}/@test/get/avatar.jpg?s=128`).then(r => r.blob()).then(r => r.arrayBuffer())
             }).then(r => {
-                return sharp(Buffer.from(r.data, 'binary')).metadata().then(metadata => {
+                return sharp(Buffer.from(r, 'binary')).metadata().then(metadata => {
                     expect(metadata.width).toBe(128)
                     expect(metadata.height).toBe(128)
                 }).then(r => {
-                    return axios.get(`http://localhost:${port}/@test/get/river.jpeg?s=128&fit=inside`, { responseType: 'arraybuffer' })
+                    return fetch(`http://localhost:${port}/@test/get/river.jpeg?s=128&fit=inside`).then(r => r.blob()).then(r => r.arrayBuffer())
                 })
             }).then(r => {
-                return sharp(Buffer.from(r.data, 'binary')).metadata().then(metadata => {
+                return sharp(Buffer.from(r, 'binary')).metadata().then(metadata => {
                     expect(metadata.width).toBe(128)
                     expect(metadata.height).toBe(96)
                 }).then(r => {
-                    return axios.get(`http://localhost:${port}/@test/get/river.jpeg?w=500`, { responseType: 'arraybuffer' })
+                    return fetch(`http://localhost:${port}/@test/get/river.jpeg?w=500`).then(r => r.blob()).then(r => r.arrayBuffer())
                 })
             }).then(r => {
-                return sharp(Buffer.from(r.data, 'binary')).metadata().then(metadata => {
+                return sharp(Buffer.from(r, 'binary')).metadata().then(metadata => {
                     expect(metadata.width).toBe(500)
                     expect(metadata.height).toBe(375)
                 })

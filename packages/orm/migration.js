@@ -1,8 +1,8 @@
 const fs = require("fs")
 const path = require("path")
 const _ = require("lodash")
-const Umzug = require('umzug')
-const mkdirp = require('mkdirp')
+const { Umzug, SequelizeStorage } = require('umzug')
+const { mkdirp } = require('mkdirp')
 const migrate = require("./lib/migration-impl")
 
 function generate(sequelize, name, checkpoint, migrationsDir, migrationModel) {
@@ -44,21 +44,14 @@ function generate(sequelize, name, checkpoint, migrationsDir, migrationModel) {
 
 async function execute(sequelize, name, migrationsDir, migrationModel) {
     const umzug = new Umzug({
-        migrations: {
-            path: `${migrationsDir}/${name}`,
-            pattern: /\.js$/,
-            params: [
-                sequelize.getQueryInterface(),
-                _.bind($logger.debug, $logger)
-            ]
-        },
-        storage: 'sequelize',
-        storageOptions: {
+        migrations: { glob: `${migrationsDir}/${name}/*.js` },
+        context: sequelize.getQueryInterface(),
+        storage: new SequelizeStorage({
             sequelize,
             modelName: migrationModel,
             tableName: _.snakeCase(migrationModel)
-        },
-        logging: msg => $logger.debug(msg)
+        }),
+        logger: msg => $logger.debug(msg)
     })
     try {
         await umzug.up();

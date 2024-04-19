@@ -10,8 +10,7 @@
     "@vimesh/logger": "^0.11.15",
     "@vimesh/utils": "^0.11.15",
     "bluebird": "^3.7.2",
-    "json-stable-stringify": "^1.0.1",
-    "lru-cache": "^6.0.0"
+    "json-stable-stringify": "^1.1.1"
   },
   "gitHead": "86d1e806d4e78cc77c8576369ae01e516b39098e"
 }

@@ -7,7 +7,7 @@
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
-    "@google-cloud/storage": "^5.16.1",
+    "@google-cloud/storage": "^7.10.0",
     "@vimesh/storage": "^0.11.15",
     "fast-crc32c": "^2.0.0"
   }

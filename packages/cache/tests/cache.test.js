@@ -23,7 +23,7 @@ test('Cache One', () => {
         maxAge: '10s',
         stale: true,
         onRefresh: function (key) {
-            $logger.info('Fetching ' + key)
+            console.log('Fetching ' + key, contents1[key])
             return contents1[key]
         }
     })
@@ -37,7 +37,9 @@ test('Cache One', () => {
         clock.tick(duration('11s'))
         return cache1.get('k2')
     }).then(v => {
-        expect(v).toBe(200) // get stale value
+        expect(v).toBe(200) 
+        contents1.k2 = 800
+        clock.tick(duration('3s'))
         return cache1.get('k2')
     }).then(v => {
         expect(v).toBe(500)
@@ -103,7 +105,7 @@ test('Cache enumberate all entities', () => {
         expect(_.keys(all)).toEqual([ 'cache.test.js', 'file1.json', 'file2.json' ])
         //console.log(cache3.get('file1.json'))
         cache3.get('file1.json').then(r => {
-            expect(r).toEqual({
+            expect(JSON.parse(r)).toEqual({
                 "content" : "this is content 1",
                 "name" : "file1"
             })

@@ -2,7 +2,7 @@ const _ = require('lodash')
 const fs = require('fs')
 const path = require('path')
 const yaml = require('js-yaml')
-const glob = require("glob")
+const { glob } = require("glob")
 
 function loadModels(root, baseDb = 'base') {
 
@@ -20,7 +20,7 @@ function loadModels(root, baseDb = 'base') {
 			name.substring(0, 1) != '_') {
 			if (ext === '.yaml') {
 				let yamlContent = fs.readFileSync(f).toString()
-				let json = yaml.load(yamlContent)				
+				let json = yaml.load(yamlContent)
 				if (!json || !json.$mapping) {
 					$logger.warn(`SCHEMA MODEL ${name} has no mapping!`)
 				} else {

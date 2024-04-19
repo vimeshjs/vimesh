@@ -10,10 +10,8 @@ const _ = require('lodash')
 const moment = require('moment')
 var ObjectID = require('mongodb').ObjectID;
 const { formatDate, duration, timeout } = require('@vimesh/utils')
-const { setupTransformJobs } = require('@vimesh/mongodb')
-function getObjectID(){
-    return new ObjectID()
-}
+const { setupTransformJobs, getObjectID } = require('@vimesh/mongodb')
+
 const VMIDS = [1001, 1002, 1003]
 const CMPIDS = [2001, 2002]
 const SCHIDS = [20011, 20012, 20028, 20029]
@@ -26,20 +24,20 @@ const VINS = [VIN11, VIN21, VIN12, VIN13]
 
 const updateSessions = [
     {
-        _id : getObjectID(),
-        vmid : 1351,
+        _id: getObjectID(),
+        vmid: 1351,
         vin: VINS[0],
-        scheduleId : SCHIDS[0],
-        campaignId : CMPIDS[0],
-        _at : new Date(),
+        scheduleId: SCHIDS[0],
+        campaignId: CMPIDS[0],
+        _at: new Date(),
         resp: {
-            mode : 'by-user'
+            mode: 'by-user'
         },
-        params:{
-            ecus:{
-                ECU0:{name: 'ECU0'},
-                ECU1:{name: 'ECU1'},
-                ECU2:{name: 'ECU2'},
+        params: {
+            ecus: {
+                ECU0: { name: 'ECU0' },
+                ECU1: { name: 'ECU1' },
+                ECU2: { name: 'ECU2' },
             }
         },
         ups: [
@@ -65,21 +63,21 @@ const updateSessions = [
                 }
             }
         ]
-    },{
-        _id : getObjectID(),
-        vmid : 1351,
+    }, {
+        _id: getObjectID(),
+        vmid: 1351,
         vin: VINS[1],
-        scheduleId : SCHIDS[1],
-        campaignId : CMPIDS[0],
-        _at : new Date(),
+        scheduleId: SCHIDS[1],
+        campaignId: CMPIDS[0],
+        _at: new Date(),
         resp: {
-            mode : 'by-user'
+            mode: 'by-user'
         },
-        params:{
-            ecus:{
-                ECU0:{name: 'ECU0'},
-                ECU1:{name: 'ECU1'},
-                ECU2:{name: 'ECU2'},
+        params: {
+            ecus: {
+                ECU0: { name: 'ECU0' },
+                ECU1: { name: 'ECU1' },
+                ECU2: { name: 'ECU2' },
             }
         },
         ups: [
@@ -105,21 +103,21 @@ const updateSessions = [
                 }
             }
         ]
-    },{
-        _id : getObjectID(),
-        vmid : 1351,
+    }, {
+        _id: getObjectID(),
+        vmid: 1351,
         vin: VINS[2],
-        scheduleId : SCHIDS[2],
-        campaignId : CMPIDS[1],
-        _at : new Date(),
+        scheduleId: SCHIDS[2],
+        campaignId: CMPIDS[1],
+        _at: new Date(),
         resp: {
-            mode : 'auto'
+            mode: 'auto'
         },
-        params:{
-            ecus:{
-                ECU0:{name: 'ECU0'},
-                ECU1:{name: 'ECU1'},
-                ECU2:{name: 'ECU2'},
+        params: {
+            ecus: {
+                ECU0: { name: 'ECU0' },
+                ECU1: { name: 'ECU1' },
+                ECU2: { name: 'ECU2' },
             }
         },
         ups: [
@@ -145,21 +143,21 @@ const updateSessions = [
                 }
             }
         ]
-    },{
-        _id : getObjectID(),
-        vmid : 1351,
+    }, {
+        _id: getObjectID(),
+        vmid: 1351,
         vin: VINS[0],
-        scheduleId : SCHIDS[3],
-        campaignId : CMPIDS[1],
-        _at : new Date(),
+        scheduleId: SCHIDS[3],
+        campaignId: CMPIDS[1],
+        _at: new Date(),
         resp: {
-            mode : 'auto'
+            mode: 'auto'
         },
-        params:{
-            ecus:{
-                ECU0:{name: 'ECU0'},
-                ECU1:{name: 'ECU1'},
-                ECU2:{name: 'ECU2'},
+        params: {
+            ecus: {
+                ECU0: { name: 'ECU0' },
+                ECU1: { name: 'ECU1' },
+                ECU2: { name: 'ECU2' },
             }
         },
         ups: [
@@ -187,7 +185,7 @@ const updateSessions = [
         ]
     }
 ]
-function generateRawUpdate(begin, count){
+function generateRawUpdate(begin, count) {
     let mnt = moment(begin)
     console.log(`Generate ${count} RawUpdate from ${formatDate(mnt)}`)
     let vs = _.map(_.range(1, count + 1), n => {
@@ -195,29 +193,29 @@ function generateRawUpdate(begin, count){
         let did = updateSessions[n % updateSessions.length]._id
         let data1 = _.map(_.range(0, 3), i => {
             return {
-                "ecu" : 'ECU' + i,
-                "state" : 0
+                "ecu": 'ECU' + i,
+                "state": 0
             }
         })
         let data2 = _.map(_.range(0, 3), i => {
             return {
-                "ecu" : 'ECU' + i,
-                "state" : n % 2 ? 6 : 2
+                "ecu": 'ECU' + i,
+                "state": n % 2 ? 6 : 2
             }
         })
         //错误数据，但是统计的时候要可以规避掉
         let data3 = _.map(_.range(0, 3), i => {
             return {
-                "ecu" : 'ECU' + i,
-                "state" : 0
+                "ecu": 'ECU' + i,
+                "state": 0
             }
         })
-        return { did , data: _.concat(data1, data2, data3), _at : dt, s_at : dt.valueOf()}
+        return { did, data: _.concat(data1, data2, data3), _at: dt, s_at: dt.valueOf() }
     })
     return $dao.RawUpdate.add(vs)
 }
 
-beforeAll(function(){
+beforeAll(function () {
     return $mongodb.connected.then(() => {
         return Promise.all(
             [
@@ -233,54 +231,54 @@ beforeAll(function(){
                 $dao.UpdateSession.set(updateSessions)
             ]
         )
-    }).then(()=>{
+    }).then(() => {
 
         setupTransformJobs({
-            configDir : __dirname + '/configs',
+            configDir: __dirname + '/configs',
             jobs: {
-                'RawUpdate_UpdateEventsV2' : '0 */1 * * * *',
-                'UpdateEventsV2_UpdateStatusBySessionV2' : '0 */1 * * * *'
+                'RawUpdate_UpdateEventsV2': '0 */1 * * * *',
+                'UpdateEventsV2_UpdateStatusBySessionV2': '0 */1 * * * *'
             }
         })
 
     })
 }, 1000 * 60)
 
-test('1/init', function() {
+test('1/init', function () {
     return Promise.all(
         [
             $dao.RawUpdate.count({}),
             $dao.UpdateEventsV2.count({}),
             $dao.UpdateStatusBySessionV2.count({}),
         ]
-    ).then((rs)=>{
+    ).then((rs) => {
         expect(rs[0]).toBe(0)
         expect(rs[1]).toBe(0)
         expect(rs[2]).toBe(0)
     })
 })
 
-test('1/insert RawUpdate into collection', function() {
+test('1/insert RawUpdate into collection', function () {
     return generateRawUpdate('2019-01-01', 100)
 })
-test('1/transform to UpdateEventsV2', function() {
+test('1/transform to UpdateEventsV2', function () {
     console.log("1/ " + new Date())
-    clock.tick(duration('1m')) 
+    clock.tick(duration('1m'))
     return timeout('2s')
 }, 1000 * 10)
 
-test('2/insert RawUpdate into collection', function() {
+test('2/insert RawUpdate into collection', function () {
     return generateRawUpdate('2020-01-01', 100)
 })
-test('2/transform to UpdateEventsV2 && UpdateStatusBySessionV2', function() {
+test('2/transform to UpdateEventsV2 && UpdateStatusBySessionV2', function () {
     console.log("2/ " + new Date())
-    clock.tick(duration('1m')) 
+    clock.tick(duration('1m'))
     return timeout('2s')
 }, 1000 * 100)
 
 
-test('3/transform to UpdateStatusBySessionV2', function() {
+test('3/transform to UpdateStatusBySessionV2', function () {
     console.log("3/ " + new Date())
-    clock.tick(duration('1m')) 
+    clock.tick(duration('1m'))
     return timeout('2s')
 }, 1000 * 100)

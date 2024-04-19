@@ -37,7 +37,14 @@ test('get permissions', async function () {
     await $dao.Departments.set(3, { name: '项目一组', positions: [{ name: '组长', role: 'gl' }] })
 
     let perms = await $dao.Users.getPermissions('u001')
-    expect(perms[0]).toBe('sp-read')
+    console.log(perms)
+    expect(perms.sort()).toEqual([
+        'report1',
+        'revenue-adjust',
+        'project-read',
+        'project-write',
+        'sp-read'
+    ].sort())
 })
 test('insert user', async function () {
     let user = { email: 'myemail@company.com' }

@@ -9,15 +9,15 @@
   "dependencies": {
     "@vimesh/logger": "^0.11.15",
     "bluebird": "^3.7.2",
-    "crc": "^4.1.0",
-    "glob": "^7.2.0",
-    "graceful-fs": "^4.2.9",
-    "handlebars": "^4.7.6",
+    "crc": "^4.3.2",
+    "glob": "^10.3.12",
+    "graceful-fs": "^4.2.11",
+    "handlebars": "^4.7.8",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.15",
-    "moment": "^2.27.0",
-    "moment-timezone": "^0.5.34",
-    "uuid": "^8.2.0"
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.5.45",
+    "uuid": "^9.0.1"
   },
   "gitHead": "86d1e806d4e78cc77c8576369ae01e516b39098e"
 }

@@ -16,5 +16,5 @@ const config = {
         }
     }
 }
-setupLogger({ level: 'debug', console: {} })
+setupLogger({ level: 'warn', console: {} })
 setupOrm(_.merge(config, global.extraConfig), `${__dirname}/models` , `${__dirname}/migrations`)

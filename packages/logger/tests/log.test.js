@@ -2,7 +2,9 @@ const { setupLogger } = require('..')
 
 setupLogger({
     name: 'test',
-    docker: {}
+    docker: {},
+    console: {},
+    file: { dir: 'logs' }
 })
 
 test('logger', () => {

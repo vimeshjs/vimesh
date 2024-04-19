@@ -7,9 +7,10 @@
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
-    "@grpc/grpc-js": "^1.5.0",
-    "@grpc/proto-loader": "^0.6.9",
+    "@grpc/grpc-js": "^1.10.6",
+    "@grpc/proto-loader": "^0.7.12",
     "@vimesh/logger": "^0.11.15",
-    "grpc-boom": "^2.0.5"
+    "glob": "^10.3.12",
+    "grpc-boom": "^3.0.12"
   }
 }

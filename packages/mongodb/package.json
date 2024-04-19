@@ -11,10 +11,11 @@
     "@vimesh/logger": "^0.11.15",
     "@vimesh/utils": "^0.11.15",
     "bluebird": "^3.7.2",
+    "glob": "^10.3.12",
     "lodash": "^4.17.15",
-    "moment": "^2.27.0",
-    "moment-timezone": "^0.5.34",
-    "mongodb": "^4.4.1"
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.5.45",
+    "mongodb": "^6.5.0"
   },
   "gitHead": "86d1e806d4e78cc77c8576369ae01e516b39098e"
 }

@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const moment = require('moment')
-const { ObjectID } = require('mongodb')
+const { ObjectId } = require('mongodb')
 const Promise = require('bluebird')
 const { formatDate, duration } = require('@vimesh/utils')
 const { toObjectID, getObjectID } = require('./utils')
@@ -44,7 +44,7 @@ function checkAndConvert(name, checkResults, convert, path, props, obj) {
         let msgFailsToConvert = `Fails to convert @ ${at} (${type}): ` + JSON.stringify(v)
         let msgConvert = `Convert @ ${at} (${type}): ` + JSON.stringify(v) + ' -> '
         if (type === 'ObjectId') {
-            if (!ObjectID.isValid(v)) {
+            if (!ObjectId.isValid(v)) {
                 checkResults.push(msgWrongType)
                 $logger.warn(msgWrongType)
             }
@@ -468,9 +468,9 @@ function createDao(schema, name, affix) {
         else if (idtype === 'ObjectId')
             id = toObjectID(id)
         return model.findOneAndDelete({ _id: id }).then(r => {
-            if (r.value)
-                $dao.RecycleBin.set({ model: name, data: r.value, at: new Date })
-            return { ok: r.ok, data: r.value }
+            if (r)
+                $dao.RecycleBin.set({ model: name, data: r, at: new Date })
+            return { ok: 1, data: r }
         })
     }
     dao.listAllWithAffix = () => {

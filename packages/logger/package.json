@@ -8,8 +8,8 @@
   "license": "MIT",
   "dependencies": {
     "lodash": "^4.17.15",
-    "mkdirp": "^1.0.4",
-    "winston": "^3.3.4",
-    "winston-daily-rotate-file": "^4.5.0"
+    "mkdirp": "^3.0.1",
+    "winston": "^3.13.0",
+    "winston-daily-rotate-file": "^5.0.0"
   }
 }

@@ -10,7 +10,7 @@ module.exports = {
     },
 	getNextId: function({ Ids }, idName, step = 1) {
         return Ids.findOneAndUpdate({_id : idName}, {$inc : {next: step}}, {upsert : true}).then((r) => {
-            return r.value && r.value.next
+            return r && r.next
         })
     }
 }

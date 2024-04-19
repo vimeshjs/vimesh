@@ -1,7 +1,7 @@
 ﻿const _ = require('lodash')
-const glob = require("glob")
+const { glob } = require("glob")
 const path = require('path')
-const {URL} = require('url')
+const { URL } = require('url')
 const { MongoClient } = require('mongodb')
 const { retryPromise } = require('@vimesh/utils')
 global.$mongodb = { databases: {} }
@@ -13,7 +13,7 @@ const createDao = require('./dao.js')
 require('./aggregator.js')
 function connectTo(dbUri, dbName, options, name, debug, admin, remains) {
     let urlObj = new URL(dbUri)
-    if (urlObj.searchParams.has('ensureSharded')){
+    if (urlObj.searchParams.has('ensureSharded')) {
         options.ensureSharded = urlObj.searchParams.get('ensureSharded') !== 'false'
         urlObj.searchParams.delete('ensureSharded')
         urlObj.search = urlObj.searchParams.toString()
@@ -23,21 +23,17 @@ function connectTo(dbUri, dbName, options, name, debug, admin, remains) {
     $logger.info("Connecting " + name + ":" + dbUri)
     let ensureSharded = !!options.ensureSharded
     options = _.omit(options, 'ensureSharded')
-    return new Promise(function (resolve, reject) {
-        MongoClient.connect(dbUri, options, function (err, client) {
-            if (err) {
-                $logger.error("Cannot connect to MongoDB : ", err)
-                reject(err);
-            } else {
-                $logger.info("DB " + name + " options : " + JSON.stringify(client.options))
-                let db = client.db(dbName);
-                let result = { database: db, client: client, ensureSharded }
-                $mongodb.databases[name] = result
-                delete remains[name]
-                $logger.info('DB ' + name + ' >>> (' + _.keys(remains) + ')')
-                resolve(result)
-            }
-        })
+    const client = new MongoClient(dbUri, options)
+    return client.connect().then(r => {
+        $logger.info("DB " + name + " options : " + JSON.stringify(client.options))
+        let db = client.db(dbName);
+        let result = { database: db, client: client, ensureSharded }
+        $mongodb.databases[name] = result
+        delete remains[name]
+        $logger.info('DB ' + name + ' >>> (' + _.keys(remains) + ')')
+        return result
+    }).catch(ex => {
+        $logger.error("Cannot connect to MongoDB : ", ex)
     })
 }
 

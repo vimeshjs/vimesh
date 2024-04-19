@@ -16,7 +16,7 @@ test('groups and roles', async function () {
     let g2 = await Group.add({ name: 'group2', roles: [2, 3] })
     await Group.set({ id: g2.id, roles: [1, 2] })
     let g = await Group.get(2)
-    expect(_.map(g.roles, r => r.id)).toEqual([1, 2])
+    expect(_.map(g.roles, r => r.id).sort()).toEqual([1, 2])
 
     let g3 = await Group.add({ name: 'group3' })
     await Group.set({ id: g3.id, roles: [1, 3] })

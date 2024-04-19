@@ -7,6 +7,6 @@
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
-    "javascript-obfuscator": "^3.0.0"
+    "javascript-obfuscator": "^4.1.0"
   }
 }

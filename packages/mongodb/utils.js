@@ -3,7 +3,7 @@ const moment = require('moment')
 const { ObjectId, Timestamp } = require('mongodb')
 
 function getObjectID() {
-    return ObjectId();
+    return new ObjectId();
 }
 
 function toObjectID(id) {
@@ -11,7 +11,7 @@ function toObjectID(id) {
         return id
     } else {
         try {
-            return ObjectId(_.isDate(id) ? id.valueOf() / 1000 : id);
+            return _.isDate(id) ? ObjectId.createFromTime(id.valueOf() / 1000) : ObjectId.createFromHexString(id);
         } catch (e) {
             return id
         }

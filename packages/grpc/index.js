@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const fs = require('fs')
 const path = require('path')
-const glob = require('glob')
+const { glob } = require('glob')
 
 const protoLoader = require('@grpc/proto-loader')
 const grpc = require('@grpc/grpc-js')
@@ -28,7 +28,7 @@ function setupGrpcService(options) {
         else if (_.isArray(options.imports))
             includeDirs = _.concat(includeDirs, options.imports)
     }
-    
+
     const server = new grpc.Server();
     const protoOptions = { includeDirs, keepCase: true, longs: Number }
     _.each(glob.sync(options.path + "/**"), function (f) {

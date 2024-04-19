@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const cron = require('cron')
+const { CronJob } = require('cron')
 
 function onTick() {
     let context = this
@@ -36,7 +36,7 @@ function onTick() {
     }
 }
 function onComplete() {
-    let context = this.context
+    let context = this
     $logger.info(`The cron job "${context.name}" finishes after ${context.round} rounds`)
 }
 
@@ -46,7 +46,7 @@ exports.execute = function (config) {
         $logger.warn(`Cron job "${config.name}" is disabled!`)
     } else {
         let handler = _.isFunction(config.job) ? config.job : require(config.job)
-        let job = cron.job({
+        let job = CronJob.from({
             cronTime: config.cron,
             onTick: onTick,
             onComplete: onComplete,

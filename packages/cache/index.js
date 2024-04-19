@@ -1,29 +1,23 @@
 const _ = require('lodash')
-const LRU = require("lru-cache")
 const stringify = require('json-stable-stringify')
 const { duration } = require('@vimesh/utils')
 const Promise = require('bluebird')
 
 function MemoryCache(options) {
-    const max = options.maxCount || 10000
-    const maxAge = duration(options.maxAge)
-    const stale = options.stale
-    const updateAgeOnGet = options.updateAgeOnGet
+    this.max = options.maxCount || 10000
+    this.maxAge = duration(options.maxAge)
+    this.stale = options.stale
+    this.updateAgeOnGet = options.updateAgeOnGet
     this.enumList = null
     this.enumInterval = options.enumInterval
     this.enumForceReload = options.enumForceReload
     this.onRefresh = options.onRefresh
     this.onEnumerate = options.onEnumerate
-    if (!this.onRefresh) throw Error('onRefresh() method must be provided when creating cache.')    
-    this.cache = new LRU({
-        maxAge,
-        stale,
-        max,
-        updateAgeOnGet
-    })
-    if (this.enumInterval){
+    if (!this.onRefresh) throw Error('onRefresh() method must be provided when creating cache.')
+    this.cache = {}
+    if (this.enumInterval) {
         setInterval(() => {
-            if (this.onEnumerate){
+            if (this.onEnumerate) {
                 this.onEnumerate().then(rs => {
                     if (_.isArray(rs)) enumList = rs
                 })
@@ -32,8 +26,8 @@ function MemoryCache(options) {
     }
 }
 
-MemoryCache.prototype.ensureEnumList = function() {
-    if (this.onEnumerate && (this.enumForceReload || !this.enumList)){
+MemoryCache.prototype.ensureEnumList = function () {
+    if (this.onEnumerate && (this.enumForceReload || !this.enumList)) {
         return this.onEnumerate().then(rs => {
             if (_.isArray(rs)) this.enumList = rs
             return Promise.resolve(this.enumList)
@@ -44,7 +38,7 @@ MemoryCache.prototype.ensureEnumList = function() {
     return Promise.resolve(this.enumList)
 }
 
-MemoryCache.prototype.enumerate = function(withContent = true) {
+MemoryCache.prototype.enumerate = function (withContent = true) {
     return this.ensureEnumList().then(rs => {
         if (!this.enumList) return Promise.resolve([])
         return Promise.all(_.map(this.enumList, key => withContent ? this.get(key) : 1)).then(rs => {
@@ -55,18 +49,18 @@ MemoryCache.prototype.enumerate = function(withContent = true) {
     })
 }
 
-MemoryCache.prototype.get = function(keyObj) {
+MemoryCache.prototype.get = function (keyObj) {
     const cache = this.cache
     let key = _.isString(keyObj) ? keyObj : stringify(keyObj)
-    let reload = !cache.has(key)
-    let val = cache.get(key)
+    let val = cache[key]
     if (val !== undefined) {
-        if (reload) { // refresh when value is stale
-            this.refreshValue(keyObj).catch(ex => {
+        if (val.at + this.maxAge < new Date().valueOf()) { 
+            let nval = this.refreshValue(keyObj).catch(ex => {
                 $logger.error(`Fails to fetch value with key (${keyObj})`, ex)
             })
+            if (!this.stale) return nval
         }
-        return Promise.resolve(val)
+        return Promise.resolve(val.value)
     } else {
         return this.refreshValue(keyObj).catch(ex => {
             $logger.error(`Fails to fetch value with key (${keyObj})`, ex)
@@ -82,11 +76,11 @@ MemoryCache.prototype.refreshValue = function (keyObj) {
         if (r !== undefined) {
             if (_.isFunction(r && r.then)) {
                 return r.then(val => {
-                    cache.set(key, val)
+                    cache[key] = { value: val, at: new Date().valueOf() }
                     return val
                 })
             } else {
-                cache.set(key, r)
+                cache[key] = { value: r, at: new Date().valueOf() }
                 return Promise.resolve(r)
             }
         } else {
@@ -97,7 +91,7 @@ MemoryCache.prototype.refreshValue = function (keyObj) {
     }
 }
 
-function createMemoryCache(options){
+function createMemoryCache(options) {
     return new MemoryCache(options)
 }
 module.exports = {

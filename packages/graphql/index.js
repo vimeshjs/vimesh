@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const fs = require('fs')
 const path = require('path')
-const glob = require('glob')
+const { glob } = require('glob')
 const { loadText } = require('@vimesh/utils')
 
 const { ApolloGateway } = require("@apollo/gateway");
@@ -19,9 +19,9 @@ function setupGraphQLService(options) {
         throw new Error(`GraphQL server config path "${options.path}" does not exist!`)
 
     let Server = ApolloServer
-    if (options.attach){
-        switch(options.attach.type){
-            case 'Express' : 
+    if (options.attach) {
+        switch (options.attach.type) {
+            case 'Express':
             default:
                 Server = require('apollo-server-express').ApolloServer
         }
@@ -54,11 +54,11 @@ function setupGraphQLService(options) {
     const server = new Server({
         schema: buildFederatedSchema({ typeDefs, resolvers })
     })
-    if (options.attach){
-        switch(options.attach.type){
-            case 'Express' : 
+    if (options.attach) {
+        switch (options.attach.type) {
+            case 'Express':
             default:
-                server.applyMiddleware({ app : options.attach.to });
+                server.applyMiddleware({ app: options.attach.to });
         }
         $logger.info(`GraphQL server ${path.basename(options.path)} runs `)
     } else {

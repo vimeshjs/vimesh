@@ -1,7 +1,7 @@
 const _ = require('lodash')
 const http = require('http')
 const path = require('path')
-const glob = require('glob')
+const { glob } = require('glob')
 const fs = require('graceful-fs')
 const yaml = require('js-yaml')
 const EventEmitter = require('events');
@@ -17,7 +17,6 @@ const { createMemoryCache } = require('@vimesh/cache')
 const Promise = require('bluebird')
 const accessAsync = Promise.promisify(fs.access)
 const readFileAsync = Promise.promisify(fs.readFile)
-const globAsync = Promise.promisify(glob)
 const defaultHbsHelpers = require('./hbs-helpers')
 
 class PortletServer extends EventEmitter {
@@ -137,7 +136,7 @@ class PortletServer extends EventEmitter {
         this.createAssetsCache('layouts')
         this.createAssetsCache('partials')
         this.createAssetsCache('views')
-        
+
         this.emit('beforeSetupRoutes')
         setupRoutes(this)
         this.emit('afterSetupRoutes')
@@ -201,7 +200,7 @@ class PortletServer extends EventEmitter {
                 updateAgeOnGet: false,
                 onEnumerate() {
                     let dir = path.join(assetsDir, type)
-                    return globAsync(`${dir}/**/*${extName}`).then(files => {
+                    return glob(`${dir}/**/*${extName}`).then(files => {
                         return _.map(files, f => {
                             let rf = path.relative(dir, f)
                             rf = rf.replace(/\\/g, '/')
