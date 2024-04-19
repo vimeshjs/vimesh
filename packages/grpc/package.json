@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/grpc",
-  "version": "0.11.15",
+  "version": "0.12.0",
   "description": "Vimesh gRPC server and client",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
@@ -9,7 +9,7 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.10.6",
     "@grpc/proto-loader": "^0.7.12",
-    "@vimesh/logger": "^0.11.15",
+    "@vimesh/logger": "^0.12.0",
     "glob": "^10.3.12",
     "grpc-boom": "^3.0.12"
   }

@@ -1,13 +1,13 @@
 {
   "name": "@vimesh/utils",
-  "version": "0.11.15",
+  "version": "0.12.0",
   "description": "Vimesh utils",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
-    "@vimesh/logger": "^0.11.15",
+    "@vimesh/logger": "^0.12.0",
     "bluebird": "^3.7.2",
     "crc": "^4.3.2",
     "glob": "^10.3.12",

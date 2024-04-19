@@ -1,14 +1,14 @@
 {
   "name": "@vimesh/cache",
-  "version": "0.11.15",
+  "version": "0.12.0",
   "description": "Vimesh cache management",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
-    "@vimesh/logger": "^0.11.15",
-    "@vimesh/utils": "^0.11.15",
+    "@vimesh/logger": "^0.12.0",
+    "@vimesh/utils": "^0.12.0",
     "bluebird": "^3.7.2",
     "json-stable-stringify": "^1.1.1"
   },

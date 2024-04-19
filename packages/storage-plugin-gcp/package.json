@@ -1,14 +1,14 @@
 {
   "name": "@vimesh/storage-plugin-gcp",
   "description": "Vimesh Google Cloud storage support",
-  "version": "0.11.15",
+  "version": "0.12.0",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
   "author": "Jacky <jacky@vimesh.org>",
   "license": "MIT",
   "dependencies": {
     "@google-cloud/storage": "^7.10.0",
-    "@vimesh/storage": "^0.11.15",
+    "@vimesh/storage": "^0.12.0",
     "fast-crc32c": "^2.0.0"
   }
 }
