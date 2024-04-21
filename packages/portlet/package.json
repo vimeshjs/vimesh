@@ -1,6 +1,6 @@
 {
   "name": "@vimesh/portlet",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "Vimesh micro-frontend framework",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
