@@ -61,3 +61,17 @@ it('all actions in a resource is allowed ', () => {
     result = evaluatePermissionFormular('user.edit || user.delete', ownedPerms)
     expect(result).toBeTruthy()
 })
+
+it('complex permissions', () => {
+    let ownedPerms = empower(['users.admin'])
+    let result = evaluatePermissionFormular('users.admin || (users.create && users.new) || users.self', ownedPerms)
+    expect(result).toBeTruthy()
+    ownedPerms = empower(['users.create', 'users.view', 'users.new'])
+    // this should also work
+    //result = evaluatePermissionFormular('users.admin || users.create && users.new || users.edit && !users.new || users.self', ownedPerms)
+    result = evaluatePermissionFormular('users.admin || users.create && users.new || (users.edit && !users.new) || users.self', ownedPerms)
+    expect(result).toBeTruthy()
+    ownedPerms = empower(['users.edit', 'users.view', 'users.new'])
+    result = evaluatePermissionFormular('users.admin || users.create && users.new || (users.edit && !users.new) || users.self', ownedPerms)
+    expect(result).toBeFalsy()
+})

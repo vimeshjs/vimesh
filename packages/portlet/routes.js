@@ -3,7 +3,7 @@ const _ = require('lodash')
 const path = require('path')
 const fs = require('graceful-fs')
 const mkdirp = require('mkdirp')
-const formidable = require('formidable')
+const { formidable } = require('formidable')
 const { retryPromise } = require('@vimesh/utils')
 const { formatError, formatOK } = require('./utils')
 const HTTP_METHODS = ['all', 'get', 'post', 'put', 'delete', 'patch', 'config', 'head']
@@ -94,8 +94,12 @@ function setupMiddleware(req, res, next) {
         }
         res.show = (viewPath, data) => {
             if (!data) {
-                data = viewPath || {}
-                viewPath = `${current.urlPath}/${action}`.substring(1) // Remove the first '/'r
+                if (_.isPlainObject(viewPath)) {
+                    data = viewPath
+                    viewPath = `${current.urlPath}/${action}`.substring(1) // Remove the first '/'r
+                } else {
+                    data = {}
+                }
             }
             //res.render(viewPath, data) --> It will check the view file in the disk, while our view may be in another peer server
             viewEngine(viewPath, _.extend(res.locals, data), (err, html) => {
