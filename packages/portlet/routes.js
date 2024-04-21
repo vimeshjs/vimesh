@@ -50,6 +50,7 @@ function bodyParserMiddleware(req, res, next) {
             if (err) return next(err)
             req.body = fields
             req.files = _.mapValues(files, f => {
+                if (_.isArray(f)) f = f[0]
                 return {
                     _raw: f,
                     name: f.originalFilename,
