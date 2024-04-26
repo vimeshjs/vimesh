@@ -689,6 +689,10 @@ module.exports = {
     info : ${JSON.stringify(info)},
     async up(query, log)
     {
+        if (query.context){
+            log = query.context.log
+            query = query.context.query
+        }
         ${commands.join('\r\n')}
     }
 }

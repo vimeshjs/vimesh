@@ -1,19 +1,14 @@
 
 const Sequelize = require("sequelize")
 module.exports = {
-    info : {"revision":1,"name":"init","file":"001-init","created":"2021-06-18T05:02:52.219Z"},
+    info : {"revision":1,"name":"init","file":"001-init","created":"2024-04-26T09:03:36.757Z"},
     async up(query, log)
     {
+        if (query.context){
+            log = query.context.log
+            query = query.context.query
+        }
         
-        log && log(`Processing createTable("roles",... )`)
-        await query.createTable("roles",
-     { 
-      "id": { "type": Sequelize.INTEGER, "field":"id", "autoIncrement":true, "primaryKey":true, "allowNull":false }, 
-      "name": { "type": Sequelize.STRING, "field":"name", "allowNull":false }, 
-      "permissions": { "type": Sequelize.JSON, "field":"permissions" }
-     },
-    {})
-
         log && log(`Processing createTable("users",... )`)
         await query.createTable("users",
      { 
@@ -27,6 +22,23 @@ module.exports = {
      },
     {})
 
+        log && log(`Processing createTable("roles",... )`)
+        await query.createTable("roles",
+     { 
+      "id": { "type": Sequelize.INTEGER, "field":"id", "autoIncrement":true, "primaryKey":true, "allowNull":false }, 
+      "name": { "type": Sequelize.STRING, "field":"name", "allowNull":false }, 
+      "permissions": { "type": Sequelize.JSON, "field":"permissions" }
+     },
+    {})
+
+        log && log(`Processing createTable("user_roles",... )`)
+        await query.createTable("user_roles",
+     { 
+      "UserId": { "type": Sequelize.INTEGER, "field":"user_id", "onUpdate":"CASCADE", "onDelete":"CASCADE", "references":{"model":"users","key":"id"}, "primaryKey":true }, 
+      "RoleId": { "type": Sequelize.INTEGER, "field":"role_id", "onUpdate":"CASCADE", "onDelete":"CASCADE", "references":{"model":"roles","key":"id"}, "primaryKey":true }
+     },
+    {})
+
         log && log(`Processing createTable("user_actions",... )`)
         await query.createTable("user_actions",
      { 
@@ -37,14 +49,6 @@ module.exports = {
       "at": { "type": Sequelize.DATE, "field":"at" }, 
       "dd": { "type": Sequelize.NUMBER, "field":"dd" }, 
       "userId": { "type": Sequelize.INTEGER, "field":"user_id", "onUpdate":"CASCADE", "onDelete":"SET NULL", "references":{"model":"users","key":"id"}, "allowNull":true }
-     },
-    {})
-
-        log && log(`Processing createTable("user_roles",... )`)
-        await query.createTable("user_roles",
-     { 
-      "UserId": { "type": Sequelize.INTEGER, "field":"user_id", "onUpdate":"CASCADE", "onDelete":"CASCADE", "references":{"model":"users","key":"id"}, "primaryKey":true }, 
-      "RoleId": { "type": Sequelize.INTEGER, "field":"role_id", "onUpdate":"CASCADE", "onDelete":"CASCADE", "references":{"model":"roles","key":"id"}, "primaryKey":true }
      },
     {})
 

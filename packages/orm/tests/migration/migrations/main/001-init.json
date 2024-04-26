@@ -1,7 +1,35 @@
 {
   "tables": {
-    "roles": {
-      "tableName": "roles",
+    "user_roles": {
+      "tableName": "user_roles",
+      "schema": {
+        "UserId": {
+          "primaryKey": true,
+          "references": {
+            "model": "users",
+            "key": "id"
+          },
+          "onDelete": "CASCADE",
+          "onUpdate": "CASCADE",
+          "field": "user_id",
+          "seqType": "Sequelize.INTEGER"
+        },
+        "RoleId": {
+          "primaryKey": true,
+          "references": {
+            "model": "roles",
+            "key": "id"
+          },
+          "onDelete": "CASCADE",
+          "onUpdate": "CASCADE",
+          "field": "role_id",
+          "seqType": "Sequelize.INTEGER"
+        }
+      },
+      "indexes": {}
+    },
+    "user_actions": {
+      "tableName": "user_actions",
       "schema": {
         "id": {
           "allowNull": false,
@@ -10,17 +38,39 @@
           "field": "id",
           "seqType": "Sequelize.INTEGER"
         },
-        "name": {
-          "allowNull": false,
-          "field": "name",
+        "action": {
+          "field": "action",
           "seqType": "Sequelize.STRING"
         },
-        "permissions": {
-          "field": "permissions",
+        "method": {
+          "field": "method",
+          "seqType": "Sequelize.STRING"
+        },
+        "data": {
+          "field": "data",
           "seqType": "Sequelize.JSON"
+        },
+        "at": {
+          "field": "at",
+          "seqType": "Sequelize.DATE"
+        },
+        "dd": {
+          "field": "dd",
+          "seqType": "Sequelize.NUMBER"
+        },
+        "userId": {
+          "allowNull": true,
+          "references": {
+            "model": "users",
+            "key": "id"
+          },
+          "onDelete": "SET NULL",
+          "onUpdate": "CASCADE",
+          "field": "user_id",
+          "seqType": "Sequelize.INTEGER"
         }
       },
-      "indexes": []
+      "indexes": {}
     },
     "users": {
       "tableName": "users",
@@ -78,8 +128,8 @@
         }
       }
     },
-    "user_actions": {
-      "tableName": "user_actions",
+    "roles": {
+      "tableName": "roles",
       "schema": {
         "id": {
           "allowNull": false,
@@ -88,67 +138,17 @@
           "field": "id",
           "seqType": "Sequelize.INTEGER"
         },
-        "action": {
-          "field": "action",
+        "name": {
+          "allowNull": false,
+          "field": "name",
           "seqType": "Sequelize.STRING"
         },
-        "method": {
-          "field": "method",
-          "seqType": "Sequelize.STRING"
-        },
-        "data": {
-          "field": "data",
+        "permissions": {
+          "field": "permissions",
           "seqType": "Sequelize.JSON"
-        },
-        "at": {
-          "field": "at",
-          "seqType": "Sequelize.DATE"
-        },
-        "dd": {
-          "field": "dd",
-          "seqType": "Sequelize.NUMBER"
-        },
-        "userId": {
-          "allowNull": true,
-          "references": {
-            "model": "users",
-            "key": "id"
-          },
-          "onDelete": "SET NULL",
-          "onUpdate": "CASCADE",
-          "field": "user_id",
-          "seqType": "Sequelize.INTEGER"
         }
       },
-      "indexes": []
-    },
-    "user_roles": {
-      "tableName": "user_roles",
-      "schema": {
-        "UserId": {
-          "primaryKey": true,
-          "references": {
-            "model": "users",
-            "key": "id"
-          },
-          "onDelete": "CASCADE",
-          "onUpdate": "CASCADE",
-          "field": "user_id",
-          "seqType": "Sequelize.INTEGER"
-        },
-        "RoleId": {
-          "primaryKey": true,
-          "references": {
-            "model": "roles",
-            "key": "id"
-          },
-          "onDelete": "CASCADE",
-          "onUpdate": "CASCADE",
-          "field": "role_id",
-          "seqType": "Sequelize.INTEGER"
-        }
-      },
-      "indexes": []
+      "indexes": {}
     }
   },
   "revision": 1

@@ -45,13 +45,16 @@ function generate(sequelize, name, checkpoint, migrationsDir, migrationModel) {
 async function execute(sequelize, name, migrationsDir, migrationModel) {
     const umzug = new Umzug({
         migrations: { glob: `${migrationsDir}/${name}/*.js` },
-        context: sequelize.getQueryInterface(),
+        context: {
+            query: sequelize.getQueryInterface(),
+            log: msg => $logger.debug(msg)
+        },
         storage: new SequelizeStorage({
             sequelize,
             modelName: migrationModel,
             tableName: _.snakeCase(migrationModel)
         }),
-        logger: msg => $logger.debug(msg)
+        logger: $logger
     })
     try {
         await umzug.up();
