@@ -1,7 +1,7 @@
 {
   "name": "@vimesh/orm",
   "description": "Vimesh ORM",
-  "version": "0.12.0",
+  "version": "0.12.4",
   "main": "index.js",
   "repository": "https://github.com/vimeshjs/vimesh.git",
   "author": "Jacky <jacky@vimesh.org>",
