@@ -21,7 +21,8 @@ function S3Storage(config) {
         {
             accessKeyId: options.accessKey,
             secretAccessKey: options.secretKey,
-            region: options.region
+            region: options.region,
+            endpoint: options.endpoint
         }
     )
     this.bucketPrefix = options.bucketPrefix || ''
