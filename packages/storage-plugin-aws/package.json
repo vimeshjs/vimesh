@@ -9,5 +9,6 @@
   "dependencies": {
     "@vimesh/storage": "^0.12.0",
     "aws-sdk": "^2.1602.0"
-  }
+  },
+  "gitHead": "3bc1624d85871ee6e098918d96568acc9efddb71"
 }

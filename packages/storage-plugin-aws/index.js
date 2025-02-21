@@ -22,7 +22,8 @@ function S3Storage(config) {
             accessKeyId: options.accessKey,
             secretAccessKey: options.secretKey,
             region: options.region,
-            endpoint: options.endpoint
+            endpoint: options.endpoint,
+            s3ForcePathStyle: true 
         }
     )
     this.bucketPrefix = options.bucketPrefix || ''
